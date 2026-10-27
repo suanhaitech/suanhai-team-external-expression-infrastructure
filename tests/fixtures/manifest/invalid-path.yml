@@ -1,0 +1,8 @@
+schema_version: 1
+repository: suanhai-team-external-expression-infrastructure
+capabilities:
+  - id: html.example
+    kind: skill
+    path: ../README.md
+    entrypoint: ../README.md
+    purpose: 越界路径测试

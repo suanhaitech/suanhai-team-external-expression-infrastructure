@@ -1,0 +1,46 @@
+name: Validate manifest
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Validate current manifest
+        run: ruby scripts/validate_manifest.rb
+
+      - name: Validate accepted fixture
+        run: ruby scripts/validate_manifest.rb --manifest tests/fixtures/manifest/valid-empty.yml
+
+      - name: Validate populated fixture
+        run: ruby scripts/validate_manifest.rb --manifest tests/fixtures/manifest/valid-capability.yml
+
+      - name: Reject invalid fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          for fixture in tests/fixtures/manifest/invalid-*.yml; do
+            if ruby scripts/validate_manifest.rb --manifest "$fixture"; then
+              echo "Expected fixture to fail: $fixture"
+              exit 1
+            fi
+          done

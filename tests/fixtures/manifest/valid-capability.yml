@@ -1,0 +1,8 @@
+schema_version: 1
+repository: suanhai-team-external-expression-infrastructure
+capabilities:
+  - id: docs.architecture
+    kind: check
+    path: docs/architecture.md
+    entrypoint: docs/architecture.md
+    purpose: 用于覆盖入口文件存在性校验

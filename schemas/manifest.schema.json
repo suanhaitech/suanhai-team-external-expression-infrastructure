@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/blob/main/schemas/manifest.schema.json",
+  "title": "Suanhai external expression infrastructure manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository", "capabilities"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "repository": {
+      "const": "suanhai-team-external-expression-infrastructure"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "path", "entrypoint", "purpose"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
+          },
+          "kind": {
+            "enum": ["skill", "template", "tool", "harness", "check"]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entrypoint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inputs": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "outputs": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}
