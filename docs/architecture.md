@@ -22,6 +22,15 @@
 
 Manifest 只列出已经实现并可被消费端使用的能力。计划能力写在路线文档和对应目录的 README 中，不进入清单。
 
+## 消费端工作层
+
+一个小组资产仓库同时使用两类入口：
+
+- **项目工作入口**：消费端自己的 `AGENTS.md`、`context/`、`tasks/`、`works/` 和 `reviews/`，解释项目事实、任务、来源、作品和评审；
+- **共享能力入口**：本仓库 submodule 中的 `manifest.yml`，只声明已经实现、可验证和可调用的能力。
+
+消费端 Harness 把两类入口连接成任务路线，但不把项目事实复制到共享仓库，也不把计划目录提升成能力。消费端必须在根 `AGENTS.md` 显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)，否则 submodule 中的文档不会自动改变 Agent 行为。完整协议和冒烟测试见 [消费端对外表达 Harness v0.1](consumer-repository-harness-v0.1.md) 和 [消费端 Agent 冒烟测试](consumer-repository-smoke-test.md)。
+
 ## 责任边界
 
 基础设施仓库提供“如何工作”的共享能力。小组资产仓库提供“正在表达什么”的事实、来源、任务上下文、评审和责任记录。Agent 可以执行工具，但不因此成为专业判断或对外发布的责任主体。

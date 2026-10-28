@@ -28,6 +28,16 @@ capabilities: []
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
+## 消费端 Harness
+
+通过 submodule 使用本仓库的小组资产仓库，应把自己的 `AGENTS.md`、`context/`、`tasks/`、`works/` 和 `reviews/` 作为项目工作入口，把本仓库的 `manifest.yml` 作为共享能力入口。消费端 Agent 的启动接入、读取顺序、任务路线、停止条件和首个 HTML 冒烟测试见：
+
+- [消费端 Agent Bootstrap 协议](docs/consumer-repository-bootstrap.md)
+- [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
+- [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
+
+Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。这些文档当前是可人工执行的工作协议，不会因为存在于仓库中就变成 Manifest 能力。当前 `capabilities` 为空，消费端可以验证上下文装配、能力发现和停止条件，不能调用 HTML 制作工具。
+
 ## 开发和版本
 
 - `main`：稳定、可被 submodule 固定引用的版本；
