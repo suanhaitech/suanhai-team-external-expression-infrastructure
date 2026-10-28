@@ -1,0 +1,11 @@
+# 第三方与衍生说明
+
+本模板衍生自 Start Bootstrap Agency 7.0.12：
+
+- 上游仓库：https://github.com/StartBootstrap/startbootstrap-agency
+- 固定提交：`b2d5d5c6b1396bc5b0e8dd92c693b106cfb7cee1`
+- 上游许可证：MIT，版权归 Start Bootstrap LLC 所有，详见 `LICENSE`。
+
+`styles.css` 保留了上游 Agency 与 Bootstrap 5.2.3 的相关样式和许可证头。Bootstrap 相关版权归 Bootstrap Authors 和 Twitter, Inc. 所有，同样适用 MIT 许可证。模板移除了上游 HTML 中的远程字体、图标、图片、表单服务和 CDN 脚本，改为本地系统字体和静态页面结构。
+
+本目录没有随模板再分发第三方图片、字体、图标文件或运行时网络服务。消费端自行加入的素材必须单独登记来源、许可证和使用授权。

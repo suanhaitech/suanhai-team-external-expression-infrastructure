@@ -33,7 +33,7 @@ Agent 的工作目录必须是本仓库根目录。开始任何对外表达任�
 
 当前 Manifest 包含 `expression.task-loop` 时，读取其 entrypoint，并通过 `expression.task-record` 管理任务。用户给出任务号时先 show 读取，恢复前只核对状态；不要根据旧聊天或旧测试报告推断本轮事实。
 
-共享能力只能从 submodule 的 `manifest.yml` 发现。只有 `capabilities` 中显式列出的能力才可调用；计划目录、占位 README 和未列出的路径都不可调用。当前 Manifest 可能为空，此时记录“无可用共享能力”和 submodule commit，并按 Harness 文档的停止条件工作。
+共享能力只能从 submodule 的 `manifest.yml` 发现。只有 `capabilities` 中显式列出的能力才可调用；计划目录、占位 README 和未列出的路径都不可调用。当前 Manifest 已声明任务循环、记录工具和一套离线项目汇报模板；HTML 自动生成、预览和检查器仍不可调用。
 
 项目事实、来源文件、作品、评审记录和发布授权写入本仓库；默认不修改 submodule。提交、推送、部署或发布须有相应用户授权；已有授权在其范围内继续有效。Agent 不能代替专业事实评审、责任主体确认或对外授权。
 ```
