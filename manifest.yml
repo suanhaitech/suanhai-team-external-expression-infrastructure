@@ -33,3 +33,13 @@ capabilities:
     outputs:
       - 消费端作品目录中的可离线打开的 HTML 页面
       - 页面同目录的本地 CSS 文件
+  - id: consumer.submodule-preflight
+    kind: tool
+    path: tools/submodule-preflight
+    entrypoint: tools/submodule-preflight/submodule_preflight.py
+    purpose: 只读核对消费端 submodule 的固定 gitlink、检出状态和远端稳定分支指针；不执行升级、回退或自动漂移
+    inputs:
+      - 消费端父仓库根目录和 submodule 相对路径
+      - 可选的远端名称、稳定 ref、升级候选 commit 和检查超时
+    outputs:
+      - submodule-preflight.v1 JSON 或人类可读检查结果
