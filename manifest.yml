@@ -1,3 +1,24 @@
 schema_version: 1
 repository: suanhai-team-external-expression-infrastructure
-capabilities: []
+capabilities:
+  - id: expression.task-loop
+    kind: harness
+    path: harness/task-loop
+    entrypoint: harness/task-loop/ENTRYPOINT.md
+    purpose: 消费端Agent执行需求澄清、共识对齐、多轮反馈、暂停恢复与按任务号续作的文件工作协议；不自动调用模型或生成HTML
+    inputs:
+      - 用户请求或消费端任务编号
+      - 消费端项目上下文与实际用户授权
+    outputs:
+      - 可追溯任务草案、用户决定、迭代状态与恢复入口
+  - id: expression.task-record
+    kind: tool
+    path: harness/task-loop/scripts
+    entrypoint: harness/task-loop/scripts/task_loop.py
+    purpose: 使用Python标准库管理消费端任务JSON、阅读视图、状态流转与单文件产出摘要；不是权限系统或Agent执行器
+    inputs:
+      - 消费端根目录与任务操作
+      - 已有任务写入所需的预期记录版本
+    outputs:
+      - tasks目录中的task.json与生成的task.md
+      - JSON格式的任务状态或明确错误

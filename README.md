@@ -2,7 +2,7 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-首版只建立仓库骨架和 Agent 发现协议。HTML 技能、模板、预览工具、Harness 和检查器目前都是计划中的目录，尚未实现，也不会出现在 `manifest.yml` 的 `capabilities` 中。
+当前提供可发现的任务循环与任务状态工具，支持任务草案、共识对齐、反馈迭代、暂停恢复和按编号续作。HTML 技能、页面模板、预览和 HTML 检查器尚未实现；任务循环不会自动生成或渲染网页。
 
 ## 仓库职责
 
@@ -18,13 +18,12 @@
 
 ## Agent 发现入口
 
-Agent 只能从仓库根目录的 `manifest.yml` 发现已实现能力。当前清单为空：
+Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 
-```yaml
-schema_version: 1
-repository: suanhai-team-external-expression-infrastructure
-capabilities: []
-```
+| ID | 类型 | 作用 |
+| --- | --- | --- |
+| `expression.task-loop` | harness | 由消费端 Agent 执行的任务协作循环 |
+| `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
@@ -35,8 +34,10 @@ capabilities: []
 - [消费端 Agent Bootstrap 协议](docs/consumer-repository-bootstrap.md)
 - [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
+- [任务循环入口](harness/task-loop/ENTRYPOINT.md)
+- [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
 
-Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。这些文档当前是可人工执行的工作协议，不会因为存在于仓库中就变成 Manifest 能力。当前 `capabilities` 为空，消费端可以验证上下文装配、能力发现和停止条件，不能调用 HTML 制作工具。
+Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环与配套工具，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱，也不包含 HTML 制作能力。
 
 ## 开发和版本
 
@@ -56,6 +57,12 @@ ruby scripts/validate_manifest.rb
 
 校验脚本只使用 Ruby 标准库，不需要安装仓库级依赖。完整 CI 由 `.github/workflows/validate-manifest.yml` 执行。
 
+任务循环需要 Python 3.10+，仅使用标准库：
+
+```text
+python -m unittest discover -s tests -p "test_task_loop.py" -v
+```
+
 ## 当前阶段边界
 
-本阶段不实现 HTML 制作工具，不创建大工项目资产仓库，也不接入数据库、云端 API 或部署流程。后续会以“大工项目概览与当前进展”HTML 汇报页作为第一个真实消费端进行验证。
+本阶段先验证任务循环和跨会话恢复，不接入数据库、云端 API 或部署流程。消费端可先用隔离的 Markdown 测试产出验证循环，再实现 HTML 制作能力并用于真实项目任务。

@@ -44,3 +44,20 @@ jobs:
               exit 1
             fi
           done
+
+  task-loop:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate task lifecycle and filesystem boundaries
+        run: python -m unittest discover -s tests -p "test_task_loop.py" -v

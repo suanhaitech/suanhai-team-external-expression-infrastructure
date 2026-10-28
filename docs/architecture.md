@@ -31,6 +31,12 @@ Manifest 只列出已经实现并可被消费端使用的能力。计划能力�
 
 消费端 Harness 把两类入口连接成任务路线，但不把项目事实复制到共享仓库，也不把计划目录提升成能力。消费端必须在根 `AGENTS.md` 显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)，否则 submodule 中的文档不会自动改变 Agent 行为。完整协议和冒烟测试见 [消费端对外表达 Harness v0.1](consumer-repository-harness-v0.1.md) 和 [消费端 Agent 冒烟测试](consumer-repository-smoke-test.md)。
 
+## 任务循环与恢复
+
+当前 [任务循环入口](../harness/task-loop/ENTRYPOINT.md) 由 Manifest 发现，配套 Python 工具以消费端 `tasks/<编号>/task.json` 为唯一任务事实源，生成 `task.md` 阅读视图。状态、共识记录、反馈、产出摘要和下一步留在消费端；共享仓只维护通用协议与工具。
+
+用户协作循环负责目标和版本确认，Agent 内部循环负责授权范围内的制作与检查。状态工具不运行 Agent、不提供 HTML 生成或浏览器预览，也无法证明用户身份或发布权限。跨设备恢复依赖父仓文件同步与准确 submodule gitlink，不由任务编号自动完成。
+
 ## 责任边界
 
 基础设施仓库提供“如何工作”的共享能力。小组资产仓库提供“正在表达什么”的事实、来源、任务上下文、评审和责任记录。Agent 可以执行工具，但不因此成为专业判断或对外发布的责任主体。

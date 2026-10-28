@@ -4,10 +4,9 @@
 
 ## 当前状态
 
-- 仓库首版只完成骨架和 Agent 发现协议；
+- 仓库提供 Agent 发现协议与任务循环（`expression.task-loop`）；
 - `manifest.yml` 是能力发现的唯一入口；
-- `capabilities` 为空表示当前没有可调用能力；
-- `skills/`、`templates/`、`harness/`、`tools/`、`checks/` 下的占位目录均为 `planned / not implemented`；
+- 实际能力以当前 `capabilities` 为准；任务循环入口和状态工具属于已实现能力，HTML 制作相关目录仍为 `planned / not implemented`；
 - 不得因为目录存在，就把计划能力描述为已经可用。
 
 ## 开发边界
@@ -17,6 +16,7 @@
 - 不在这里实现项目任务、数据库、云端接口或部署流程；
 - 不自动执行 Git commit、push、部署或正式发布；
 - 工程检查通过不代表专业内容正确，也不代表对外发布已经获得授权。
+- 任务循环的用户原话是追溯记录，不是身份认证；测试数据只在隔离目录创建，不进入本仓或消费端真实业务。
 
 ## 分支约定
 
