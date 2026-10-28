@@ -4,9 +4,9 @@
 
 ## 当前状态
 
-- 仓库提供 Agent 发现协议与任务循环（`expression.task-loop`）；
+- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）和一套实验性的离线项目汇报模板（`html.project-report-v1`）；
 - `manifest.yml` 是能力发现的唯一入口；
-- 实际能力以当前 `capabilities` 为准；任务循环入口和状态工具属于已实现能力，HTML 制作相关目录仍为 `planned / not implemented`；
+- 实际能力以当前 `capabilities` 为准；任务循环、状态工具和项目汇报模板属于已实现能力，HTML 自动生成、预览和检查相关目录仍为 `planned / not implemented`；
 - 不得因为目录存在，就把计划能力描述为已经可用。
 
 ## 开发边界

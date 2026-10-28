@@ -8,17 +8,17 @@
 - 固定 `manifest.yml` 和 Manifest Schema；
 - 提供 Ruby 标准库校验脚本与 GitHub Actions；
 - 保留 HTML 技能、模板、Harness、预览和检查目录的计划说明；
-- 不把计划能力写入 `capabilities`。
+- 只有已完成许可登记、离线核验和消费端试用的能力才写入 `capabilities`。
 
 本阶段新增的消费端 Harness 协议，先以文档和人工冒烟测试验证。消费端必须显式接入 Bootstrap 规则，才能让 Agent 读取这套协议；它约束 Agent 的读取顺序、任务路由、来源边界、停止条件和评审收口，但不声明 HTML 工具已经实现。
 
 ## 当前增量：可恢复的任务循环
 
-实现 `expression.task-loop` 与 `expression.task-record`，提供草案、对齐、反馈、暂停、完成和按编号恢复。先在隔离测试目录用 Markdown 结构草稿验证多轮与换 Agent 续作；测试标识不构成真实任务或确认。详见 [任务循环验证](task-loop-validation.md)。HTML 能力仍未实现。
+实现 `expression.task-loop` 与 `expression.task-record`，并接入 `html.project-report-v1` 模板，提供草案、对齐、反馈、暂停、完成和按编号恢复。模板验证先使用隔离测试任务，不把测试标识当作真实项目或确认。详见 [任务循环验证](task-loop-validation.md)。
 
 ## 下一阶段：HTML 能力切片
 
-实现 `html.external-expression` 的最小纵向能力：读取任务说明和获准来源，使用模板形成 HTML，在本地预览并完成确定性检查。内容判断、专业准确性和对外授权仍由真人负责。
+下一步实现 `html.external-expression` 的最小纵向能力：读取任务说明和获准来源，使用已登记模板形成 HTML，在本地预览并完成确定性检查。内容判断、专业准确性和对外授权仍由真人负责。
 
 ## 再下一阶段：真实消费端验证
 

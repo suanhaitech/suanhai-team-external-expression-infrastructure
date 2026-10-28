@@ -22,3 +22,14 @@ capabilities:
     outputs:
       - tasks目录中的task.json与生成的task.md
       - JSON格式的任务状态或明确错误
+  - id: html.project-report-v1
+    kind: template
+    path: templates/html-report/project-report-v1
+    entrypoint: templates/html-report/project-report-v1/index.html
+    purpose: 离线项目概览、阶段进展和对外汇报页面的静态 HTML/CSS 模板；不包含项目事实、不会调用网络服务
+    inputs:
+      - 已对齐的消费端任务简报和允许使用的来源
+      - 需要替换的 data-slot 页面内容
+    outputs:
+      - 消费端作品目录中的可离线打开的 HTML 页面
+      - 页面同目录的本地 CSS 文件

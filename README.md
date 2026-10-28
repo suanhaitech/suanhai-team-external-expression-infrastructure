@@ -2,7 +2,7 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环与任务状态工具，支持任务草案、共识对齐、反馈迭代、暂停恢复和按编号续作。HTML 技能、页面模板、预览和 HTML 检查器尚未实现；任务循环不会自动生成或渲染网页。
+当前提供可发现的任务循环、任务状态工具和一套实验性的离线项目汇报模板，支持任务草案、共识对齐、反馈迭代、暂停恢复和按编号续作。模板只提供结构和样式，不自动生成内容；预览和 HTML 检查器仍未实现。
 
 ## 仓库职责
 
@@ -24,6 +24,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | --- | --- | --- |
 | `expression.task-loop` | harness | 由消费端 Agent 执行的任务协作循环 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
+| `html.project-report-v1` | template | 离线项目概览、阶段进展和对外汇报 HTML/CSS 模板 |
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
@@ -37,7 +38,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
 
-Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环与配套工具，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱，也不包含 HTML 制作能力。
+Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环、配套工具和项目汇报模板，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱。
 
 ## 开发和版本
 
@@ -65,4 +66,4 @@ python -m unittest discover -s tests -p "test_task_loop.py" -v
 
 ## 当前阶段边界
 
-本阶段先验证任务循环和跨会话恢复，不接入数据库、云端 API 或部署流程。消费端可先用隔离的 Markdown 测试产出验证循环，再实现 HTML 制作能力并用于真实项目任务。
+本阶段先验证任务循环、跨会话恢复和一套离线 HTML 模板，不接入数据库、云端 API 或部署流程。模板不等于自动 HTML 生成器，消费端仍需由 Agent 按任务上下文填充并评审内容。

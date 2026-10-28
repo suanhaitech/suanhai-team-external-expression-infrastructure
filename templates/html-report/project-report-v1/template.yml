@@ -1,0 +1,18 @@
+id: html.project-report-v1
+kind: template
+version: 1.0.0
+upstream:
+  repository: https://github.com/StartBootstrap/startbootstrap-agency
+  commit: b2d5d5c6b1396bc5b0e8dd92c693b106cfb7cee1
+  release: 7.0.12
+  license: MIT
+entrypoint: index.html
+offline: true
+network_dependencies: []
+intended_use:
+  - 项目概览
+  - 阶段进展
+  - 对外汇报
+outputs:
+  - 单个可离线打开的 HTML 页面
+  - 与页面同目录的本地 CSS 文件

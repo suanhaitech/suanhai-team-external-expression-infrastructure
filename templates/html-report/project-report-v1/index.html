@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="项目对外表达页面模板" />
+    <title data-slot="page-title">[项目名称]｜项目概览</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="report.css" />
+  </head>
+  <body class="report-page" id="top">
+    <nav class="report-nav" aria-label="页面导航">
+      <a class="report-brand" href="#top" data-slot="brand">[项目简称]</a>
+      <div class="report-nav-links">
+        <a href="#overview">项目概览</a>
+        <a href="#progress">当前进展</a>
+        <a href="#evidence">证据与边界</a>
+        <a href="#next">下一步</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="report-hero">
+        <div class="report-shell">
+          <div class="report-kicker" data-slot="kicker">[表达用途] · [更新时间]</div>
+          <h1 data-slot="headline">[用一句话说明项目当前最重要的判断]</h1>
+          <p class="report-lede" data-slot="lede">[补充项目目标、当前阶段和读者需要理解的背景。此处只写已获准使用且可以定位来源的内容。]</p>
+          <div class="report-status" aria-label="项目状态">
+            <span class="report-pill" data-slot="project-stage">[当前阶段]</span>
+            <span class="report-pill" data-slot="evidence-status">[证据状态]</span>
+            <span class="report-pill" data-slot="audience">[面向受众]</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-section" id="overview">
+        <div class="report-shell">
+          <div class="report-section-heading">
+            <div class="report-kicker">01 / 项目概览</div>
+            <h2 data-slot="overview-title">先让读者知道我们在解决什么问题。</h2>
+            <p data-slot="overview-lede">[用一段短说明交代项目目标、工作范围和当前阶段，不在这里堆叠全部背景。]</p>
+          </div>
+          <div class="report-grid">
+            <article class="report-card">
+              <span class="report-number" data-slot="metric-1-value">[01]</span>
+              <h3 data-slot="metric-1-label">[关键指标或阶段判断]</h3>
+              <p data-slot="metric-1-note">[指标定义、时间口径和来源位置。]</p>
+            </article>
+            <article class="report-card">
+              <span class="report-number" data-slot="metric-2-value">[02]</span>
+              <h3 data-slot="metric-2-label">[关键成果或约束]</h3>
+              <p data-slot="metric-2-note">[只保留读者理解下一步所需的解释。]</p>
+            </article>
+            <article class="report-card">
+              <span class="report-number" data-slot="metric-3-value">[03]</span>
+              <h3 data-slot="metric-3-label">[待确认事项]</h3>
+              <p data-slot="metric-3-note">[明确证据缺口、责任人或确认时间。]</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-section" id="progress">
+        <div class="report-shell">
+          <div class="report-section-heading">
+            <div class="report-kicker">02 / 当前进展</div>
+            <h2 data-slot="progress-title">把已经完成、正在判断和即将行动分开。</h2>
+            <p data-slot="progress-lede">[每一项进展都应该能关联到来源、产出或明确的责任确认。]</p>
+          </div>
+          <div class="report-grid">
+            <div class="report-card report-card-wide">
+              <div class="report-timeline" data-slot="timeline">
+                <div class="report-timeline-item">
+                  <strong>[阶段一 · 已完成]</strong>
+                  <span>[完成了什么，形成了什么可核对的结果。]</span>
+                </div>
+                <div class="report-timeline-item">
+                  <strong>[阶段二 · 当前]</strong>
+                  <span>[正在处理什么，当前判断和阻塞是什么。]</span>
+                </div>
+                <div class="report-timeline-item">
+                  <strong>[阶段三 · 下一步]</strong>
+                  <span>[下一步行动、责任主体和预期确认点。]</span>
+                </div>
+              </div>
+            </div>
+            <aside class="report-card report-card-aside">
+              <h3 data-slot="progress-aside-title">[当前最需要读者理解的一件事]</h3>
+              <p data-slot="progress-aside-body">[用短句解释进展对合作方、客户或团队意味着什么。]</p>
+              <p class="report-note" data-slot="progress-note">[如果这里的判断仍待核验，明确写出“待确认”，不要用确定语气替代证据。]</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-section" id="evidence">
+        <div class="report-shell">
+          <div class="report-section-heading">
+            <div class="report-kicker">03 / 证据与边界</div>
+            <h2 data-slot="evidence-title">让读者知道哪些内容已经有依据。</h2>
+            <p data-slot="evidence-lede">[只列入任务中登记、允许使用、能够回溯的来源。]</p>
+          </div>
+          <div class="report-table-wrap">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>判断或内容</th>
+                  <th>证据来源</th>
+                  <th>状态</th>
+                  <th>后续动作</th>
+                </tr>
+              </thead>
+              <tbody data-slot="evidence-rows">
+                <tr>
+                  <td>[需要对外表达的判断]</td>
+                  <td>[文件、版本或会议记录]</td>
+                  <td>[已确认 / 待核验]</td>
+                  <td>[责任人和时间]</td>
+                </tr>
+                <tr>
+                  <td>[仍存在的限制]</td>
+                  <td>[来源定位]</td>
+                  <td>[公开边界]</td>
+                  <td>[处理方式]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-section" id="next">
+        <div class="report-shell">
+          <div class="report-section-heading">
+            <div class="report-kicker">04 / 下一步</div>
+            <h2 data-slot="next-title">把共识变成可以继续推进的动作。</h2>
+            <p data-slot="next-lede">[最多列出三项下一步行动，写清责任主体、完成条件和下一次确认点。]</p>
+          </div>
+          <div class="report-grid">
+            <article class="report-card">
+              <h3>行动 01</h3>
+              <p data-slot="next-1">[行动、责任人、完成标准]</p>
+            </article>
+            <article class="report-card">
+              <h3>行动 02</h3>
+              <p data-slot="next-2">[行动、责任人、完成标准]</p>
+            </article>
+            <article class="report-card">
+              <h3>行动 03</h3>
+              <p data-slot="next-3">[行动、责任人、完成标准]</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="report-footer">
+      <div class="report-shell">
+        <span data-slot="footer">[项目名称] · 本页面为任务产出，事实、来源、评审和发布授权分别记录。</span>
+      </div>
+    </footer>
+  </body>
+</html>
