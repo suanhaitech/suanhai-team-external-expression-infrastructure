@@ -25,6 +25,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `expression.task-loop` | harness | 由消费端 Agent 执行的任务协作循环 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 | `html.project-report-v1` | template | 离线项目概览、阶段进展和对外汇报 HTML/CSS 模板 |
+| `consumer.submodule-preflight` | tool | 只读核对消费端 submodule 的固定 gitlink、工作区和远端稳定分支快照 |
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
@@ -34,6 +35,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 
 - [消费端 Agent Bootstrap 协议](docs/consumer-repository-bootstrap.md)
 - [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
+- [消费端 submodule 版本协议](docs/submodule-consumer-versioning.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
