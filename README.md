@@ -41,8 +41,8 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
 - [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
-- [小组资产仓从空仓建立流程](docs/group-asset-repository-bootstrap.md)
-- [小组资产仓模板本地验收记录](docs/group-asset-template-validation.md)
+- [小组资产仓从 GitHub 模板到新机器初始化](docs/group-asset-repository-bootstrap.md)
+- [小组资产仓模板验证与发布记录](docs/group-asset-template-validation.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
 
 Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环、配套工具和项目汇报模板，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱。

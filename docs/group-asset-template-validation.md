@@ -1,6 +1,6 @@
-# 小组资产仓模板 v1：本地验收记录
+# 小组资产仓模板 v1：验证与发布记录
 
-日期：2026-10-29。开发分支：`codex/feat-group-asset-template`，基线 `2797d8349b313b2f4dd17a8106c74ee03583475f`。本文记录尚未提交的开发实现验证，不声称该版本已经可从远程获取。
+日期：2026-10-29。开发分支：`codex/feat-group-asset-template`，基线 `2797d8349b313b2f4dd17a8106c74ee03583475f`。本文分别记录自动化检查、GitHub 模板分发和 Agent 交互试用，不以其中一项替代其他验收。
 
 ## 验证对象
 
@@ -34,13 +34,45 @@ git diff --check
 - 模板仓可以通过任务工具完成测试草案、对齐、制作、`reports/` 产出登记、校验与合成测试确认，`task.json` 和 `task.md` 可读取；
 - 上述流程保持 submodule 工作区干净，不替用户执行提交或推送。
 
-跨平台最终记录：Windows Python 3.12 共运行 48 项，45 项通过、3 项因符号链接权限跳过；Linux Python 3.12 共运行 48 项，47 项通过、1 项 Windows junction 专项跳过。Linux 覆盖了 Windows 无权限执行的符号链接测试；Windows junction 测试实际通过。模板专项包含 17 项，覆盖无首次父仓提交和任务循环衔接。
+初次本地记录：Windows Python 3.12 共运行 48 项，45 项通过、3 项因符号链接权限跳过；Linux Python 3.12 共运行 48 项，47 项通过、1 项 Windows junction 专项跳过。模板专项包含 17 项，覆盖无首次父仓提交和任务循环衔接。
 
-Manifest 使用 WSL Ubuntu 24.04 临时解包的 Ruby 3.2.3 验证：当前 6 项能力通过，2 个有效 fixture 通过，5 个非法 fixture 均按预期拒绝。临时运行时未安装到系统、未修改 PATH。远端 CI 仍使用 Ruby 3.3，须在后续授权推送后运行；本地结果不代替远端 CI。
+第一次远端 CI 暴露两个 Windows 问题：TEMP 的 8.3 短路径和解析后的长路径比较导致误判越界，以及 CP1252 控制台不能输出中文 JSON。修复后，路径两端采用相同的解析边界，三个 Python CLI 在参数解析前统一 UTF-8 输出；新增短路径别名和 CP1252 子进程回归。
 
-## 尚需真实 Agent 试用
+基础设施代码提交 `fa518eee92b728df84cc8019412ec68e3d7d5070` 的 [CI 40845365974](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40845365974) 已通过：
 
-脚本测试能证明文件与版本关系，不能证明所有 Agent 客户端会自动读取规则，也不能证明真人访谈体验。下一步按 [冒烟测试第 7 节](consumer-repository-smoke-test.md#7-新小组模板首启和初始化访谈) 在隔离小组仓试用：
+- Windows Python 3.12：54 项通过；
+- Linux Python 3.12：54 项，53 项通过、1 项 Windows junction 专项跳过；
+- Ruby 3.3 Manifest 检查：当前 6 项能力、有效 fixtures 和非法 fixtures 的预期拒绝均通过。
+
+## GitHub 模板分发与新 clone
+
+公开入口：[suanhaitech/suanhai-team-group-asset-template](https://github.com/suanhaitech/suanhai-team-group-asset-template)。仓库已设置 `is_template=true`，默认分支 `main`。
+
+本次发布及测试固定值仅是验收快照，不是另一份版本锁：
+
+| 对象 | 已核对的提交 |
+| --- | --- |
+| 独立模板仓 | `5f0858390f2d8c09511d9722a15dee9c28688a87` |
+| 模板及生成仓的基础设施 gitlink | `fa518eee92b728df84cc8019412ec68e3d7d5070` |
+| GitHub generate API 生成的隔离私有测试仓 | `242dfacff6a81e7104e6bc500e2fd934a41c1ec5` |
+
+实测结果：
+
+- 模板源文件与独立模板仓对应文件一致，后者额外维护 `.gitmodules` 和真正的 `160000` gitlink，没有把基础设施复制为普通目录。
+- GitHub generate API 保留了 `.gitmodules`、HTTPS URL、路径和固定 gitlink；生成仓的 `template_repository` 正确指向公开模板仓。不能只根据 GitHub 文档或目录存在推断这一点。
+- Windows 全新 `git clone --recurse-submodules` 成功；父仓 gitlink 与基础设施 HEAD 一致，submodule 干净，本地预检 `ok: true`。
+- 另一次普通 clone 的 submodule 初始为未初始化；执行 `git submodule update --init --recursive -- vendor/suanhai-team-external-expression-infrastructure` 后恢复相同固定提交，父仓无变化。此项验证 Git 恢复命令，不冒充 Agent 自动恢复的交互测试。
+- 模板仓 [CI 40846013485](https://github.com/suanhaitech/suanhai-team-group-asset-template/actions/runs/40846013485) 与隔离生成仓的启动 CI 均在 Windows、Linux、macOS 通过递归 checkout、只读预检及初始化入口检查。CI 不执行用户访谈，也不证明所有 Agent 客户端都能自动加载规则。
+
+## Agent 冷启动初测
+
+在从 GitHub 模板生成的隔离仓中，使用独立、临时 Codex CLI 会话，未传入历史聊天或额外仓库规则，只输入“初始化小组资产仓”。只读首启能够找到根规则、Manifest、固定版本和初始化 Harness，识别未初始化状态，先询问工作角色、小组身份和仓库可见性；未创建业务任务或写入虚构事实。
+
+这次首测使用前一代码提交 `3623fa6d2f7ce5e561feccc94b35c98c28fbd43a`，只证明其只读访谈入口。客户端沙箱网络不可达时，Agent 保留远端未知的结果，并通过 `--skip-remote` 核对本地固定版本；没有修改网络或客户端配置。
+
+## 真人与其他客户端的后续试用
+
+脚本测试和隔离演练不能证明所有 Agent 客户端会自动读取规则，也不能替代真人访谈体验。按 [新机器测试手册](group-asset-repository-bootstrap.md) 在本小组仓中继续试用：
 
 1. 在根目录启动全新会话，先只读识别未初始化状态和 Manifest 能力；
 2. 输入真实使用者角色、小组定位与边界，观察 Agent 是否分轮提问并持久化进度；
@@ -48,4 +80,4 @@ Manifest 使用 WSL Ubuntu 24.04 临时解包的 Ruby 3.2.3 验证：当前 6 �
 4. 初始化满足当前工作需要后，提出真实需求，确认任务编号和报告输出进入 `reports/`；
 5. 记录客户端、实际命令、固定 commit、通过项与偏差，再决定迁移大工仓。
 
-本轮未迁移大工仓、未创建其他真实小组仓、未实现新的 HTML 渲染或检查工具。模板铺设没有断电、强制终止或并发修改事务保证；失败清理不能完成时会报告残留。
+本轮未迁移大工仓、未创建其他真实小组仓、未实现新的 HTML 渲染或检查工具。隔离测试仓仅承载演练，未提交真实身份、项目事实或专业材料。模板铺设没有断电、强制终止或并发修改事务保证；失败清理不能完成时会报告残留。
