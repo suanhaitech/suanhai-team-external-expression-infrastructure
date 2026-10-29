@@ -8,7 +8,7 @@
 
 当成员在一个小组对外表达资产仓库的根目录启动 Agent 时，Agent 应能够在一次任务开始前建立三个判断：
 
-1. **我在哪个项目中工作**：从消费端 `context/` 读取项目目标、场景、协作结构、工作主线、当前状态、来源和表达边界；
+1. **我在哪个小组、为哪个项目或小组级工作服务**：从消费端 `context/group/` 理解小组身份与边界，从 `context/projects/README.md` 定位零到多个项目，再读取本次工作涉及的项目目标、场景、协作结构、工作主线、当前状态、来源和表达边界；
 2. **这次要完成什么表达任务**：从消费端 `tasks/` 读取受众、目的、范围、输入、完成条件、输出位置和责任信息；
 3. **我能调用哪些共享能力**：从 submodule 的 `manifest.yml` 发现已实现能力，并把未列出的目录视为不可调用。
 
@@ -31,7 +31,7 @@
 
 ## 3. 消费端必须具备的最小结构
 
-一个可以立即启动验证的消费端仓库至少应有：
+新小组模板采用以下结构；项目索引可以为空，任务和产物目录在有真实需求后才出现具体记录：
 
 ```text
 consumer-repository/
@@ -41,21 +41,30 @@ consumer-repository/
 │   └── manifest.yml
 ├── context/
 │   ├── README.md
-│   ├── project-structured-understanding.md
-│   ├── project-overview.md
-│   ├── current-status.md
-│   ├── workstreams.md
-│   ├── sources.md
-│   └── expression-boundary.md
+│   ├── initialization.md
+│   ├── group/
+│   │   ├── identity.md
+│   │   ├── sources.md
+│   │   └── expression-boundary.md
+│   └── projects/
+│       ├── README.md
+│       ├── _template/
+│       └── <project-id>/
+│           ├── project-overview.md
+│           ├── current-status.md
+│           ├── workstreams.md
+│           ├── sources.md
+│           └── expression-boundary.md
+├── topics/
 ├── tasks/
 │   └── <task-slug>/task.md
-├── works/
-│   └── <work-slug>/
+├── reports/
+│   └── <task-id>/v001/
 └── reviews/
     └── <work-slug>/review.md
 ```
 
-其中目录可以由小组调整，但消费端 `AGENTS.md` 必须说明实际映射，并显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)。目录存在不表示其中已经有事实、作品或授权记录。仅仅把基础设施作为 submodule 克隆下来，不会自动改变 Agent 的启动行为。
+其中目录可以由小组调整，但消费端 `AGENTS.md` 必须说明实际映射，并显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)。`projects/_template/` 是空白表单，不是项目。尚未迁移的单项目消费端可以继续使用 `context/project-overview.md`、`context/current-status.md` 等根路径，并由自己的 `AGENTS.md` 或 `context/README.md` 声明映射；不要求为了兼容读取创建第二份事实。目录存在不表示其中已经有事实、作品或授权记录。仅仅把基础设施作为 submodule 克隆下来，不会自动改变 Agent 的启动行为。
 
 ## 4. Agent 激活协议
 
@@ -67,18 +76,21 @@ consumer-repository/
 3. vendor/<infrastructure>/manifest.yml
 4. vendor/<infrastructure>/docs/consumer-repository-bootstrap.md
 5. vendor/<infrastructure>/docs/consumer-repository-harness-v0.1.md
-6. context/README.md
-7. context/project-structured-understanding.md
-8. context/project-overview.md
-9. context/current-status.md
-10. context/workstreams.md
-11. context/sources.md
-12. context/expression-boundary.md
-13. tasks/<task-slug>/task.md
-14. task 中声明的直接来源
+6. vendor/<infrastructure>/docs/submodule-consumer-versioning.md 与预检能力入口
+7. context/README.md、context/initialization.md 与 context/group/
+8. context/projects/README.md（项目索引）
+9. 当前 tasks/<任务编号>/task.json（通过 show 读取）及生成的 task.md
+10. 任务所属的 context/projects/<project-id>/ 项目上下文
+11. task 中登记的直接来源
 ```
 
-读取后，Agent 必须先形成一份工作判断：当前项目、任务目标、受众、允许使用的来源、拟输出路径、已发现的共享能力、缺失信息和需要真人确认的事项。它可以保留任务工作记录，不要求提交内部思考全文。
+根规则接入后，先运行 Manifest 声明的只读 submodule 预检；不得因为远端有更新而自动切换版本。仅远端网络不可用时，可报告远端未知并通过 `--skip-remote` 复核本地固定版本，本地检查通过后继续；gitlink 漂移、submodule 脏工作区或缺失等错误不能忽略。具体命令和升级、回退路线见 [版本协议](submodule-consumer-versioning.md)。
+
+新空仓尚无首次父仓提交时，按 [新仓建立流程](group-asset-repository-bootstrap.md) 使用模板铺设工具的 dry-run 核对 index gitlink 与 submodule HEAD，然后完成初始化；不为通过日常预检而自动提交。旧仓不存在 `initialization.md` 时遵循自己的初始化映射，不补造历史确认记录。
+
+小组身份或上下文尚未初始化时，先从 Manifest 读取初始化 Harness 入口，按用户已授权范围访谈与核对；不要求此时已有项目或业务任务。已有任务号先 show，再按任务选择相关项目。新需求先登记草案并明确所属项目；小组级任务可以不属于项目。多个项目下不得自行选一个代替用户意图；没有项目时不得补造项目。旧消费端按其映射读取根 `context/` 文件；`project-structured-understanding.md` 如果存在且与当前项目有关，也应读取，但不是新模板必需文件。
+
+读取后，Agent 必须先形成一份工作判断：当前小组、相关项目或小组级工作、任务目标、受众、允许使用的来源、拟输出路径、已发现的共享能力、缺失信息和需要真人确认的事项。它可以保留任务工作记录，不要求提交内部思考全文。
 
 如果消费端没有明确 `task-slug`，只读启动时应报告缺少任务，并停止作品生成，不自行创建任务。用户已经提出真实任务并授权写入时，Agent 可以先登记任务说明；不能根据路线图或测试需要自行补造任务。
 
@@ -118,7 +130,7 @@ Manifest 是发现协议，不提供访问控制或执行隔离。消费端必�
 
 ### 6.1 任务登记
 
-`tasks/<task-slug>/task.md` 至少记录：任务名称、所属项目、场景、受众、目的、范围、来源、输出位置、完成条件、执行与核对责任、截止时间和限制。
+任务至少记录：任务名称、所属项目（使用项目索引中的标识；小组级任务注明不适用）、场景、受众、目的、范围、来源、输出位置、完成条件、执行与核对责任、截止时间和限制。任务工具尚无专门字段的信息写入相应记录，不额外编造字段或手改工具事实源。
 
 使用任务循环时，任务目录采用工具产生的编号，`task.json` 是唯一状态事实源，`task.md` 是生成视图；未知项可以先留待澄清。正式制作前对齐关键目标，细节和责任信息逐步记录，不为填齐表格而补造事实。
 
@@ -126,13 +138,15 @@ Manifest 是发现协议，不提供访问控制或执行隔离。消费端必�
 
 ### 6.2 项目上下文装配
 
-Agent 用 `project-structured-understanding.md` 理解对象和关系，用 `project-overview.md` 理解目标与边界，用 `current-status.md` 理解日期限定的状态，用 `workstreams.md` 判断主线，用 `sources.md` 定位直接事实来源，用 `expression-boundary.md` 判断受众、用途和公开边界。
+Agent 先用 `context/group/identity.md`、`sources.md` 和 `expression-boundary.md` 理解小组定位、通用来源与表达边界，再从项目索引定位任务所属的 `context/projects/<project-id>/`。在该项目目录中，用 `project-overview.md` 理解目标与边界，用 `current-status.md` 理解日期限定的状态，用 `workstreams.md` 判断主线，用 `sources.md` 定位直接事实来源，用 `expression-boundary.md` 判断受众、用途和公开边界。项目额外维护 `project-structured-understanding.md` 时可用于理解对象和关系；旧单项目仓按已声明的根路径映射读取。
+
+小组级任务不强制装配项目上下文。跨项目任务应明确列出相关项目并分别核对来源，不把某个项目的事实提升为全组事实。
 
 上下文摘要帮助定位事实，不能代替直接来源。来源冲突、版本过期、授权缺失或事实状态不足时，Agent 必须降低表达强度或停止等待确认。
 
 ### 6.3 作品输出
 
-作品按消费端仓库约定进入 `works/`、`series/`、`courses/` 或 `books/`。每个作品应保留任务路径、来源版本、事实状态、适用条件、生成日期、作品状态和待评审问题。作品不是专业事实源，不得复制受限源码、原始数据、受限附件或未经授权的客户资料。
+报告类任务产物按新小组模板进入 `reports/`；系列、课程和书籍仍分别进入 `series/`、`courses/`、`books/`。尚未迁移的旧消费端可以继续使用 `works/`。每个产物应保留任务路径、来源版本、事实状态、适用条件、生成日期、作品状态和待评审问题。作品不是专业事实源，不得复制受限源码、原始数据、受限附件或未经授权的客户资料。
 
 ## 7. HTML 任务的首个验证切片
 
@@ -141,11 +155,11 @@ Agent 用 `project-structured-understanding.md` 理解对象和关系，用 `pro
 检查点：
 
 1. 任务文件明确外部受众、项目概览和当前进展范围；
-2. Agent 能从 `context/` 找到项目身份、三条主线、当前状态和来源限制；
+2. Agent 能按项目索引或旧仓路径映射，从 `context/` 找到该项目身份、三条主线、当前状态和来源限制；
 3. Agent 能识别当前 Manifest 中真实能力，不能调用计划中的 HTML 能力；
 4. Agent 能形成 HTML 信息结构草稿，并记录来源和待核对事项；
 5. 没有真实模板和预览工具时，Agent 停在待实现或人工生成状态，不伪造执行结果；
-6. 作品进入 `works/`，评审记录进入 `reviews/`；
+6. 报告作品进入 `reports/`（旧消费端可进入 `works/`），评审记录进入 `reviews/`；
 7. 真人确认内容和发布授权后，作品才可标记为可交付。
 
 ## 8. 停止条件
@@ -177,7 +191,7 @@ Agent 用 `project-structured-understanding.md` 理解对象和关系，用 `pro
 
 ## 10. 版本和升级
 
-消费端 submodule gitlink 是实际使用版本的唯一事实来源。升级时从消费端 `develop` 创建短期分支，更新到明确 commit，运行 Manifest 校验和冒烟测试，用真实任务试用，记录兼容性问题，再决定是否合并消费端的 `develop` 或 `main`。
+消费端 submodule gitlink 是实际使用版本的唯一事实来源。启动时只读预检版本关系，远端更新只作提示。升级时按 [消费端 submodule 版本协议](submodule-consumer-versioning.md) 从消费端 `develop` 创建短期分支，更新到明确 commit，运行 Manifest 校验和冒烟测试，用真实任务试用，记录兼容性问题，再决定是否合并消费端的 `develop` 或 `main`。已有用户授权在其范围内继续有效。
 
 共享基础设施变更也必须经过短期分支、Manifest 校验和消费端验证。消费端不能自动跟随 submodule 浮动分支。
 

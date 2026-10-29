@@ -1,0 +1,21 @@
+# 常见本地编辑器与操作系统缓存
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 本地环境变量与凭据文件不得进入对外表达资产仓
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 临时预览与构建产物由小组工具按需管理
+.cache/
+tmp/
+dist/
+build/

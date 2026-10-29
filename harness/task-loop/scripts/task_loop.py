@@ -20,7 +20,8 @@ import uuid
 TASK_ID = re.compile(r"EXPR-\d{8}-[0-9a-f]{8}\Z")
 STATUSES = {"clarifying", "ready", "working", "review", "paused", "completed"}
 EVENTS = {"create", "brief", "align", "start", "checkpoint", "review", "feedback", "pause", "resume", "complete", "reopen"}
-OUTPUT_ROOTS = {"works", "series", "courses", "books"}
+# 新小组模板将报告任务产物放入 reports/；works/ 保留为旧消费端迁移期间的兼容入口。
+OUTPUT_ROOTS = {"reports", "works", "series", "courses", "books"}
 BRIEF_FIELDS = ("audience", "purpose", "scope", "output", "acceptance")
 INFRA_REPOSITORY = "suanhai-team-external-expression-infrastructure"
 
@@ -63,7 +64,7 @@ def safe_path(root: Path, relative: str, *, must_exist: bool = False, output: bo
     if any(part.casefold() in {"vendor", ".git"} for part in parts):
         raise LoopError("任务路径不允许进入 vendor 或 .git")
     if output and parts[0] not in OUTPUT_ROOTS:
-        raise LoopError("作品路径必须位于 works/、series/、courses/ 或 books/ 下")
+        raise LoopError("作品路径必须位于 reports/、works/、series/、courses/ 或 books/ 下")
     result = root.joinpath(*parts)
     resolved = result.resolve()
     try:
@@ -73,7 +74,7 @@ def safe_path(root: Path, relative: str, *, must_exist: bool = False, output: bo
     if any(part.casefold() in {"vendor", ".git"} for part in resolved_parts):
         raise LoopError("路径通过符号链接进入 vendor 或 .git")
     if output and (not resolved_parts or resolved_parts[0] not in OUTPUT_ROOTS):
-        raise LoopError("作品路径通过符号链接离开作品目录")
+        raise LoopError("作品路径通过符号链接离开报告或作品目录")
     if must_exist and not result.exists():
         raise LoopError(f"路径不存在：{relative}")
     return result

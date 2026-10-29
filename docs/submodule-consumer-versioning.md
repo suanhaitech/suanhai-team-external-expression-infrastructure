@@ -4,16 +4,16 @@
 
 ## 预检工具
 
-Manifest 中的 `consumer.submodule-preflight` 指向 `tools/submodule-preflight/submodule_preflight.py`。工具只使用 Python 标准库和 Git CLI，所有 Git 命令均为查询操作：
+Manifest 中的 `consumer.submodule-preflight` 指向 `tools/submodule-preflight/submodule_preflight.py`。工具只使用 Python 标准库和 Git CLI，所有 Git 命令均为查询操作。在消费端父仓库根目录执行：
 
 ```powershell
-python tools/submodule-preflight/submodule_preflight.py --root . --path vendor/suanhai-team-external-expression-infrastructure
+python vendor/suanhai-team-external-expression-infrastructure/tools/submodule-preflight/submodule_preflight.py --root . --path vendor/suanhai-team-external-expression-infrastructure
 ```
 
 不传 `--path` 时，工具从父仓库 `.gitmodules` 读取全部 submodule。多个 `--path` 可重复使用。升级候选必须显式传入完整 40 位 commit：
 
 ```powershell
-python tools/submodule-preflight/submodule_preflight.py `
+python vendor/suanhai-team-external-expression-infrastructure/tools/submodule-preflight/submodule_preflight.py `
   --root . `
   --path vendor/suanhai-team-external-expression-infrastructure `
   --candidate <candidate-commit> `
