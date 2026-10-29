@@ -38,7 +38,7 @@ git diff --check
 
 第一次远端 CI 暴露两个 Windows 问题：TEMP 的 8.3 短路径和解析后的长路径比较导致误判越界，以及 CP1252 控制台不能输出中文 JSON。修复后，路径两端采用相同的解析边界，三个 Python CLI 在参数解析前统一 UTF-8 输出；新增短路径别名和 CP1252 子进程回归。
 
-基础设施代码提交 `fa518eee92b728df84cc8019412ec68e3d7d5070` 的 [CI 40845365974](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40845365974) 已通过：
+基础设施实现提交 `fa518eee92b728df84cc8019412ec68e3d7d5070` 的 [CI 40845365974](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40845365974) 已通过；合入 `develop` 的集成提交 `524bcb059323c92d09401f44cfb8be65b4bcc4fe` 的 [CI 40847254371](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40847254371) 也已通过：
 
 - Windows Python 3.12：54 项通过；
 - Linux Python 3.12：54 项，53 项通过、1 项 Windows junction 专项跳过；
@@ -52,9 +52,9 @@ git diff --check
 
 | 对象 | 已核对的提交 |
 | --- | --- |
-| 独立模板仓 | `5f0858390f2d8c09511d9722a15dee9c28688a87` |
-| 模板及生成仓的基础设施 gitlink | `fa518eee92b728df84cc8019412ec68e3d7d5070` |
-| GitHub generate API 生成的隔离私有测试仓 | `242dfacff6a81e7104e6bc500e2fd934a41c1ec5` |
+| 独立模板仓 | `50b036e6ab0eb4631595ff8bf16a7e710aabe5cd` |
+| 模板及生成仓的基础设施 gitlink | `524bcb059323c92d09401f44cfb8be65b4bcc4fe`（已合入基础设施 `develop`） |
+| GitHub generate API 生成的隔离私有测试仓 | `suanhaitech/group-asset-template-e2e-v3-20261029`，`ad0958d52b40dca6cc1b7e4a4d47682034939ee6` |
 
 实测结果：
 
@@ -62,13 +62,18 @@ git diff --check
 - GitHub generate API 保留了 `.gitmodules`、HTTPS URL、路径和固定 gitlink；生成仓的 `template_repository` 正确指向公开模板仓。不能只根据 GitHub 文档或目录存在推断这一点。
 - Windows 全新 `git clone --recurse-submodules` 成功；父仓 gitlink 与基础设施 HEAD 一致，submodule 干净，本地预检 `ok: true`。
 - 另一次普通 clone 的 submodule 初始为未初始化；执行 `git submodule update --init --recursive -- vendor/suanhai-team-external-expression-infrastructure` 后恢复相同固定提交，父仓无变化。此项验证 Git 恢复命令，不冒充 Agent 自动恢复的交互测试。
-- 模板仓 [CI 40846013485](https://github.com/suanhaitech/suanhai-team-group-asset-template/actions/runs/40846013485) 与隔离生成仓的启动 CI 均在 Windows、Linux、macOS 通过递归 checkout、只读预检及初始化入口检查。CI 不执行用户访谈，也不证明所有 Agent 客户端都能自动加载规则。
+- 最终模板提交的 [CI 40848082367](https://github.com/suanhaitech/suanhai-team-group-asset-template/actions/runs/40848082367) 与 v3 隔离生成仓的 [CI 40848227080](https://github.com/suanhaitech/group-asset-template-e2e-v3-20261029/actions/runs/40848227080) 均在 Windows、Linux、macOS 通过递归 checkout、只读预检及初始化入口检查。CI 不执行用户访谈，也不证明所有 Agent 客户端都能自动加载规则。
 
-## Agent 冷启动初测
+## Agent 冷启动与续接
 
-在从 GitHub 模板生成的隔离仓中，使用独立、临时 Codex CLI 会话，未传入历史聊天或额外仓库规则，只输入“初始化小组资产仓”。只读首启能够找到根规则、Manifest、固定版本和初始化 Harness，识别未初始化状态，先询问工作角色、小组身份和仓库可见性；未创建业务任务或写入虚构事实。
+在 v3 GitHub 生成仓中，用两次互相独立、未传入历史聊天的 Agent 会话测试：
 
-这次首测使用前一代码提交 `3623fa6d2f7ce5e561feccc94b35c98c28fbd43a`，只证明其只读访谈入口。客户端沙箱网络不可达时，Agent 保留远端未知的结果，并通过 `--skip-remote` 核对本地固定版本；没有修改网络或客户端配置。
+- 首次输入“初始化小组资产仓”，Agent 核对当前 `524bcb0` 固定 submodule，预检通过；把合成候选分别写入初始化进度、小组身份、边界、来源文件；保留零项目索引，不创建项目目录、任务和作品；不提交或推送。
+- 第二次只读续接“继续初始化小组资产仓”，Agent 从共享文件恢复演练状态，区分本轮操作者与小组身份，准确指出候选信息、负责人待确认事项和项目数量为零；检查记录无冲突，没有依赖上一会话聊天。只读续接未写文件、提交、推送或改 submodule。
+
+隔离工作区的候选记录明确标为合成演练，不能当成真实团队事实、负责人确认或发布授权。该试验覆盖从公开模板生成到固定 submodule、Agent 落盘和新会话读取的主链路，不代表所有 Agent 客户端均会自动加载 `AGENTS.md`。
+
+另一次直接运行 Codex CLI 沙箱探针时，其子进程环境缺少 `py -3`、`basename` 和 `sed`，所以当次预检失败；本次正式 Agent 测试环境中这些依赖可用，预检通过。这说明需要检查 Agent 工具子进程自己的 PATH，不能只验证桌面终端。测试未安装软件或改变系统配置。
 
 ## 真人与其他客户端的后续试用
 
@@ -80,4 +85,4 @@ git diff --check
 4. 初始化满足当前工作需要后，提出真实需求，确认任务编号和报告输出进入 `reports/`；
 5. 记录客户端、实际命令、固定 commit、通过项与偏差，再决定迁移大工仓。
 
-本轮未迁移大工仓、未创建其他真实小组仓、未实现新的 HTML 渲染或检查工具。隔离测试仓仅承载演练，未提交真实身份、项目事实或专业材料。模板铺设没有断电、强制终止或并发修改事务保证；失败清理不能完成时会报告残留。
+本轮未迁移大工仓、未创建其他真实小组仓、未实现新的 HTML 渲染或检查工具。隔离测试仓仅承载演练，未提交真实身份、项目事实或专业材料。新机器上的 Agent 沙箱仍须确认 Python 和 Git 子命令依赖可访问；不能把桌面终端可用误认为 Agent 子进程可用。模板铺设没有断电、强制终止或并发修改事务保证；失败清理不能完成时会报告残留。
