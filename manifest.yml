@@ -43,3 +43,25 @@ capabilities:
       - 可选的远端名称、稳定 ref、升级候选 commit 和检查超时
     outputs:
       - submodule-preflight.v1 JSON 或人类可读检查结果
+  - id: consumer.group-asset-bootstrap
+    kind: tool
+    path: tools/group-asset-bootstrap
+    entrypoint: tools/group-asset-bootstrap/materialize_template.py
+    purpose: 在已固定基础设施 submodule 的消费端仓库中安全铺设小组资产仓模板；默认只预览、冲突时拒绝覆盖，不添加 submodule 或执行 Git 写操作
+    inputs:
+      - 消费端父仓库根目录
+      - 已初始化且 gitlink 与 HEAD 一致的基础设施 submodule
+      - 可选的 --dry-run（默认）或显式 --apply 模式
+    outputs:
+      - 新增的小组资产仓模板文件，或只读写入计划
+  - id: consumer.group-asset-onboarding
+    kind: harness
+    path: harness/group-asset-repository
+    entrypoint: harness/group-asset-repository/ENTRYPOINT.md
+    purpose: 引导负责人确认小组身份、零到多个项目上下文、来源和表达边界；保留未知项，不伪造任务或授权
+    inputs:
+      - 消费端小组负责人提供的真实信息和核对决定
+      - 小组资产仓模板与来源材料
+    outputs:
+      - 小组级与项目级候选稿、逐项确认依据及保留的未知项
+      - 待核对事项与初始化检查结果

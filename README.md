@@ -2,7 +2,7 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环、任务状态工具和一套实验性的离线项目汇报模板，支持任务草案、共识对齐、反馈迭代、暂停恢复和按编号续作。模板只提供结构和样式，不自动生成内容；预览和 HTML 检查器仍未实现。
+当前提供可发现的任务循环、任务状态工具、离线项目汇报模板、小组资产仓库模板和初始化访谈协议。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。HTML 预览和检查器仍未实现。
 
 ## 仓库职责
 
@@ -26,18 +26,23 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 | `html.project-report-v1` | template | 离线项目概览、阶段进展和对外汇报 HTML/CSS 模板 |
 | `consumer.submodule-preflight` | tool | 只读核对消费端 submodule 的固定 gitlink、工作区和远端稳定分支快照 |
+| `consumer.group-asset-bootstrap` | tool | 在已固定 submodule 的消费端安全铺设小组资产仓模板 |
+| `consumer.group-asset-onboarding` | harness | 引导负责人确认小组身份、多项目上下文、来源和边界 |
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
 ## 消费端 Harness
 
-通过 submodule 使用本仓库的小组资产仓库，应把自己的 `AGENTS.md`、`context/`、`tasks/`、`works/` 和 `reviews/` 作为项目工作入口，把本仓库的 `manifest.yml` 作为共享能力入口。消费端 Agent 的启动接入、读取顺序、任务路线、停止条件和首个 HTML 冒烟测试见：
+通过 submodule 使用本仓库的小组资产仓库，应把自己的 `AGENTS.md`、`context/group/`、`context/projects/`、`tasks/`、`topics/`、`reports/`、`series/`、`courses/`、`books/`、`tools/` 和 `reviews/` 作为工作入口，把本仓库的 `manifest.yml` 作为共享能力入口。小组模板默认用 `reports/` 承载报告类任务产物；未迁移的消费端 `works/` 仍被任务工具兼容。消费端 Agent 的启动接入、初始化访谈、读取顺序、任务路线、停止条件和冒烟测试见：
 
 - [消费端 Agent Bootstrap 协议](docs/consumer-repository-bootstrap.md)
 - [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
 - [消费端 submodule 版本协议](docs/submodule-consumer-versioning.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
+- [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
+- [小组资产仓从 GitHub 模板到新机器初始化](docs/group-asset-repository-bootstrap.md)
+- [小组资产仓模板验证与发布记录](docs/group-asset-template-validation.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
 
 Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环、配套工具和项目汇报模板，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱。
@@ -48,7 +53,7 @@ Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存
 - `develop`：日常集成分支；
 - `codex/*`：从 `develop` 创建的短期开发分支。
 
-当前仓库由 Chaos 全权维护。开发过程中不自动提交、推送、部署或发布；GitHub Actions 只做确定性的 Manifest 校验。
+当前仓库由 Chaos 全权维护。开发过程中不自动提交、推送、部署或发布；GitHub Actions 校验 Manifest，并在 Windows 与 Linux 运行任务循环、submodule 预检和模板铺设行为测试。
 
 ## 本地检查
 
@@ -63,7 +68,7 @@ ruby scripts/validate_manifest.rb
 任务循环需要 Python 3.10+，仅使用标准库：
 
 ```text
-python -m unittest discover -s tests -p "test_task_loop.py" -v
+python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 ## 当前阶段边界

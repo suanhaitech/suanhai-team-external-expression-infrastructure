@@ -23,7 +23,7 @@ class TaskLoopTest(unittest.TestCase):
     @staticmethod
     def make_consumer(root):
         root.mkdir(parents=True)
-        for directory in (".git", "context", "tasks", "works", "reviews"):
+        for directory in (".git", "context", "tasks", "works", "reports", "reviews"):
             (root / directory).mkdir()
         (root / "README.md").write_text("测试消费仓库，不是真实项目。\n", encoding="utf-8")
         (root / "AGENTS.md").write_text("测试任务，不提交或发布。\n", encoding="utf-8")
@@ -49,6 +49,18 @@ class TaskLoopTest(unittest.TestCase):
 
     def create(self):
         return self.cli("create", "--title", "测试表达任务", "--request", "先澄清目标。", "--test")
+
+    def test_cp1252_terminal_preserves_utf8_task_json(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--root", str(self.root), "create",
+             "--title", "编码演练", "--request", "合成测试请求", "--test"],
+            capture_output=True, text=True, encoding="utf-8",
+            env={**os.environ, "PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0", "PYTHONDONTWRITEBYTECODE": "1"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        task = json.loads(result.stdout)
+        self.assertEqual(task["title"], "编码演练")
+        self.assertEqual(task["mode"], "test")
 
     def show(self, task):
         return self.cli("show", task["id"])
@@ -296,7 +308,7 @@ class TaskLoopTest(unittest.TestCase):
             with self.subTest(source=path):
                 task = self.create()
                 self.cli("brief", task["id"], "--expect-version", 1, "--source", path, ok=False)
-        for path in ("../output.html", "/output.html", "D:/output.html", "vendor/report.html", "works/vendor/report.html", "context/report.html"):
+        for path in ("../output.html", "/output.html", "D:/output.html", "vendor/report.html", "works/vendor/report.html", "reports/vendor/report.html", "context/report.html"):
             with self.subTest(output=path):
                 task = self.create()
                 self.cli("brief", task["id"], "--expect-version", 1, "--output", path, ok=False)
@@ -307,6 +319,13 @@ class TaskLoopTest(unittest.TestCase):
                  "--source", "context/not-present.md", ok=False)
         task = self.brief(task, output="works/not-yet-created/index.html")
         self.assertEqual(task["brief"]["output"], "works/not-yet-created/index.html")
+
+    def test_reports_is_a_valid_output_root(self):
+        task = self.create()
+        task = self.brief(task, output="reports/EXPR/v001/index.html")
+        self.assertEqual(task["brief"]["output"], "reports/EXPR/v001/index.html")
+        task = self.event(task, "align", user_quote="测试用户：报告输出位置已确认。")
+        self.assertEqual(task["status"], "ready")
 
     def test_symlink_escape_is_rejected(self):
         outside = self.base / "outside"

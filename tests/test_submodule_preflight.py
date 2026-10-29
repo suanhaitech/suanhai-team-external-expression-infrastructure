@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -50,13 +51,17 @@ class SubmodulePreflightTest(unittest.TestCase):
         environment = {**__import__("os").environ, "GIT_ALLOW_PROTOCOL": "file"}
         return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True, encoding="utf-8", env=environment)
 
-    def cli(self, *args: str, ok: bool = True, explicit_path: bool = True) -> tuple[int, dict]:
+    def cli(self, *args: str, ok: bool = True, explicit_path: bool = True, environment: dict[str, str] | None = None) -> tuple[int, dict]:
         command = [sys.executable, str(SCRIPT), "--root", str(self.consumer)]
         if explicit_path:
             command.extend(("--path", "vendor/infra"))
         command.extend(args)
-        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
-        payload = json.loads(result.stdout)
+        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", env={**os.environ, **(environment or {})})
+        # 先保留 CLI 的原始错误证据，避免空 stdout 的 JSONDecodeError 掩盖真正异常。
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            self.fail(f"CLI 未返回合法 JSON：exit={result.returncode}\nstdout={result.stdout!r}\nstderr={result.stderr!r}")
         if ok:
             self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
         return result.returncode, payload
@@ -107,6 +112,29 @@ class SubmodulePreflightTest(unittest.TestCase):
         self.assertEqual(code, 0)
         remote_check = next(item for item in payload["submodules"][0]["checks"] if item["name"] == "remote_ref")
         self.assertEqual(remote_check["status"], "skip")
+
+    def test_cp1252_terminal_still_returns_utf8_json(self):
+        # 模拟 Windows CI 的窄字符管道；由工具自行保证协议编码，不靠用户配置。
+        environment = {"PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"}
+        code, payload = self.cli("--skip-remote", environment=environment)
+        self.assertEqual(code, 0)
+        checks = payload["submodules"][0]["checks"]
+        self.assertEqual(next(item for item in checks if item["name"] == "remote_ref")["message"], "按参数跳过远端只读检查")
+
+    def test_cp1252_terminal_preserves_structured_error(self):
+        environment = {"PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"}
+        code, payload = self.cli("--timeout", "0", ok=False, environment=environment)
+        self.assertEqual(code, 2)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"], "--timeout 必须大于 0")
+
+    def test_cp1252_terminal_preserves_argparse_stderr(self):
+        environment = {**os.environ, "PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"}
+        result = subprocess.run([sys.executable, str(SCRIPT), "--不存在"], capture_output=True, text=True, encoding="utf-8", env=environment)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("--不存在", result.stderr)
+        self.assertNotIn("UnicodeEncodeError", result.stderr)
 
 
 if __name__ == "__main__":

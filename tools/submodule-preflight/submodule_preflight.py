@@ -318,6 +318,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # CLI 的 JSON 是跨进程协议，不能随 Windows 控制台或管道默认编码变化。
+    # 在 argparse 之前统一两个输出流，既保护中文 JSON，也保留中文参数错误诊断；
+    # StringIO 等嵌入式调用方没有 reconfigure，应继续使用它们提供的文本流。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

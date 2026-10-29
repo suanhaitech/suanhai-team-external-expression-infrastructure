@@ -24,11 +24,11 @@
 tasks/<任务编号>/
 ├── task.json   # 任务状态、简报、历史、产出引用的唯一事实源
 └── task.md     # 由工具生成的阅读视图，不手工维护第二份状态
-works/<任务编号>/v001/<产出文件>
-works/<任务编号>/v002/<产出文件>
+reports/<任务编号>/v001/<产出文件>
+reports/<任务编号>/v002/<产出文件>
 ```
 
-可以按消费端约定把产出放在 `series/`、`courses/` 或 `books/`，但不可放进 submodule。任务号形如 `EXPR-20261028-a1b2c3d4`，在当前仓库内定位，不是跨仓全局任务编号。
+报告类任务默认使用 `reports/`；系列、课程和书籍按消费端约定放在 `series/`、`courses/` 或 `books/`。旧消费端的 `works/` 仍受兼容支持，不自动迁移历史产物。产出不可放进 submodule。任务号形如 `EXPR-20261028-a1b2c3d4`，在当前仓库内定位，不是跨仓全局任务编号。
 
 `task.json` 记录用户请求、简报、状态、当前轮次、操作版本、历史、下一步和产出路径/摘要。用户原话用于记录对齐或完成的依据，不能由 Agent 编造；工具只检查记录是否存在，无法判断发言身份或授予发布权限。`mode: test` 是测试标识，不能变成真实业务或真人确认。
 
@@ -45,7 +45,7 @@ python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/
 登记共识草案（未知字段保持待澄清；正式对齐前补齐关键项）：
 
 ```powershell
-python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . brief ID --expect-version N --audience "受众" --purpose "用途" --scope "范围" --output "works/ID" --acceptance "完成标准" --source "context/project-overview.md"
+python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . brief ID --expect-version N --audience "受众" --purpose "用途" --scope "范围" --output "reports/ID" --acceptance "完成标准" --source "context/projects/PROJECT/project-overview.md"
 ```
 
 记录真实的用户对齐意见后，进入执行：
@@ -74,7 +74,7 @@ python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/
 反馈原话、检查命令及结果、未解决事项应进入事件 `--note`，下一步进入 `--next-action`。这份记录应足以让新 Agent 接着做，不要求保存聊天全文或内部推理。
 
 ```powershell
-python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . event ID --expect-version N --type review --note "结构草稿完成，等待用户意见；HTML尚未生成" --artifact "works/ID/v001/outline.md" --next-action "请用户评审结构"
+python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . event ID --expect-version N --type review --note "结构草稿完成，等待用户意见；HTML尚未生成" --artifact "reports/ID/v001/outline.md" --next-action "请用户评审结构"
 python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . event ID --expect-version N --type feedback --scope minor --note "实际用户反馈；记录相应调整" --next-action "生成v002并检查"
 ```
 
