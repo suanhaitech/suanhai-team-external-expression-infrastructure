@@ -153,6 +153,17 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
         self.assertEqual(result["written"], [])
         self.assertEqual(snapshot(self.root), before)
 
+    def test_cp1252_terminal_preserves_utf8_preview_json(self):
+        result = subprocess.run(
+            [sys.executable, str(self.script), "--root", str(self.root), "--dry-run"],
+            capture_output=True, text=True, encoding="utf-8",
+            env={**environment(), "PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertIn("身份与项目事实须由真人确认", payload["note"])
+
     def test_conflict_is_rejected_before_any_template_file_is_written(self):
         (self.root / "README.md").write_text("keep user content\n", encoding="utf-8")
         before = snapshot(self.root)
@@ -310,6 +321,14 @@ class GroupAssetBootstrapFilesystemTest(unittest.TestCase):
         _, _, conflicts = bootstrap.plan_files(self.root, [(Path("reports/output.md"), b"no write")])
         self.assertTrue(conflicts)
         self.assertEqual(list(outside.iterdir()), [])
+
+    def test_repository_root_alias_uses_resolved_boundary(self):
+        alias = self.base / "root-alias"
+        self.symlink(alias, self.root, directory=True)
+        writes, unchanged, conflicts = bootstrap.plan_files(alias, [(Path("report.md"), b"new")])
+        self.assertEqual(conflicts, [])
+        self.assertEqual(unchanged, [])
+        self.assertEqual(len(writes), 1)
 
     def test_symlink_file_and_template_source_are_rejected(self):
         target = self.base / "target.md"

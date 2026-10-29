@@ -105,6 +105,9 @@ def plan_files(root: Path, files: Iterable[tuple[Path, bytes]]) -> tuple[list[tu
     writes: list[tuple[Path, bytes]] = []
     unchanged: list[str] = []
     conflicts: list[str] = []
+    # Windows 的 TEMP 可能使用 8.3 短路径，而 resolve() 返回长路径；
+    # 两侧都用解析后的边界比较，避免把同一个目录误判成越界。
+    boundary_root = root.resolve()
     for relative, content in files:
         if relative.is_absolute() or not relative.parts or ".." in relative.parts:
             raise BootstrapError(f"模板路径必须是仓库内相对路径：{relative}")
@@ -113,7 +116,7 @@ def plan_files(root: Path, files: Iterable[tuple[Path, bytes]]) -> tuple[list[tu
             raise BootstrapError(f"模板文件不允许写入 .git 或 vendor：{relative.as_posix()}")
         resolved = destination.resolve(strict=False)
         try:
-            resolved.relative_to(root)
+            resolved.relative_to(boundary_root)
         except ValueError:
             conflicts.append(f"{relative.as_posix()}（目标路径通过符号链接越出仓库根目录）")
             continue
@@ -202,6 +205,10 @@ def apply_files(root: Path, writes: list[tuple[Path, bytes]]) -> None:
 
 
 def main() -> int:
+    # 机器可读输出统一为 UTF-8，避免英文 Windows 管道无法输出中文错误。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="安全铺设小组资产仓模板，不覆盖已有文件")
     parser.add_argument("--root", default=".", help="消费端 Git 仓库根目录")
     mode = parser.add_mutually_exclusive_group()

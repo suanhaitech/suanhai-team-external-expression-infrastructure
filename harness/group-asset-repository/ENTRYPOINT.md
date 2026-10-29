@@ -1,26 +1,35 @@
 # 小组资产仓库初始化 Harness
 
-状态：`implemented / experimental`。这是由消费端 Agent 执行的初始化访谈与核对协议，配套铺设脚本只复制空白文件，不运行 Agent、不填写项目事实、不添加 submodule、不提交或推送。
+状态：`implemented / experimental`。这是由小组资产仓根目录的 Agent 执行的初始化访谈与核对协议。公开 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 已为新仓提供标准文件和固定基础设施 submodule；成员不需要先克隆基础设施主仓或手工铺设目录。
 
 ## 目标
 
-引导负责人把新仓库从空白目录初始化为可工作的团队资产环境：明确小组身份和边界，建立零个或多个项目上下文，说明来源规则和 Agent 工作入口。初始化结果是经负责人核对的候选工作上下文，不是项目验收或发布授权。
+引导使用者把从模板创建的小组仓初始化为可工作的团队资产环境：明确小组身份和边界，建立零个或多个项目上下文，说明来源规则和 Agent 工作入口。结果包括候选稿、逐项确认依据和保留的未知项；上下文达到当前工作所需即可收口，不把初始化等同于项目验收或发布授权。
+
+成员主路径：从 GitHub 模板创建本小组仓 → `git clone --recurse-submodules` → 在本小组仓根目录启动 Agent → 输入“初始化小组资产仓”。本机需 Git、Python 3.10+ 和具备本地文件/工具访问的 Agent 客户端；Windows 工具命令使用 `py -3`，Linux/macOS 使用 `python3`。客户端不自动读取根规则时，提示：“请先读取本仓根目录 README.md 和 AGENTS.md，再引导我初始化小组资产仓。”
 
 ## 阶段 A：确认工作区和共享能力
 
-1. 新仓若尚无固定 submodule，先按 [新仓建立流程](../../docs/group-asset-repository-bootstrap.md) 完成 Git 起步；工具不会代办 Git 写操作。已有仓库先确认 Agent 当前工作目录是消费端仓库根目录，读取 README、AGENTS、Manifest、Bootstrap、版本协议与本入口。
-2. 执行 `git status --short --branch`、`git submodule status --recursive`，核对父仓 gitlink 与 submodule `HEAD` 一致；按 Manifest 中的 `consumer.submodule-preflight` 入口执行只读预检。远端有更新时报告候选，不静默切换；离线时报告无法核对远端，仍可沿用已验证的固定版本。不要自动 fetch、checkout、`submodule update --remote` 或切换版本。
-3. 从 Manifest 发现能力，只读取已声明能力的入口。不得因模板目录存在就称模板已铺设或初始化访谈已完成。
-4. 如果组资产模板尚未铺设，先预览脚本计划；只有用户已授权本地初始化时才执行 `--apply`。脚本遇到文件冲突会停止；Agent 不得覆盖冲突文件，应汇报文件路径并由负责人决定保留或合并。模板根文件可能与本入口列出的文件不同，铺设后以根 README、AGENTS、Manifest 和本仓实际映射为准。
-5. 模板铺设后读取 `context/initialization.md`。已完成的初始化不因换机器或换 Agent 重新填写；未完成时从未解决事项继续。一次只讨论少量影响方向的问题，复述已有答案，不把整张表一次性交给用户填写。
+1. 确认当前目录是小组资产仓根目录。先读取根 README、AGENTS，按根规则检查 `.gitmodules` 和父仓固定 gitlink，再处理基础设施可用性。不能在 submodule 还未初始化时声称已读取 Manifest。
+2. 普通 clone 漏掉 submodule 时，只读请求仅诊断；用户已要求初始化时，可按根规则运行 `git submodule update --init --recursive -- vendor/suanhai-team-external-expression-infrastructure`，恢复父仓已记录的版本，再读取 Manifest。该恢复可能下载固定对象，但不是升级；不执行 `submodule add` 或 `update --remote`，不覆盖既有修改。配置或 gitlink 缺失、冲突、已有工作区脏改或 HEAD 漂移时保留现场并报告。
+3. 依赖可用后读取 Manifest、Bootstrap、消费端 Harness、版本协议与本入口。只按当前 Manifest 的 `consumer.group-asset-onboarding` 路由，不根据目录名称推断能力；该入口不因模板样式不同改变。执行 `git status --short --branch`、`git submodule status --recursive` 和 Manifest 声明的只读预检，核对父仓 gitlink 与 submodule HEAD 一致。远端有更新只报告，网络不可用时通过 `--skip-remote` 核对本地后明确远端未知；其他本地错误不能忽略。
+4. 从 GitHub 模板生成的新仓已经包含上下文空表，不重复运行铺设工具。标准文件缺失或有冲突时先说明具体差异，不覆盖已有上下文。维护者从空 Git 仓发布模板或执行工具回归时，才使用 [建立流程中的备用铺设路径](../../docs/group-asset-repository-bootstrap.md#三维护者备用路径从空仓铺设)；尚无父仓首次提交的特殊情况由铺设工具核对 index gitlink 与 submodule HEAD，不擅自提交。
+5. 读取 `context/initialization.md` 和实际小组、项目上下文。已完成的初始化不因换机器、成员或 Agent 重新填写；未完成时从未解决事项继续。一次只讨论少量影响方向的问题，复述已有答案，不把整张表一次性交给用户填写。
 
-模板新仓在尚无父仓首次提交时，不要求预检工具读取不存在的父仓 HEAD；铺设工具会核对 index gitlink 与 submodule HEAD。首次提交后，后续日常启动按 Manifest 运行只读预检。
+## 理解用户的初始化请求
+
+- “初始化小组资产仓”：未完成时接续小组首启；已达到当前工作需要时说明进度，定位本轮需要完善的内容，不重置共享上下文。
+- “进行项目初始化”或“初始化项目”：作为本入口别名，先区分本次是小组首启，还是在已有小组中新建或完善一个具体项目。小组首启可先补最低限度小组上下文，再进入项目；已存在的项目按原标识继续，不建重复项目。
+- “继续初始化”：先复述已确认项、待确认项与上次下一步，再处理变化，不凭旧聊天推断当前文件状态。
+- 只读请求：只核对和报告，不恢复 submodule、不写身份、不填写上下文。
 
 ## 当前使用者与小组身份
 
 先确认当前使用者希望采用的工作称呼、与小组的角色，以及本轮能够核对哪些信息。不要从 Git 用户名或邮箱推断真人身份，不把对话中的自述当成认证。现有用户授权在其范围内继续有效，不因换到一个访谈阶段重复征求。
 
 小组身份属于共享上下文；当前操作者角色通常只需在本次会话中说明。仅在确有协作需要且用户授权共享时，才把称呼与工作责任记入仓库；不建立成员数据库、不写私人联系方式或机器路径。普通成员可以提出候选内容，涉及负责人确认的项保留待确认。
+
+不同成员或新机器上的操作者，不自动成为共享小组或项目负责人。已经记录的身份、责任和核对依据只有在确有变化且用户明确说明后才修订，不用新会话默认值覆盖。
 
 ## 阶段 B：小组身份访谈
 

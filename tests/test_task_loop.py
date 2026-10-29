@@ -50,6 +50,18 @@ class TaskLoopTest(unittest.TestCase):
     def create(self):
         return self.cli("create", "--title", "测试表达任务", "--request", "先澄清目标。", "--test")
 
+    def test_cp1252_terminal_preserves_utf8_task_json(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--root", str(self.root), "create",
+             "--title", "编码演练", "--request", "合成测试请求", "--test"],
+            capture_output=True, text=True, encoding="utf-8",
+            env={**os.environ, "PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0", "PYTHONDONTWRITEBYTECODE": "1"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        task = json.loads(result.stdout)
+        self.assertEqual(task["title"], "编码演练")
+        self.assertEqual(task["mode"], "test")
+
     def show(self, task):
         return self.cli("show", task["id"])
 

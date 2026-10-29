@@ -1,0 +1,29 @@
+name: Validate group asset workspace
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  startup:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clone the exact infrastructure commit recorded by the parent
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check fixed submodule without following a remote branch
+        run: python vendor/suanhai-team-external-expression-infrastructure/tools/submodule-preflight/submodule_preflight.py --root . --path vendor/suanhai-team-external-expression-infrastructure --skip-remote
+      - name: Check onboarding entry and local context structure
+        run: python -c "from pathlib import Path; required = ['AGENTS.md', 'README.md', 'context/initialization.md', 'context/group/identity.md', 'context/projects/README.md', 'topics/README.md', 'reports/README.md', 'vendor/suanhai-team-external-expression-infrastructure/manifest.yml', 'vendor/suanhai-team-external-expression-infrastructure/harness/group-asset-repository/ENTRYPOINT.md']; missing = [p for p in required if not Path(p).is_file()]; assert not missing, missing; print('Workspace startup files available; interview has not been performed by CI.')"
