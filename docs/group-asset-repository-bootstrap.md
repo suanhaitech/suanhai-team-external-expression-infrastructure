@@ -4,7 +4,13 @@
 
 模板根目录提供标准文件和空白上下文，`.gitmodules` 提供基础设施 HTTPS URL 与路径，父仓 gitlink 固定实际使用的基础设施 commit。版本事实只在 gitlink 中维护，不在 README 或配置文件再保存一份版本锁。
 
-## 一、成员的标准入口
+## 一、组长的 Agent 代办入口
+
+组长可将[创建并初始化提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)全文发送给 Agent，在必要时补充小组名称、仓库短名和本机父目录。Agent 先检查 `gh` 登录和本机工具环境；组织建仓权限以 GitHub Template Generate API 的实际结果为准。成功后递归克隆、核验 gitlink，并按新仓根规则调用初始化 Harness。仓库默认为 private；初始化记录先留在本地给组长审阅，不自动提交或推送。
+
+详细的授权边界、失败处理和新机器测试步骤见[小组资产仓代建与初始化流程](group-asset-repository-create-and-initialize.md)。Agent 无法访问目标目录、缺少工具或没有组织建仓权限时，应停止报告；组长可以改用下面的手工自助路径。
+
+## 二、成员手工自助路径
 
 ### 1. 本机条件
 
@@ -76,7 +82,7 @@ git submodule update --init --recursive -- vendor/suanhai-team-external-expressi
 
 Agent 先核对固定依赖，再从 Manifest 找到 `consumer.group-asset-onboarding` 的入口。完整流程保存在 `harness/group-asset-repository/ENTRYPOINT.md`，这里不维护另一套访谈规则。
 
-## 二、新机器端到端测试手册
+## 三、新机器端到端测试手册
 
 测试目标是证明：成员从 GitHub 模板创建自己的仓库，递归克隆后，Agent 能按根规则进入初始化访谈并保存可续接的进度。脚本文件存在或复制成功不能代替这个成员交互测试。
 

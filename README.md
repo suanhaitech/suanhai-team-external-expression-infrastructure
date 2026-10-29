@@ -2,7 +2,9 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环、任务状态工具、离线项目汇报模板、小组资产仓库模板和初始化访谈协议。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。HTML 预览和检查器仍未实现。
+当前提供可发现的任务循环、任务状态工具、离线项目汇报模板、小组资产仓库模板、仓外建仓与克隆提示词，以及仓内初始化访谈协议。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。HTML 预览和检查器仍未实现。
+
+本仓库另外提供一个可直接转发的启动提示词，代办 GitHub 模版建仓、递归克隆和仓内初始化；它与克隆后由 Manifest 发现的初始化 Harness 分工不同。
 
 ## 仓库职责
 
@@ -28,6 +30,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `consumer.submodule-preflight` | tool | 只读核对消费端 submodule 的固定 gitlink、工作区和远端稳定分支快照 |
 | `consumer.group-asset-bootstrap` | tool | 在已固定 submodule 的消费端安全铺设小组资产仓模板 |
 | `consumer.group-asset-onboarding` | harness | 引导负责人确认小组身份、多项目上下文、来源和边界 |
+| `consumer.group-asset-create-and-initialize` | harness | 可转发启动提示词：从 GitHub 模版创建、递归克隆、核验固定依赖，再转交仓内初始化 |
 
 目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
 
@@ -41,7 +44,9 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
 - [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
+- [小组资产仓创建与初始化提示词](harness/group-asset-repository/CREATE_AND_INITIALIZE.md)
 - [小组资产仓从 GitHub 模板到新机器初始化](docs/group-asset-repository-bootstrap.md)
+- [小组资产仓代建与初始化流程](docs/group-asset-repository-create-and-initialize.md)
 - [小组资产仓模板验证与发布记录](docs/group-asset-template-validation.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
 
