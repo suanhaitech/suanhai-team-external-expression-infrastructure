@@ -38,7 +38,7 @@ git diff --check
 
 第一次远端 CI 暴露两个 Windows 问题：TEMP 的 8.3 短路径和解析后的长路径比较导致误判越界，以及 CP1252 控制台不能输出中文 JSON。修复后，路径两端采用相同的解析边界，三个 Python CLI 在参数解析前统一 UTF-8 输出；新增短路径别名和 CP1252 子进程回归。
 
-基础设施代码提交 `fa518eee92b728df84cc8019412ec68e3d7d5070` 的 [CI 40845365974](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40845365974) 已通过：
+基础设施实现提交 `fa518eee92b728df84cc8019412ec68e3d7d5070` 的 [CI 40845365974](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40845365974) 已通过；合入 `develop` 的集成提交 `524bcb059323c92d09401f44cfb8be65b4bcc4fe` 的 [CI 40847254371](https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/actions/runs/40847254371) 也已通过：
 
 - Windows Python 3.12：54 项通过；
 - Linux Python 3.12：54 项，53 项通过、1 项 Windows junction 专项跳过；
@@ -64,11 +64,16 @@ git diff --check
 - 另一次普通 clone 的 submodule 初始为未初始化；执行 `git submodule update --init --recursive -- vendor/suanhai-team-external-expression-infrastructure` 后恢复相同固定提交，父仓无变化。此项验证 Git 恢复命令，不冒充 Agent 自动恢复的交互测试。
 - 最终模板提交的 [CI 40848082367](https://github.com/suanhaitech/suanhai-team-group-asset-template/actions/runs/40848082367) 与 v3 隔离生成仓的 [CI 40848227080](https://github.com/suanhaitech/group-asset-template-e2e-v3-20261029/actions/runs/40848227080) 均在 Windows、Linux、macOS 通过递归 checkout、只读预检及初始化入口检查。CI 不执行用户访谈，也不证明所有 Agent 客户端都能自动加载规则。
 
-## Agent 冷启动初测
+## Agent 冷启动与续接
 
-在从 GitHub 模板生成的隔离仓中，使用独立、临时 Codex CLI 会话，未传入历史聊天或额外仓库规则，只输入“初始化小组资产仓”。Agent 能找到根规则、Manifest、固定版本和初始化 Harness，识别未初始化状态，按合成输入将小组身份、边界、来源、零项目索引和续接步骤保存在消费端文件中；没有创建业务任务、项目目录或作品，也没有提交或推送。随后另一独立会话仅读取消费端文件，能区分合成候选和待真人确认事项，确认没有登记真实项目。
+在 v3 GitHub 生成仓中，用两次互相独立、未传入历史聊天的 Agent 会话测试：
 
-该 Agent 循环在先前生成的隔离仓中执行；当前 v3 生成仓验证了最终固定 gitlink `524bcb0`，三平台 CI 和本机递归 clone 均通过。此轮 Codex 工具环境未找到 Python Launcher `py -3`，且 `git submodule status` 调用的 `basename`、`sed` 不在其命令环境 PATH 中，所以工具预检没有通过；Agent 未掩盖限制，而是报告并用可用 Git 查询核对 gitlink 与 HEAD。普通 PowerShell 环境中的 Python 3.12.7 可用，预检在本机克隆和 CI 中通过。测试没有修改环境配置。
+- 首次输入“初始化小组资产仓”，Agent 核对当前 `524bcb0` 固定 submodule，预检通过；把合成候选分别写入初始化进度、小组身份、边界、来源文件；保留零项目索引，不创建项目目录、任务和作品；不提交或推送。
+- 第二次只读续接“继续初始化小组资产仓”，Agent 从共享文件恢复演练状态，区分本轮操作者与小组身份，准确指出候选信息、负责人待确认事项和项目数量为零；检查记录无冲突，没有依赖上一会话聊天。只读续接未写文件、提交、推送或改 submodule。
+
+隔离工作区的候选记录明确标为合成演练，不能当成真实团队事实、负责人确认或发布授权。该试验覆盖从公开模板生成到固定 submodule、Agent 落盘和新会话读取的主链路，不代表所有 Agent 客户端均会自动加载 `AGENTS.md`。
+
+另一次直接运行 Codex CLI 沙箱探针时，其子进程环境缺少 `py -3`、`basename` 和 `sed`，所以当次预检失败；本次正式 Agent 测试环境中这些依赖可用，预检通过。这说明需要检查 Agent 工具子进程自己的 PATH，不能只验证桌面终端。测试未安装软件或改变系统配置。
 
 ## 真人与其他客户端的后续试用
 
