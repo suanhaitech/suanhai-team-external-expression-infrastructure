@@ -33,6 +33,8 @@ Manifest 只列出已经实现并可被消费端使用的能力。计划能力�
 
 新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。
 
+如果组长希望 Agent 代办建仓和本地克隆，使用自包含的 [创建与初始化提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)。该启动文本在 submodule 尚不存在时即可单独分享；建仓、递归克隆和固定依赖核验后，才把控制交给消费端已固定版本中的初始化 Harness。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
+
 模板源文件保存在本仓 `templates/group-asset-repository-v1/`，源目录本身不嵌套自身 submodule；维护者将其发布到独立模板仓时配置依赖。铺设工具是维护者从空仓建模版和工具回归的备用入口，只复制空结构，不承担现有仓库自动迁移。初始化 Harness 引导当前使用者区分小组身份与项目事实、保留来源与确认依据。小组上下文位于 `context/group/`，零到多个项目位于 `context/projects/`；初始化进度保存在 `context/initialization.md`。
 
 ## 任务循环与恢复

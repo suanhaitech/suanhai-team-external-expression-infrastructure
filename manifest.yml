@@ -65,3 +65,16 @@ capabilities:
     outputs:
       - 小组级与项目级候选稿、逐项确认依据及保留的未知项
       - 待核对事项与初始化检查结果
+  - id: consumer.group-asset-create-and-initialize
+    kind: harness
+    path: harness/group-asset-repository
+    entrypoint: harness/group-asset-repository/CREATE_AND_INITIALIZE.md
+    purpose: 在用户授权和明确创建参数后，从公开 GitHub 模版生成小组资产仓、克隆并核验固定基础设施，再转交仓内初始化 Harness；不修改组织权限、不提交或推送
+    inputs:
+      - 小组名称与目标仓库标识
+      - 本地克隆位置及仓库可见性
+      - 当前账号已登录的 gh CLI；组织建仓权限由 GitHub 模版生成 API 的结果验证
+      - 可写 Agent 工作区及可用的 Git、Python 工具链
+    outputs:
+      - 从 GitHub 模版生成并递归克隆的小组资产仓
+      - 保存在消费端的初始化候选、来源、待确认项和续接位置
