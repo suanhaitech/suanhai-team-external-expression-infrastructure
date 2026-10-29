@@ -44,7 +44,22 @@ GitHub template generation 会创建持久远程仓库。提示词必须先核�
 使用一个新建的私有合成测试仓进行测试，不把演练输入带入真实小组：
 
 1. 在一台没有小组仓工作副本的设备中，先将准备存放新仓的父目录作为 Agent workspace 打开；例如在测试机上使用 `D:\Works\Suanhaitech\Repos`，前提是它存在且不是另一个 Git 工作树。核实 Agent 工具环境的 Git、`gh`、Python 和账号；组织建仓权限以模板生成 API 的实际结果为准。
-2. 将完整提示词连同小组名、仓库短名、本地父目录和合成初始化资料一次发给 Agent；仓库可见性可留空以验证 private 默认。组长授权 Agent 创建该单一私有测试仓和本地 clone，不给组织管理权限。
+2. 将完整提示词连同以下合成测试输入一次发给 Agent；仓库可见性留空以验证 private 默认。组长授权 Agent 创建该单一私有测试仓和本地 clone，不给组织管理权限：
+
+   ```text
+   小组正式名称：Suanhai 建仓与初始化 E2E 合成测试组
+   GitHub 仓库短名：group-asset-create-flow-e2e-20261029
+   本地父目录：D:\Works\Suanhaitech\Repos
+   小组定位：仅验证小组资产仓创建与初始化流程，不代表真实团队或项目。
+   维护责任：合成测试组长（测试身份，不代表真实责任人）。
+   协作对象：合成测试成员甲、合成测试成员乙。
+   项目列表：当前没有需要登记的真实项目，保持项目索引为空。
+   来源：以上内容均为本轮合成测试输入，不引用真实项目事实。
+   记录要求：将以上信息标为“合成候选，待负责人确认”，不要记成真实身份或负责人确认。
+   ```
+
+   该仓库名在编写本测试说明时尚未存在；执行时仍由 Agent 按模板流程检查冲突。若名称已存在，不自动改名或覆盖，先停止并报告。
+
 3. 观察 Agent 是否用 GitHub Template Generate 创建仓，使用 `git clone --recurse-submodules`，没有要求组长手工运行 API 或 Git 命令，也没有先克隆基础设施仓。
 4. 核对生成仓 URL 和 visibility；父仓 submodule 条目为 `160000`，`.gitmodules` URL/path 正确，submodule HEAD 完全等于 gitlink；Manifest 和 onboarding 入口可读，按消费端规则运行的本地预检通过。
 5. 确认 Agent 读取的是新仓根规则，分轮写入被标为“合成候选”的信息和待确认项；项目索引保持空；没有建立任务、作品或发布授权，没有 commit/push。
