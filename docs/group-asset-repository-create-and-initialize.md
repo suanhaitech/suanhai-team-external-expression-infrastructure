@@ -43,13 +43,14 @@ GitHub template generation 会创建持久远程仓库。提示词必须先核�
 
 使用一个新建的私有合成测试仓进行测试，不把演练输入带入真实小组：
 
-1. 在一台没有小组仓工作副本的设备中，先将准备存放新仓的父目录作为 Agent workspace 打开；例如在测试机上使用 `D:\Works\Suanhaitech\Repos`，前提是它存在且不是另一个 Git 工作树。核实 Agent 工具环境的 Git、`gh`、Python 和账号；组织建仓权限以模板生成 API 的实际结果为准。
+1. 在一台没有小组仓工作副本的设备中，先将准备存放新仓的父目录作为 Agent workspace 打开；例如在测试机上使用 `D:\Works\Suanhaitech\Repos`，前提是它存在且不是另一个 Git 工作树。核实 Agent 工具环境的 Git、`gh`、Python 和账号；测试输入指定的预期账号为 `ChaosTHL`，如新机检测结果不同则停止确认；组织建仓权限以模板生成 API 的实际结果为准。
 2. 将完整提示词连同以下合成测试输入一次发给 Agent；仓库可见性留空以验证 private 默认。组长授权 Agent 创建该单一私有测试仓和本地 clone，不给组织管理权限：
 
    ```text
    小组正式名称：Suanhai 建仓与初始化 E2E 合成测试组
    GitHub 仓库短名：group-asset-create-flow-e2e-20261029
    本地父目录：D:\Works\Suanhaitech\Repos
+   预期 GitHub 账号：ChaosTHL
    小组定位：仅验证小组资产仓创建与初始化流程，不代表真实团队或项目。
    维护责任：合成测试组长（测试身份，不代表真实责任人）。
    协作对象：合成测试成员甲、合成测试成员乙。
