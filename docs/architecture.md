@@ -45,6 +45,8 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 
 如果组长希望 Agent 代办建仓和本地克隆，使用自包含的 [创建与初始化提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)。该启动文本在 submodule 尚不存在时即可单独分享；建仓、递归克隆和固定依赖核验后，才把控制交给消费端已固定版本中的初始化 Harness。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
 
+已经有自己仓库、但不想采用公共模板的团队，可使用[既有仓库接入提示词](../workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)。这是一段一次性的启动入口：它授权 Agent 审计仓库后接入固定 commit 的 submodule，并调用 Manifest 注册的 `consumer.infrastructure-adoption-harness` 预览校验后安装根 `AGENTS.md` 规则。提示词授权后无需二次确认；若 submodule 已正确接入，则不重复添加，但仍核对和补装缺失的根 Harness。工具只追加带标记的 Harness，不覆盖本仓规则，也不复制公共模板目录；遇到冲突时停止。接入完成后由消费端 Harness 持续路由固定 Manifest 能力；只要 Agent 客户端会读取根 `AGENTS.md` 且 submodule 已初始化，后续任务就不需重复这段提示词。升级仍通过独立的 submodule 更新工作流显式进行。
+
 模板源文件保存在本仓 `templates/group-asset-repository-v1/`，源目录本身不嵌套自身 submodule；维护者将其发布到独立模板仓时配置依赖。铺设工具是维护者从空仓建模版和工具回归的备用入口，只复制空结构，不承担现有仓库自动迁移。初始化 Harness 引导当前使用者区分小组身份与项目事实、保留来源与确认依据。小组上下文位于 `context/group/`，零到多个项目位于 `context/projects/`；初始化进度保存在 `context/initialization.md`。
 
 ## 任务循环与恢复

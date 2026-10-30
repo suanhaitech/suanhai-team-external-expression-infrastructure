@@ -4,6 +4,8 @@
 
 当消费端更新到 Manifest schema v2 后，`consumer.submodule-update` 是受控更新工作流，入口见 [`workflows/submodule-update/ENTRYPOINT.md`](../workflows/submodule-update/ENTRYPOINT.md)；旧版本消费端仍只能按本协议手工执行显式升级，不能因为远端出现新提交而自动漂移。
 
+尚未接入基础设施的既有仓库，应先运行[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)。该工作流负责首次添加固定 gitlink 和消费端根 Harness；完成后再使用本文件的预检与升级协议。
+
 ## 预检工具
 
 Manifest 中的 `consumer.submodule-preflight` 指向 `tools/submodule-preflight/submodule_preflight.py`。工具只使用 Python 标准库和 Git CLI，所有 Git 命令均为查询操作。在消费端父仓库根目录执行：

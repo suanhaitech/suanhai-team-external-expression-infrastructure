@@ -13,7 +13,9 @@ Agent 不会因为 submodule 中存在文档，就自动发现并执行其中的
 
 ## 接入方式
 
-将下面的规则复制到消费端根 `AGENTS.md`，并把其中的 submodule 路径替换为实际路径（默认是 `vendor/suanhai-team-external-expression-infrastructure`）。消费端原有的项目规则、权限边界和更严格的限制优先于本协议。
+本文件描述消费端 Harness 的通用启动协议，不会因为 submodule 被克隆而自动生效。采用公共模板的新仓已经预置接入规则；既有仓库首次接入时，使用[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)和[可转发提示词](../workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)。该一次性流程保留原仓库结构、固定 submodule 版本，并调用已声明工具预览及安装消费端根 `AGENTS.md` 规则。以后同一仓库中的 Agent 从根规则路由能力，不重复使用首次提示词。
+
+公共模板已经把等价的启动规则放入消费端根 `AGENTS.md`。既有仓库不要直接手工复制下面的示例来绕过接入流程；应使用[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)调用 `consumer.infrastructure-adoption-harness`，提示词授权后由 Agent 预览校验并安装带标记的规则。下面的文本用于说明协议内容和模板实现，submodule 路径默认是 `vendor/suanhai-team-external-expression-infrastructure`；消费端原有的项目规则、权限边界和更严格的限制优先于本协议。
 
 ```markdown
 ## 共享对外表达基础设施启动规则

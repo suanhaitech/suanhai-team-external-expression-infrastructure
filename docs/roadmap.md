@@ -19,7 +19,7 @@
 
 ## 下一阶段：HTML 能力切片
 
-当前新增通用小组资产仓模板、只创建缺失文件的铺设工具与初始化访谈 Harness，并补上组长可直接转发的建仓与初始化提示词。新模板采用 `topics/` 与 `reports/`，支持零到多个项目并保留旧仓 `works/` 兼容。先验证隔离新仓的 Git/submodule 关系、模板铺设、初始化读取路线和任务输出，再由真实小组试用访谈，后续单独迁移大工仓。入口与验证见[小组仓建立流程](group-asset-repository-bootstrap.md)和[小组仓代建与初始化流程](group-asset-repository-create-and-initialize.md)。
+当前已新增通用小组资产仓模板、只创建缺失文件的铺设工具、初始化访谈 Harness、组长可直接转发的建仓初始化提示词，以及既有仓库首次接入基础设施工作流。新模板采用 `topics/` 与 `reports/`，支持零到多个项目并保留旧仓 `works/` 兼容；既有仓接入流程不迁移其目录结构，由一次性提示词授权 Agent 固定 submodule 并安装消费端根 Harness；已有正确 submodule 时仍会补装缺失的 Harness。接入后的日常能力路由依赖该根文件和 Agent 客户端的加载行为。入口见[小组仓建立流程](group-asset-repository-bootstrap.md)、[小组仓代建与初始化流程](group-asset-repository-create-and-initialize.md)和[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)。
 
 下一步实现 `html.external-expression` 的最小纵向能力：读取任务说明和获准来源，使用已登记模板形成 HTML，在本地预览并完成确定性检查。内容判断、专业准确性和对外授权仍由真人负责。
 

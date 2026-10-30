@@ -101,6 +101,8 @@ manifest.yml              对外 Capability 注册和发现入口
 | `consumer.submodule-preflight` | Tool Capability | `tools/submodule-preflight/submodule_preflight.py` | Git CLI |
 | `html.project-report-v1` | Template Capability | `templates/html-report/project-report-v1/index.html` | 消费端已对齐任务和来源 |
 | `consumer.submodule-update` | Workflow Capability | `workflows/submodule-update/ENTRYPOINT.md` | `consumer.submodule-preflight` |
+| `consumer.infrastructure-adoption` | Workflow Capability | `workflows/infrastructure-adoption/ENTRYPOINT.md` | `consumer.infrastructure-adoption-harness`, `consumer.submodule-preflight` |
+| `consumer.infrastructure-adoption-harness` | Tool Capability | `tools/infrastructure-adoption-harness/install_harness.py` | 在既有消费端根 `AGENTS.md` 中预览或安装共享长期 Harness |
 
 ## 权限和留痕
 

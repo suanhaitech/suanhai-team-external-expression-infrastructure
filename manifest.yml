@@ -99,3 +99,32 @@ capabilities:
       - 消费端短期分支上的可审阅 gitlink 变更
     uses:
       - consumer.submodule-preflight
+  - id: consumer.infrastructure-adoption-harness
+    kind: tool
+    path: tools/infrastructure-adoption-harness
+    entrypoint: tools/infrastructure-adoption-harness/install_harness.py
+    purpose: 在已固定基础设施 submodule 的既有消费端仓库中预览或安装根 AGENTS.md 共享 Harness；默认只读，接入工作流授权后显式应用，冲突时拒绝，不提交或推送
+    inputs:
+      - 已固定且工作区干净的基础设施 submodule
+      - 消费端父仓库根目录和 submodule 相对路径
+      - dry-run 或接入工作流已授权的显式 apply 模式
+    outputs:
+      - 供负责人审阅的 Harness 安装计划
+      - 已写入或保持不变的带标记根 AGENTS.md
+      - gitlink、submodule HEAD 和 Manifest 注册检查结果
+  - id: consumer.infrastructure-adoption
+    kind: workflow
+    path: workflows/infrastructure-adoption
+    entrypoint: workflows/infrastructure-adoption/ENTRYPOINT.md
+    purpose: 在不采用公共模板的既有仓库中，按本次提示词授予的有限本地权限接入固定版本的基础设施 submodule，并幂等增补消费端根 AGENTS.md Harness；不覆盖本仓规则、不自动提交或升级，已有旧版本需另行授权更新到兼容版本
+    inputs:
+      - 既有父仓库根目录、Git 状态和仓库自身分支/权限约定
+      - 既有仓库清楚约定或默认的 submodule 相对路径，以及稳定 main 解析出的完整基础设施 commit SHA
+      - 本仓已有 AGENTS.md、上下文、任务、产物和 CI 约定
+    outputs:
+      - 固定 commit 的 submodule gitlink 和 .gitmodules 配置
+      - 父仓根 AGENTS.md 中可重复执行的消费端能力发现 Harness
+      - Manifest、gitlink、工作区和预检核对结果
+    uses:
+      - consumer.infrastructure-adoption-harness
+      - consumer.submodule-preflight

@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、离线项目汇报模板（`html.project-report-v1`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）和 submodule 更新流程（`consumer.submodule-update`）；
+- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、离线项目汇报模板（`html.project-report-v1`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
 - `manifest.yml` 是能力发现的唯一入口；
 - `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
 - 实际能力以当前 `capabilities` 为准；任务循环、状态工具和项目汇报模板属于已实现能力，HTML 自动生成、预览和检查相关目录仍为 `planned / not implemented`；
