@@ -36,7 +36,9 @@ python vendor/suanhai-team-external-expression-infrastructure/tools/submodule-pr
 
 ## 阶段 3：受控更新
 
-获得确认后，按消费端总 Harness 从集成分支创建短期分支；若消费端没有 `develop`，从默认分支创建短期分支，不直接修改默认分支。然后在 submodule 内获取目标对象并执行 `git checkout --detach <完整SHA>`，运行目标 Manifest 校验、预检、冒烟测试和必要真实任务试用。只暂存 submodule 路径，用 `git diff --cached --submodule=log` 确认父仓记录的是 gitlink，并记录旧 SHA、新 SHA、测试结果和兼容性风险。
+获得确认后，按消费端总 Harness 从集成分支创建短期分支；若消费端没有 `develop`，从默认分支创建短期分支，不直接修改默认分支。然后在 submodule 内获取目标对象并执行 `git checkout --detach <完整SHA>`。此时父仓 `HEAD` 仍记录旧 gitlink，预检工具会正确报告新旧不一致，因此不要在父仓提交前将完整 preflight 当作通过标准。
+
+只暂存 submodule 路径，用 `git diff --cached --submodule=log` 确认父仓记录的是 gitlink。再检查 submodule 的 `HEAD` 等于候选 SHA、submodule 自身工作区干净、父仓 index 中该路径为 `160000` 且指向候选 SHA；运行目标 Manifest 校验、消费端冒烟测试和必要真实任务试用，并记录旧 SHA、新 SHA、测试结果和兼容性风险。提交后父仓 `HEAD` 与 submodule HEAD 一致、父仓工作区干净时，再运行完整 preflight；已推送的 PR 还应等待消费端 CI 对新 gitlink 的递归 clone 检查通过。
 
 提交、推送和创建 PR 仍是独立副作用，只有用户明确授权相应动作时才执行。
 

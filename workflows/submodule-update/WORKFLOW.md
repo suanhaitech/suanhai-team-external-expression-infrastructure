@@ -30,9 +30,10 @@
 4. 展示旧 SHA、新 SHA、能力变化、兼容性风险和将要修改的路径，等待用户确认；
 5. 按消费端总 Harness 选择集成基线：配置了 `develop` 时从最新 `develop` 创建短期分支；没有 `develop` 时从默认分支创建短期分支，不直接修改默认分支；明确 checkout 目标 commit；
 6. 更新父仓 gitlink，只暂存 submodule 路径；
-7. 运行目标 Manifest 校验、消费端预检、冒烟测试和任务级试用；
+7. 在父仓提交前，核验 submodule HEAD、父仓 index 中 `160000` gitlink 和目标 SHA 一致，确认 submodule 自身干净，并运行可在当前环境执行的目标 Manifest 校验与消费端冒烟测试；
 8. 记录版本、测试和待解决问题；按用户授权提交、推送和创建 PR；
-9. 报告最终 gitlink、测试证据和未执行的外部动作。
+9. 在父仓提交完成且工作区干净后，再运行完整 `consumer.submodule-preflight`；CI 也应对包含新 gitlink 的提交执行新 clone 检查；
+10. 报告最终 gitlink、测试证据和未执行的外部动作。
 
 ## 禁止事项
 
