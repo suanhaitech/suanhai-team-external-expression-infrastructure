@@ -71,7 +71,17 @@ class InfrastructureAdoptionHarnessTest(unittest.TestCase):
 
     @staticmethod
     def _environment() -> dict[str, str]:
-        return {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "GIT_ALLOW_PROTOCOL": "file"}
+        return {
+            **os.environ,
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "GIT_ALLOW_PROTOCOL": "file",
+            # 临时克隆出来的 submodule 不继承父测试仓的 user.* 配置；
+            # 在进程环境提供隔离身份，让 Linux CI 无需修改全局 Git 配置也能造出测试提交。
+            "GIT_AUTHOR_NAME": "Infrastructure Adoption Test",
+            "GIT_AUTHOR_EMAIL": "infrastructure-adoption-test@example.invalid",
+            "GIT_COMMITTER_NAME": "Infrastructure Adoption Test",
+            "GIT_COMMITTER_EMAIL": "infrastructure-adoption-test@example.invalid",
+        }
 
     def _git(self, cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
