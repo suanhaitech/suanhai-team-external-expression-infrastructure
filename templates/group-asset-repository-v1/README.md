@@ -53,3 +53,5 @@ git submodule update --init --recursive -- vendor/suanhai-team-external-expressi
 在本仓库根目录启动 Agent：首次说明“请引导我初始化小组资产仓”；日常直接提出真实工作需求；续作时说明“继续任务 EXPR-…”。Agent 应先读取根规则和 Manifest，再选择初始化或任务循环。对没有自动加载 `AGENTS.md` 的客户端，需要显式要求它先读取本文件和 `AGENTS.md`。
 
 完整首启和新机器测试流程见基础设施 `docs/group-asset-repository-bootstrap.md`。模板结构更新与基础设施版本升级分别评审；父仓 gitlink 是实际基础设施版本的唯一事实来源。
+
+如果需要检查或更新基础设施 submodule，在本仓根目录向 Agent 说明“检查基础设施版本”或“更新基础设施 submodule”。Agent 应从 Manifest 路由到 `consumer.submodule-update`，先运行只读预检，展示明确目标 commit 和影响，再按用户确认在短期分支中更新父仓 gitlink。不会因为远端出现新提交而自动升级。

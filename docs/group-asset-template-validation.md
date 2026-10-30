@@ -42,7 +42,7 @@ git diff --check
 
 - Windows Python 3.12：54 项通过；
 - Linux Python 3.12：54 项，53 项通过、1 项 Windows junction 专项跳过；
-- Ruby 3.3 Manifest 检查：当前 6 项能力、有效 fixtures 和非法 fixtures 的预期拒绝均通过。
+- Ruby 3.3 Manifest 检查：当时的 6 项能力、有效 fixtures 和非法 fixtures 的预期拒绝均通过；当前工作流分层变更将 Manifest 升为 schema v2，新增 `uses` 依赖校验，需由本分支 CI 重新验证。
 
 ## GitHub 模板分发与新 clone
 

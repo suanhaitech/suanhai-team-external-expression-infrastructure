@@ -17,6 +17,8 @@ Agent 工作目录为本仓库根目录。先读取根 `README.md` 与本文件�
 4. 如果 `.gitmodules`、预期 URL 或 gitlink 缺失/冲突，说明模板接入异常并停止该能力调用，不猜一个版本自动补建。网络或权限失败时保留结果，不声称已恢复。
 5. 恢复后重新核对 submodule HEAD 与父仓 gitlink 一致，再读取 Manifest。Python 工具需要 Python 3.10+；Windows 使用 `py -3`，Linux/macOS 使用 `python3`，不为通过初始化静默安装或改变本机环境。
 
+当前 Manifest 为 schema v2 时，若用户要求“检查或更新基础设施 submodule”，先读取 `consumer.submodule-update` 的 `workflows/submodule-update/ENTRYPOINT.md`；只检查时保持只读，更新时必须展示明确 commit 和变更计划并等待用户确认。不得使用 `git submodule update --remote` 自动跟随远端，也不得直接修改 `main`。
+
 ## 固定依赖可用后的读取顺序
 
 1. 根 `README.md` 与本文件；
@@ -36,6 +38,7 @@ Agent 工作目录为本仓库根目录。先读取根 `README.md` 与本文件�
 - 用户给出已有任务编号：读取 `expression.task-loop` 入口，通过 `expression.task-record` 的 `show` 读取当前记录，核对状态、历史与产出，再读取该任务所属项目上下文；不要新建同一任务。
 - 用户提出新的真实需求：读取任务循环入口，登记未对齐草案并逐步讨论；明确是否属于某个已登记项目，或属于小组级工作。不要默认选择项目、把一个项目的事实用于其他项目，或为填字段虚构项目。
 - 用户仅要求调查：只读上下文、任务和共享能力，不创建业务任务或作品。
+- 用户要求检查或更新 submodule：路由到 Manifest 中显式声明的 `consumer.submodule-update`，遵守其确认、短期分支、验证和回退规则；没有该能力时只按版本协议报告，不自行补造工作流。
 
 ## Submodule 预检与版本
 

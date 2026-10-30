@@ -17,10 +17,20 @@
 - **skill**：告诉 Agent 如何理解表达任务、组织步骤和处理边界；
 - **template**：提供 HTML 页面或组件的结构起点；
 - **tool**：执行渲染、预览、转换、素材处理或确定性检查；
-- **harness**：约束输入、工作目录、工具调用、停止条件和输出协议；
+- **workflow**：面向一个完整目标的复合能力，组织多个阶段、状态和确认点；
+- **harness**：约束 Agent 如何执行一个工作流，包括输入、工作目录、工具调用、停止条件和输出协议；它是工作流的执行机制，不是独立的业务目标；
 - **check**：验证结构、资源、链接或渲染结果。
 
-Manifest 只列出已经实现并可被消费端使用的能力。计划能力写在路线文档和对应目录的 README 中，不进入清单。
+Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `kind: workflow` 注册，并通过可选的 `uses` 列出依赖的能力 ID；新工作流入口通常是 `workflows/<workflow>/ENTRYPOINT.md`。为兼容既有消费端，`kind: harness` 仍被 Schema 接受，但新能力不再使用它。计划能力写在路线文档和对应目录的 README 中，不进入清单。
+
+## Harness 的绑定关系
+
+本仓库存在两层 Harness：
+
+1. 根 `AGENTS.md` 是基础设施仓库自身的总 Harness，约束维护 Agent 如何修改、验证和发布共享能力；
+2. 工作流目录下的入口是消费端工作流 Harness，约束小组资产仓中的 Agent 如何执行某一个已发现的 Workflow Capability。已有 `harness/` 入口继续作为兼容路径保留。
+
+工作流不是 Harness 的同义词。工作流描述“要完成什么完整目标”，Harness 描述“Agent 如何在边界内完成它”；工作流再调用 `tools/`、`templates/`、`skills/` 和 `checks/`。能力发现通过 Manifest 完成，能力发现本身不授予 Git 或外部系统权限。
 
 ## 消费端工作层
 

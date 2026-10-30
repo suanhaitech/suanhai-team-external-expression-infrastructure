@@ -1,11 +1,13 @@
-schema_version: 1
+schema_version: 2
 repository: suanhai-team-external-expression-infrastructure
 capabilities:
   - id: expression.task-loop
-    kind: harness
+    kind: workflow
     path: harness/task-loop
     entrypoint: harness/task-loop/ENTRYPOINT.md
     purpose: 消费端Agent执行需求澄清、共识对齐、多轮反馈、暂停恢复与按任务号续作的文件工作协议；不自动调用模型或生成HTML
+    uses:
+      - expression.task-record
     inputs:
       - 用户请求或消费端任务编号
       - 消费端项目上下文与实际用户授权
@@ -55,7 +57,7 @@ capabilities:
     outputs:
       - 新增的小组资产仓模板文件，或只读写入计划
   - id: consumer.group-asset-onboarding
-    kind: harness
+    kind: workflow
     path: harness/group-asset-repository
     entrypoint: harness/group-asset-repository/ENTRYPOINT.md
     purpose: 引导负责人确认小组身份、零到多个项目上下文、来源和表达边界；保留未知项，不伪造任务或授权
@@ -65,8 +67,10 @@ capabilities:
     outputs:
       - 小组级与项目级候选稿、逐项确认依据及保留的未知项
       - 待核对事项与初始化检查结果
+    uses:
+      - consumer.submodule-preflight
   - id: consumer.group-asset-create-and-initialize
-    kind: harness
+    kind: workflow
     path: harness/group-asset-repository
     entrypoint: harness/group-asset-repository/CREATE_AND_INITIALIZE.md
     purpose: 在用户授权和明确创建参数后，从公开 GitHub 模版生成小组资产仓、克隆并核验固定基础设施，再转交仓内初始化 Harness；不修改组织权限、不提交或推送
@@ -78,3 +82,20 @@ capabilities:
     outputs:
       - 从 GitHub 模版生成并递归克隆的小组资产仓
       - 保存在消费端的初始化候选、来源、待确认项和续接位置
+    uses:
+      - consumer.group-asset-onboarding
+      - consumer.submodule-preflight
+  - id: consumer.submodule-update
+    kind: workflow
+    path: workflows/submodule-update
+    entrypoint: workflows/submodule-update/ENTRYPOINT.md
+    purpose: 在消费端以用户确认、短期分支和可审阅记录为边界，更新基础设施 submodule 的父仓 gitlink；不自动跟随远端、不直接修改 main
+    inputs:
+      - 消费端父仓库根目录和 submodule 相对路径
+      - 已验收的基础设施 commit、来源和兼容性说明
+      - 用户对更新、提交和推送范围的明确确认
+    outputs:
+      - 更新前后的 gitlink、预检快照和验证结果
+      - 消费端短期分支上的可审阅 gitlink 变更
+    uses:
+      - consumer.submodule-preflight

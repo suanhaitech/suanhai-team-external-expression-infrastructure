@@ -10,9 +10,9 @@ require "optparse"
 require "yaml"
 
 REPOSITORY = "suanhai-team-external-expression-infrastructure"
-ALLOWED_KINDS = %w[skill template tool harness check].freeze
+ALLOWED_KINDS = %w[skill template tool workflow harness check].freeze
 ALLOWED_ROOT_KEYS = %w[schema_version repository capabilities].freeze
-ALLOWED_CAPABILITY_KEYS = %w[id kind path entrypoint purpose inputs outputs].freeze
+ALLOWED_CAPABILITY_KEYS = %w[id kind path entrypoint purpose inputs outputs uses].freeze
 SUPPORTED_SCHEMA_KEYS = %w[$schema $id title type additionalProperties required properties const enum items pattern minLength].freeze
 
 options = {
@@ -135,11 +135,16 @@ manifest["capabilities"].each_with_index do |capability, index|
   fail_validation("#{prefix}.kind 不受支持") unless ALLOWED_KINDS.include?(capability["kind"])
   fail_validation("#{prefix}.purpose 必须是非空字符串") unless capability["purpose"].is_a?(String) && !capability["purpose"].strip.empty?
 
-  %w[inputs outputs].each do |key|
+  %w[inputs outputs uses].each do |key|
     next unless capability.key?(key)
 
     values = capability[key]
     fail_validation("#{prefix}.#{key} 必须是字符串数组") unless values.is_a?(Array) && values.all? { |value| value.is_a?(String) }
+    if key == "uses"
+      values.each do |value|
+        fail_validation("#{prefix}.uses 包含非法能力 ID: #{value}") unless value.match?(/\A[a-z0-9][a-z0-9._-]*\z/)
+      end
+    end
   end
 
   %w[path entrypoint].each do |key|
@@ -152,6 +157,17 @@ manifest["capabilities"].each_with_index do |capability, index|
     fail_validation("#{prefix}.#{key} 指向的入口不存在: #{value}") unless File.exist?(expanded)
     resolved = File.realpath(expanded)
     fail_validation("#{prefix}.#{key} 通过符号链接越出仓库根目录") unless resolved == root || resolved.start_with?(root_prefix)
+  end
+end
+
+capability_ids = manifest["capabilities"].map { |capability| capability["id"] }
+fail_validation("capabilities 中存在重复 ID") unless capability_ids.uniq.length == capability_ids.length
+manifest["capabilities"].each_with_index do |capability, index|
+  next unless capability.key?("uses")
+  fail_validation("capabilities[#{index}].uses 只允许 workflow 声明依赖") unless capability["kind"] == "workflow"
+
+  capability["uses"].each do |dependency|
+    fail_validation("capabilities[#{index}].uses 引用了未声明能力: #{dependency}") unless capability_ids.include?(dependency)
   end
 end
 

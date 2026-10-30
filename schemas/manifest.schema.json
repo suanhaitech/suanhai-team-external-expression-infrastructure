@@ -7,7 +7,7 @@
   "required": ["schema_version", "repository", "capabilities"],
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "repository": {
       "const": "suanhai-team-external-expression-infrastructure"
@@ -24,7 +24,7 @@
             "pattern": "^[a-z0-9][a-z0-9._-]*$"
           },
           "kind": {
-            "enum": ["skill", "template", "tool", "harness", "check"]
+            "enum": ["skill", "template", "tool", "workflow", "harness", "check"]
           },
           "path": {
             "type": "string",
@@ -45,6 +45,13 @@
           "outputs": {
             "type": "array",
             "items": {"type": "string"}
+          },
+          "uses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$"
+            }
           }
         }
       }

@@ -103,11 +103,11 @@ Agent 必须：
 1. 读取 `schema_version` 和 `repository`；
 2. 确认父仓库 submodule gitlink 是固定 commit；
 3. 只把 `capabilities` 中显式列出的能力视为可调用；
-4. 校验能力的 `kind`、`path` 和 `entrypoint`；
-5. 读取能力入口说明，确认输入、输出、副作用和边界；
+4. 校验能力的 `kind`、`path`、`entrypoint` 和（如存在）`uses`；
+5. 读取能力入口说明及其依赖入口，确认输入、输出、副作用和边界；
 6. 在任务或评审记录中保留实际使用的能力 ID 和 submodule commit；如果清单为空，则记录“无可用共享能力”和 submodule commit，不虚构能力 ID。
 
-历史 v0.1 骨架的 `capabilities` 为空。当前版本已注册任务循环、记录工具和 `html.project-report-v1` 离线模板；实际可用项始终以消费端固定提交的 Manifest 为准，不能把占位目录当作 HTML 自动生成、预览或检查器能力。
+历史 v0.1 骨架的 `capabilities` 为空。当前 Manifest schema v2 允许以 `kind: workflow` 注册复合工作流，并用 `uses` 声明依赖；当前版本已注册任务循环、记录工具、submodule 更新工作流和 `html.project-report-v1` 离线模板。实际可用项始终以消费端固定提交的 Manifest 为准，不能把占位目录当作 HTML 自动生成、预览或检查器能力。
 
 Manifest 是发现协议，不提供访问控制或执行隔离。消费端必须依赖 Agent 客户端和本机的工具授权边界；运行已声明能力前，仍要阅读其依赖和副作用说明。
 

@@ -2,6 +2,8 @@
 
 本协议用于通过 Git submodule 使用共享基础设施的消费端。它把“实际使用哪个版本”和“远端当前指向哪里”分开处理：父仓库提交中的 `160000` gitlink 是复现事实，远端 `main` 只用于只读比较，不能成为自动跟随的版本来源。
 
+当消费端更新到 Manifest schema v2 后，`consumer.submodule-update` 是受控更新工作流，入口见 [`workflows/submodule-update/ENTRYPOINT.md`](../workflows/submodule-update/ENTRYPOINT.md)；旧版本消费端仍只能按本协议手工执行显式升级，不能因为远端出现新提交而自动漂移。
+
 ## 预检工具
 
 Manifest 中的 `consumer.submodule-preflight` 指向 `tools/submodule-preflight/submodule_preflight.py`。工具只使用 Python 标准库和 Git CLI，所有 Git 命令均为查询操作。在消费端父仓库根目录执行：
@@ -44,13 +46,13 @@ JSON 输出的顶层版本为 `submodule-preflight.v1`（由 `schema_version: 1`
 
 ## 显式升级
 
-升级必须是消费端的一个可审查任务，建议从消费端 `develop` 创建短期分支：
+升级必须是消费端的一个可审查任务，按消费端总 Harness 从集成分支创建短期分支；如果消费端没有 `develop`，从默认分支创建短期分支，但不直接修改默认分支：
 
 1. 记录父仓库 commit、旧 gitlink、submodule `HEAD` 和工作树状态，并运行一次预检；
 2. 在基础设施仓库选择已验收的不可变 commit，记录其来源和兼容性说明；不要使用 `git submodule update --remote`；
 3. 由操作者显式在隔离工作树中 checkout 候选 commit，然后运行预检、基础设施 Manifest 校验、消费端冒烟测试和必要的真实任务试用；
 4. 只暂存 submodule 路径，核对 `git diff --cached --submodule`，在消费端记录旧 SHA、新 SHA、测试结果、兼容性风险和评审结论；
-5. 按消费端既有流程提交、审查并合入 `develop`，稳定版本再按发布流程快进到 `main`。
+5. 按消费端既有流程提交、审查并合入集成分支；若没有 `develop`，按其默认分支治理规则合入。稳定版本再按消费端发布流程进入稳定分支。
 
 预检工具不执行第 2 至第 5 步。这样每个消费端可以保留自己的审批人、测试矩阵和发布记录，同时共享相同的事实核对格式。
 
