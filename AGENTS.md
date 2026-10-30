@@ -1,11 +1,14 @@
 # Agent 协作约定
 
-本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的工具、技能、模板、Harness 和检查协议，不承载具体小组的项目事实或对外表达资产。
+本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的工作流能力、工具、技能、模板、Harness 和检查协议，不承载具体小组的项目事实或对外表达资产。
+
+根 `AGENTS.md` 是本仓库自身的总 Harness：它约束维护本基础设施仓库的 Agent。`workflows/` 中的新入口和 `harness/` 中保留的既有入口，是提供给消费端仓库使用的工作流 Harness；不要把它们与根规则混为一谈。
 
 ## 当前状态
 
-- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、离线项目汇报模板（`html.project-report-v1`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化启动 Harness（`consumer.group-asset-create-and-initialize`）和仓内初始化 Harness（`consumer.group-asset-onboarding`）；
+- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、离线项目汇报模板（`html.project-report-v1`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）和 submodule 更新流程（`consumer.submodule-update`）；
 - `manifest.yml` 是能力发现的唯一入口；
+- `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
 - 实际能力以当前 `capabilities` 为准；任务循环、状态工具和项目汇报模板属于已实现能力，HTML 自动生成、预览和检查相关目录仍为 `planned / not implemented`；
 - 不得因为目录存在，就把计划能力描述为已经可用。
 
@@ -14,7 +17,7 @@
 - Chaos 是当前仓库负责人和唯一开发者；
 - 项目专属事实、客户资料、凭据、令牌和未经授权的数据不得进入本仓库；
 - 不在这里实现项目任务、数据库、云端接口或部署流程；
-- 不自动执行 Git commit、push、部署或正式发布；
+- 不自动执行 Git commit、push、部署或正式发布。工作流入口可以指导 Agent 在用户明确确认后执行这些动作，但能力发现不等于授权；
 - 工程检查通过不代表专业内容正确，也不代表对外发布已经获得授权。
 - 任务循环的用户原话是追溯记录，不是身份认证；测试数据只在隔离目录创建，不进入本仓或消费端真实业务。
 

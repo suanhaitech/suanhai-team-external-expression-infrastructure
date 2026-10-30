@@ -31,13 +31,13 @@ Agent 的工作目录必须是本仓库根目录。开始任何对外表达任�
 
 读取后，先输出当前项目、任务目标、受众、允许使用的来源、计划输出路径、Manifest 能力、缺失信息和需要真人确认的事项。只读请求下没有任务时不创建任务或作品；获授权的制作请求可以先创建未对齐的任务草案。
 
-当前 Manifest 包含 `expression.task-loop` 时，读取其 entrypoint，并通过 `expression.task-record` 管理任务。用户给出任务号时先 show 读取，恢复前只核对状态；不要根据旧聊天或旧测试报告推断本轮事实。
+当前 Manifest 包含 `expression.task-loop` 时，读取其 entrypoint，并通过 `expression.task-record` 管理任务。Manifest 的 `kind: workflow` 表示复合工作流能力；读取其入口后，还要按 `uses` 字段读取依赖能力。用户给出任务号时先 show 读取，恢复前只核对状态；不要根据旧聊天或旧测试报告推断本轮事实。
 
 新仓初始化未完成时，从 Manifest 读取 `consumer.group-asset-onboarding` 入口，按用户已有授权继续分轮访谈。先区分当前使用者角色与共享的小组身份；小组可以有零到多个项目，不能默认选择项目。只读请求仅报告初始化状态，不填写事实。缺少旧单项目路径时不伪造文件，按本仓的实际上下文映射读取。
 
 已有父仓提交时，运行已声明的 `consumer.submodule-preflight` 做只读版本预检；报告远端更新，不静默切换。仅网络不可用时，可追加 `--skip-remote` 复核本地固定版本后继续，明确远端未知。新空仓尚无首次提交时，按新仓建立流程运行铺设工具 dry-run 核对 index gitlink 与 submodule HEAD，不能为了通过预检而擅自提交。
 
-共享能力只能从 submodule 的 `manifest.yml` 发现。只有 `capabilities` 中显式列出的能力才可调用；计划目录、占位 README 和未列出的路径都不可调用。当前 Manifest 已声明任务循环、记录工具和一套离线项目汇报模板；HTML 自动生成、预览和检查器仍不可调用。
+共享能力只能从 submodule 的 `manifest.yml` 发现。只有 `capabilities` 中显式列出的能力才可调用；计划目录、占位 README 和未列出的路径都不可调用。不同 gitlink 可能包含不同 Manifest 版本；例如 schema v2 增加了通过 `uses` 声明依赖的 workflow 能力。HTML 自动生成、预览和检查器只有在相应能力明确注册后才可调用。
 
 项目事实、来源文件、作品、评审记录和发布授权写入本仓库；默认不修改 submodule。提交、推送、部署或发布须有相应用户授权；已有授权在其范围内继续有效。Agent 不能代替专业事实评审、责任主体确认或对外授权。
 ```

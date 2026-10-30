@@ -1,0 +1,10 @@
+schema_version: 2
+repository: suanhai-team-external-expression-infrastructure
+capabilities:
+  - id: consumer.example-workflow
+    kind: workflow
+    path: docs/architecture.md
+    entrypoint: docs/architecture.md
+    purpose: invalid dependency fixture
+    uses:
+      - consumer.missing-tool

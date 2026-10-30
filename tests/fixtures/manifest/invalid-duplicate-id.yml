@@ -1,0 +1,13 @@
+schema_version: 2
+repository: suanhai-team-external-expression-infrastructure
+capabilities:
+  - id: duplicate.id
+    kind: tool
+    path: tools/submodule-preflight
+    entrypoint: tools/submodule-preflight/submodule_preflight.py
+    purpose: first
+  - id: duplicate.id
+    kind: tool
+    path: tools/submodule-preflight
+    entrypoint: tools/submodule-preflight/submodule_preflight.py
+    purpose: second

@@ -6,6 +6,8 @@
 
 本仓库另外提供一个可直接转发的启动提示词，代办 GitHub 模版建仓、递归克隆和仓内初始化；它与克隆后由 Manifest 发现的初始化 Harness 分工不同。
 
+本仓库自身由根 `AGENTS.md` 约束；对消费端提供的工作流以 Capability 形式注册在 `manifest.yml` 中。工作流是面向一个完整目标的复合能力，通常由工作流目录中的 Harness 约束 Agent 执行，并调用工具、模板、技能和检查器。
+
 ## 仓库职责
 
 本仓库承载可以被多个小组复用的工程能力：
@@ -24,15 +26,16 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 
 | ID | 类型 | 作用 |
 | --- | --- | --- |
-| `expression.task-loop` | harness | 由消费端 Agent 执行的任务协作循环 |
+| `expression.task-loop` | workflow | 由消费端 Agent 执行的任务协作循环，使用任务记录工具 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 | `html.project-report-v1` | template | 离线项目概览、阶段进展和对外汇报 HTML/CSS 模板 |
 | `consumer.submodule-preflight` | tool | 只读核对消费端 submodule 的固定 gitlink、工作区和远端稳定分支快照 |
 | `consumer.group-asset-bootstrap` | tool | 在已固定 submodule 的消费端安全铺设小组资产仓模板 |
-| `consumer.group-asset-onboarding` | harness | 引导负责人确认小组身份、多项目上下文、来源和边界 |
-| `consumer.group-asset-create-and-initialize` | harness | 可转发启动提示词：从 GitHub 模版创建、递归克隆、核验固定依赖，再转交仓内初始化 |
+| `consumer.group-asset-onboarding` | workflow | 引导负责人确认小组身份、多项目上下文、来源和边界 |
+| `consumer.group-asset-create-and-initialize` | workflow | 可转发启动提示词：从 GitHub 模版创建、递归克隆、核验固定依赖，再转交仓内初始化 |
+| `consumer.submodule-update` | workflow | 在用户确认和短期分支中受控更新消费端 submodule gitlink |
 
-目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。
+目录中标记为 `planned / not implemented` 的能力不能被当作可调用入口。新增能力前必须先实现入口、补充说明、通过检查，再更新 Manifest。`workflow` 能力的 `uses` 字段列出它依赖的其他已声明能力；Manifest 校验会拒绝未声明的依赖。
 
 ## 消费端 Harness
 
@@ -49,8 +52,10 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [小组资产仓代建与初始化流程](docs/group-asset-repository-create-and-initialize.md)
 - [小组资产仓模板验证与发布记录](docs/group-asset-template-validation.md)
 - [任务循环验证与换 Agent 续作](docs/task-loop-validation.md)
+- [Capability、Workflow 与 Harness 分层协议](docs/capability-and-harness-model.md)
+- [submodule 更新工作流](workflows/submodule-update/ENTRYPOINT.md)
 
-Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。根 Manifest 声明了当前任务循环、配套工具和项目汇报模板，Agent 需读取入口后按用户授权执行；它们不是后台执行器或权限沙箱。
+Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存在于 submodule 中不会自动改变 Agent 行为。Agent 按消费端固定提交中的 Manifest 发现 workflow 和局部工具、模板等能力，再读取依赖入口并遵守用户授权；这些能力不是后台执行器或权限沙箱。
 
 ## 开发和版本
 
