@@ -1,6 +1,6 @@
 # 可直接转发给 Agent 的提示词：创建并初始化小组资产仓
 
-状态：`implemented / experimental`。本文件正文可整体复制给小组组长的 Agent。它必须能独立使用，不能要求组长先克隆基础设施仓。本提示词负责创建与克隆；成功进入新仓后，控制交给固定 submodule 中的 `consumer.group-asset-onboarding`。
+状态：`implemented / experimental`。本文件位于 `workflows/group-asset-repository/`，正文可整体复制给小组组长的 Agent。它是一次性启动提示词，用于唤起“创建并初始化小组资产仓”工作流，不是消费端仓库长期 Harness；必须能独立使用，不能要求组长先克隆基础设施仓。本提示词负责创建与克隆；成功进入新仓后，Agent 读取消费端根 `AGENTS.md`，再调用固定 submodule 中的 `consumer.group-asset-onboarding`。
 
 ---
 

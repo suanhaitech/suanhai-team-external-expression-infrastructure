@@ -4,7 +4,7 @@
 
 ## 入口与分工
 
-组长从本文件链接打开[可直接转发的完整提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)，将全文发给具有本地命令与文件操作能力的 Agent。提示词必须完整随消息提供，或以 Agent 可读取的公共原始文件链接提供；不能让 Agent 在尚未创建资产仓时先依赖基础设施 submodule 内的规则。
+组长从本文件链接打开 `workflows/` 下[可直接转发的完整提示词](../workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)，将全文发给具有本地命令与文件操作能力的 Agent。该提示词是一次性工作流启动入口，必须完整随消息提供或以 Agent 可读取的公共原始文件链接提供；不能让 Agent 在尚未创建资产仓时先依赖基础设施 submodule 内的规则。
 
 创建阶段使用已发布的公开模板仓 `suanhaitech/suanhai-team-group-asset-template` 生成独立小组仓；基础设施不是源模板的一部分副本，而是生成仓中 `.gitmodules` 指向的真实 Git submodule，实际版本由父仓 `160000` gitlink 固定。创建后递归克隆，并读取新仓根规则。随后由 `consumer.group-asset-onboarding` 负责真实小组信息访谈和文件化进度。两个 Harness 职责相接，不互相替代：
 

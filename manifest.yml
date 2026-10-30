@@ -71,8 +71,8 @@ capabilities:
       - consumer.submodule-preflight
   - id: consumer.group-asset-create-and-initialize
     kind: workflow
-    path: harness/group-asset-repository
-    entrypoint: harness/group-asset-repository/CREATE_AND_INITIALIZE.md
+    path: workflows/group-asset-repository
+    entrypoint: workflows/group-asset-repository/ENTRYPOINT.md
     purpose: 在用户授权和明确创建参数后，从公开 GitHub 模版生成小组资产仓、克隆并核验固定基础设施，再转交仓内初始化 Harness；不修改组织权限、不提交或推送
     inputs:
       - 小组名称与目标仓库标识

@@ -6,7 +6,7 @@
 
 ## 一、组长的 Agent 代办入口
 
-组长可将[创建并初始化提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)全文发送给 Agent，在必要时补充小组名称、仓库短名和本机父目录。Agent 先检查 `gh` 登录和本机工具环境；组织建仓权限以 GitHub Template Generate API 的实际结果为准。成功后递归克隆、核验 gitlink，并按新仓根规则调用初始化 Harness。仓库默认为 private；初始化记录先留在本地给组长审阅，不自动提交或推送。
+组长可将位于 `workflows/` 的[创建并初始化提示词](../workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)全文发送给 Agent，在必要时补充小组名称、仓库短名和本机父目录。Agent 先检查 `gh` 登录和本机工具环境；组织建仓权限以 GitHub Template Generate API 的实际结果为准。成功后递归克隆、核验 gitlink，并按新仓根规则调用初始化 Harness。仓库默认为 private；初始化记录先留在本地给组长审阅，不自动提交或推送。
 
 详细的授权边界、失败处理和新机器测试步骤见[小组资产仓代建与初始化流程](group-asset-repository-create-and-initialize.md)。Agent 无法访问目标目录、缺少工具或没有组织建仓权限时，应停止报告；组长可以改用下面的手工自助路径。
 

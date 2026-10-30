@@ -94,7 +94,7 @@ manifest.yml              对外 Capability 注册和发现入口
 
 | 能力 | 形态 | Harness/入口 | 依赖 |
 | --- | --- | --- | --- |
-| `consumer.group-asset-create-and-initialize` | Workflow Capability | `harness/group-asset-repository/CREATE_AND_INITIALIZE.md` | 初始化流程和 Git/submodule 操作 |
+| `consumer.group-asset-create-and-initialize` | Workflow Capability | `workflows/group-asset-repository/ENTRYPOINT.md` | 建仓并初始化工作流；可转发提示词位于同目录 |
 | `consumer.group-asset-onboarding` | Workflow Capability | `harness/group-asset-repository/ENTRYPOINT.md` | 消费端上下文和负责人确认 |
 | `expression.task-loop` | Workflow Capability | `harness/task-loop/ENTRYPOINT.md` | `expression.task-record` |
 | `expression.task-record` | Tool Capability | `harness/task-loop/scripts/task_loop.py` | Python 标准库 |

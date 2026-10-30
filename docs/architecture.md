@@ -43,7 +43,7 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 
 新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。
 
-如果组长希望 Agent 代办建仓和本地克隆，使用自包含的 [创建与初始化提示词](../harness/group-asset-repository/CREATE_AND_INITIALIZE.md)。该启动文本在 submodule 尚不存在时即可单独分享；建仓、递归克隆和固定依赖核验后，才把控制交给消费端已固定版本中的初始化 Harness。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
+如果组长希望 Agent 代办建仓和本地克隆，使用 `workflows/` 下自包含的[创建与初始化提示词](../workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)。它是一次性工作流启动入口，不是消费端长期 Harness；在 submodule 尚不存在时即可单独分享。建仓、递归克隆和固定依赖核验后，Agent 再读取新仓根规则并调用消费端初始化 Harness。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
 
 已经有自己仓库、但不想采用公共模板的团队，可使用[既有仓库接入提示词](../workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)。这是一段一次性的启动入口：它授权 Agent 审计仓库后接入固定 commit 的 submodule，并调用 Manifest 注册的 `consumer.infrastructure-adoption-harness` 预览校验后安装根 `AGENTS.md` 规则。提示词授权后无需二次确认；若 submodule 已正确接入，则不重复添加，但仍核对和补装缺失的根 Harness。工具只追加带标记的 Harness，不覆盖本仓规则，也不复制公共模板目录；遇到冲突时停止。接入完成后由消费端 Harness 持续路由固定 Manifest 能力；只要 Agent 客户端会读取根 `AGENTS.md` 且 submodule 已初始化，后续任务就不需重复这段提示词。升级仍通过独立的 submodule 更新工作流显式进行。
 

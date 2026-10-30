@@ -49,9 +49,12 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
 - [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
-- [小组资产仓创建与初始化提示词](harness/group-asset-repository/CREATE_AND_INITIALIZE.md)
-- [既有仓库接入基础设施提示词](workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)
-- [既有仓库接入工作流](workflows/infrastructure-adoption/ENTRYPOINT.md)
+
+## 工作流与可转发启动提示词
+
+- [小组资产仓创建与初始化提示词](workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)：从公共模板创建新仓，随后调用消费端初始化流程；
+- [既有仓库接入基础设施提示词](workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)：为现有仓库固定接入 submodule 并安装消费端根 Harness；
+- [既有仓库接入工作流入口](workflows/infrastructure-adoption/ENTRYPOINT.md)；
 - [小组资产仓从 GitHub 模板到新机器初始化](docs/group-asset-repository-bootstrap.md)
 - [小组资产仓代建与初始化流程](docs/group-asset-repository-create-and-initialize.md)
 - [小组资产仓模板验证与发布记录](docs/group-asset-template-validation.md)
