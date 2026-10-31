@@ -1,10 +1,10 @@
 # 可直接转发的 HTML 端到端测试提示词
 
-将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。基础设施候选 commit 已固定在提示词中；无需预先填写 submodule 路径、本机目录或任务编号，Agent 会从当前消费端仓库自行发现这些信息。
+将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。可以从 Agent 当前打开的任意工作目录发送；提示词会先在固定测试父目录创建一个全新 clone，再在其中完成测试。基础设施候选 commit 已固定，无需预先填写 submodule 路径或任务编号。该流程面向 Windows PowerShell，要求安装 Git 和 Python 3.10+；Ruby 只用于官方 Manifest 校验。
 
 ## 测试机 Agent 提示词
 
-你现在位于一个小组对外表达资产仓库根目录。请执行一次 HTML 基础设施消费端端到端测试。本轮只验证固定基础设施 submodule、任务循环、HTML 模板、语义组件、物料化、离线资源和审计记录。使用合成测试内容，不制作真实项目页面，不发布，不部署。
+你现在可能位于任意工作目录。先按“0. 创建隔离测试 clone”在 `D:\Works\Suanhaitech\Repos` 下新建独立消费端仓库；后续所有读取、写入和 Git 命令都必须针对这个新 clone，不能操作启动时所在目录中的任何仓库。本轮只验证固定基础设施 submodule、任务循环、HTML 模板、语义组件、物料化、离线资源和审计记录。使用合成测试内容，不制作真实项目页面，不发布，不部署。
 
 本轮唯一测试候选为基础设施 commit `149759f18edf54c83bdfbadf8326c3031c10bb4f`，来自远程短期分支 `codex/feat-html-production-workflow`。它不是稳定 `main` 发布版。全程按该 SHA 固定，不得改用浮动分支头。
 
@@ -18,6 +18,29 @@
 
 ## 0. 工作区和固定依赖预检
 
+### 创建隔离测试 clone
+
+以下 PowerShell 命令不依赖 Agent 启动时所在目录。测试仓统一创建在 `D:\Works\Suanhaitech\Repos` 下，每次使用时间戳目录和对应分支；目录已存在、父目录不可用、clone 失败或无法确认当前工作目录时立即停止，不删除、不覆盖任何内容。
+
+    $testParent = 'D:\Works\Suanhaitech\Repos'
+    if (-not (Test-Path -LiteralPath $testParent -PathType Container)) { throw "测试父目录不存在：$testParent" }
+    $runId = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $testDir = "html-e2e-test-$runId"
+    $consumerRoot = Join-Path $testParent $testDir
+    $testBranch = "codex/e2e-html-production-$runId"
+    if (Test-Path -LiteralPath $consumerRoot) { throw "测试目录已存在，停止以免覆盖：$consumerRoot" }
+    Set-Location -LiteralPath $testParent
+    git clone --recurse-submodules 'https://github.com/suanhaitech/suanhai-team-group-asset-template.git' $testDir
+    if ($LASTEXITCODE -ne 0) { throw "模板仓库 clone 失败，退出码：$LASTEXITCODE" }
+    Set-Location -LiteralPath $consumerRoot
+    git switch -c $testBranch
+    if ($LASTEXITCODE -ne 0) { throw "创建隔离测试分支失败，退出码：$LASTEXITCODE" }
+    git status --short --branch
+    git submodule status --recursive
+    if ((git status --porcelain).Length -ne 0) { throw '新 clone 工作区不干净，停止测试' }
+
+clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如果 Agent 客户端不能持久切换工作目录，后续每条命令都必须显式使用该根目录（例如 Git 使用 `git -C $consumerRoot`、任务工具使用 `--root $consumerRoot`）；不得退回启动时的工作目录。记录 `$consumerRoot` 和 `$testBranch`，后续报告使用其绝对路径。
+
 先读取当前仓库根目录的 README.md、AGENTS.md、.gitmodules，再读取基础设施 submodule 中的 manifest.yml、HTML 工作流协议、HTML 物料化工具说明和任务循环入口。
 
 执行并保存结果：
@@ -26,10 +49,10 @@
     git config --file .gitmodules --get-regexp "^submodule\..*\.(path|url)$"
     git submodule status --recursive
 
-如果当前目录不是消费端仓库根目录、.gitmodules 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。将候选 SHA 保存为 `$expectedInfrastructureCommit`：
+如果刚创建的 clone 中 `.gitmodules` 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。将候选 SHA 保存为 `$expectedInfrastructureCommit`：
     $expectedInfrastructureCommit = "149759f18edf54c83bdfbadf8326c3031c10bb4f"
 
-确认当前分支是隔离测试分支。如果当前是 main、develop 或日常工作分支，不要直接写入；先请求用户确认是否可以创建 codex/e2e-html-production-YYYYMMDD 测试分支。创建前保持工作区不变。
+确认当前分支等于刚才创建的 `$testBranch`，并且当前路径位于 `$consumerRoot`。若不一致，停止；不得在 `main`、`develop`、启动时所在仓库或其他日常分支继续。
 
 从 .gitmodules 解析基础设施 submodule 的实际相对路径，保存为 PowerShell 变量 $submodulePath；不要假设路径一定是 vendor/suanhai-team-external-expression-infrastructure。若 submodule 尚未初始化，只能在消费端工作区干净且已确认隔离后执行 `git submodule update --init --recursive -- $submodulePath`；禁止使用 `--remote`。执行：
     $infra = Join-Path (Get-Location) ($submodulePath -replace '/', '\')

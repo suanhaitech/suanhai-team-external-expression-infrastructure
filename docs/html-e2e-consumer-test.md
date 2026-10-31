@@ -29,7 +29,7 @@
 
 ## 推荐执行方式
 
-在测试机把 `CONSUMER_ROOT` 作为 Agent 工作目录打开，把下面的“测试机 Agent 提示词”全文发送给你平常使用的 Agent。发送前将 `INFRA_COMMIT` 替换为实际 SHA；如果 submodule 路径不是公共模板默认路径，也一并替换 `SUBMODULE_PATH`。提示词会在 `html.materialize apply` 前停下来，等待你确认 dry-run 计划；这是有意保留的人工确认点。
+在测试机上启动你平常使用的 Agent，把下面的“测试机 Agent 提示词”全文发送给它。提示词可以从任意起始工作目录运行，会先在 `D:\Works\Suanhaitech\Repos` 创建唯一的公共模板 clone 和隔离测试分支，再自动发现 submodule 路径。提示词中的 `INFRA_COMMIT` 已固定为本轮候选 SHA，无需手工替换。Agent 会在创建本地 gitlink 测试提交和执行 `html.materialize apply` 前分别停下，等待你确认。
 
 ## 测试机 Agent 提示词
 

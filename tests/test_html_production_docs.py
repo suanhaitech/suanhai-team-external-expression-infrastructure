@@ -90,6 +90,15 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
 
     def test_standalone_e2e_prompt_discovers_fixed_dependency(self):
         doc = (ROOT / "docs/html-e2e-consumer-test-prompt.md").read_text(encoding="utf-8")
+        self.assertIn("可以从 Agent 当前打开的任意工作目录发送", doc)
+        self.assertIn("D:\\Works\\Suanhaitech\\Repos", doc)
+        self.assertIn("git clone --recurse-submodules", doc)
+        self.assertIn("https://github.com/suanhaitech/suanhai-team-group-asset-template.git", doc)
+        self.assertIn("git switch -c $testBranch", doc)
+        self.assertIn("git status --short --branch", doc)
+        self.assertIn("git submodule status --recursive", doc)
+        self.assertIn("$consumerRoot", doc)
+        self.assertIn("启动时所在目录", doc)
         self.assertIn("从 .gitmodules 解析基础设施 submodule 的实际相对路径", doc)
         self.assertIn("不执行 git submodule update --remote", doc)
         self.assertIn("149759f18edf54c83bdfbadf8326c3031c10bb4f", doc)
