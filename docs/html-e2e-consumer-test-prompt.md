@@ -1,10 +1,12 @@
 # 可直接转发的 HTML 端到端测试提示词
 
-将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。无需预先填写 commit、submodule 路径、本机目录或任务编号；Agent 会从当前消费端仓库自行发现这些信息。
+将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。基础设施候选 commit 已固定在提示词中；无需预先填写 submodule 路径、本机目录或任务编号，Agent 会从当前消费端仓库自行发现这些信息。
 
 ## 测试机 Agent 提示词
 
 你现在位于一个小组对外表达资产仓库根目录。请执行一次 HTML 基础设施消费端端到端测试。本轮只验证固定基础设施 submodule、任务循环、HTML 模板、语义组件、物料化、离线资源和审计记录。使用合成测试内容，不制作真实项目页面，不发布，不部署。
+
+本轮唯一测试候选为基础设施 commit `149759f18edf54c83bdfbadf8326c3031c10bb4f`，来自远程短期分支 `codex/feat-html-production-workflow`。它不是稳定 `main` 发布版。全程按该 SHA 固定，不得改用浮动分支头。
 
 总规则：
 - 只修改当前消费端仓库的隔离测试分支；不得修改 submodule 内的文件。
@@ -24,20 +26,28 @@
     git config --file .gitmodules --get-regexp "^submodule\..*\.(path|url)$"
     git submodule status --recursive
 
-如果当前目录不是消费端仓库根目录、.gitmodules 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。
+如果当前目录不是消费端仓库根目录、.gitmodules 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。将候选 SHA 保存为 `$expectedInfrastructureCommit`：
+    $expectedInfrastructureCommit = "149759f18edf54c83bdfbadf8326c3031c10bb4f"
 
 确认当前分支是隔离测试分支。如果当前是 main、develop 或日常工作分支，不要直接写入；先请求用户确认是否可以创建 codex/e2e-html-production-YYYYMMDD 测试分支。创建前保持工作区不变。
 
-从 .gitmodules 解析基础设施 submodule 的实际相对路径，保存为 PowerShell 变量 $submodulePath；不要假设路径一定是 vendor/suanhai-team-external-expression-infrastructure。执行：
+从 .gitmodules 解析基础设施 submodule 的实际相对路径，保存为 PowerShell 变量 $submodulePath；不要假设路径一定是 vendor/suanhai-team-external-expression-infrastructure。若 submodule 尚未初始化，只能在消费端工作区干净且已确认隔离后执行 `git submodule update --init --recursive -- $submodulePath`；禁止使用 `--remote`。执行：
     $infra = Join-Path (Get-Location) ($submodulePath -replace '/', '\')
     $gitlinkHead = (git ls-tree HEAD -- $submodulePath).Split()[2]
     $gitlinkIndex = (git ls-files --stage -- $submodulePath).Split()[1]
     $submoduleHead = (git -C $infra rev-parse HEAD).Trim()
     git -C $infra status --porcelain
 
-父仓 HEAD gitlink、index gitlink 和 submodule HEAD 必须都是同一个完整 SHA，submodule 工作区必须干净。保存这个 SHA 为本轮 infrastructure_commit。
+父仓 HEAD gitlink、index gitlink 和 submodule HEAD 必须先互相一致，submodule 工作区必须干净。然后确认当前父仓分支是隔离测试分支；若不是且工作区干净，先请求用户同意创建 `codex/e2e-html-production-YYYYMMDD`，不要直接在 `main`、`develop` 或日常分支继续。
 
-如果三者不一致或 submodule 未初始化，报告当前值并停止。不执行 git submodule update --remote，不选远端最新分支。只有用户明确提供可获取的完整 commit 并确认测试分支隔离后，才可 checkout 候选、展示 git diff --cached --submodule，并等待用户确认是否创建本地 gitlink 测试提交。对象无法获取则停止，不猜测版本。
+如果三者不一致，或当前 gitlink 不是 `$expectedInfrastructureCommit`，先在已确认的隔离测试分支执行受控候选更新：
+    git -C $infra fetch origin codex/feat-html-production-workflow
+    git -C $infra cat-file -e "$expectedInfrastructureCommit^{commit}"
+    git -C $infra checkout --detach $expectedInfrastructureCommit
+    git add -- $submodulePath
+    git diff --cached --submodule
+
+核对暂存区只有该 submodule gitlink 变更后，向用户展示旧 SHA、新 SHA 和 `git diff --cached --submodule`，等待用户明确确认再创建仅含 gitlink 的本地测试提交。拒绝确认则停止。测试父仓分支绝不推送。完成后父仓 HEAD gitlink、index gitlink、submodule HEAD 必须完全等于候选 SHA；若远程候选分支不能获取该完整 commit，则停止，不猜测或改用最新 `main/develop`。
 
 ## 1. 验证固定版本能力
 
@@ -51,13 +61,13 @@
 
 确认页面模板 index.html 有样式和语义组件插槽，组件包有 package.yml、index.yml、组件契约及组件模板。
 
-若任一能力不存在，说明消费端仍固定旧基础设施版本。停止并返回当前 submodule SHA、缺少能力和维护者需要执行的显式 gitlink 更新动作。不得抓取远端最新分支，不得修改 submodule。
+若任一能力不存在，说明候选版本不完整。停止并返回当前 submodule SHA 和缺少能力，不得绕过检查或修改候选 submodule 内容。
 
 如果测试机有 Ruby，执行 ruby "$infra/scripts/validate_manifest.rb"；没有 Ruby 就记录 Manifest 官方校验未执行，不能写成通过。
 
 执行消费端 submodule 预检：
     py -3 "$infra/tools/submodule-preflight/submodule_preflight.py" --root . --path $submodulePath
-预检失败就停止，不绕过版本、URL 或工作区检查。
+预检中除 `remote_matches_expected: warn` 之外任何失败都要停止，不绕过版本、URL 或工作区检查。若稳定 `origin/main` 尚未包含短期测试候选，记录这一个 drift warning；只有前述精确候选 SHA 已从指定短期分支成功获取且父仓 gitlink 三方一致时才继续。不能把该警告写成稳定发布或 main 已更新。
 
 ## 2. 创建合成来源和测试任务
 
