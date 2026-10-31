@@ -107,7 +107,7 @@ Agent 必须：
 5. 读取能力入口说明及其依赖入口，确认输入、输出、副作用和边界；
 6. 在任务或评审记录中保留实际使用的能力 ID 和 submodule commit；如果清单为空，则记录“无可用共享能力”和 submodule commit，不虚构能力 ID。
 
-历史 v0.1 骨架的 `capabilities` 为空。当前 Manifest schema v2 允许以 `kind: workflow` 注册复合工作流，并用 `uses` 声明依赖；当前版本已注册任务循环、记录工具、submodule 更新工作流和 `html.project-report-v1` 离线模板。实际可用项始终以消费端固定提交的 Manifest 为准，不能把占位目录当作 HTML 自动生成、预览或检查器能力。
+历史 v0.1 骨架的 `capabilities` 为空。当前 Manifest schema v2 允许以 `kind: workflow` 注册复合工作流，并用 `uses` 声明依赖；当前版本还注册了 `expression.html-production` HTML 网页制作工作流、`html.semantic-components-v1` 离线语义组件包和 `html.materialize` 物料化工具。实际可用项始终以消费端固定提交的 Manifest 为准；浏览器预览、公式渲染和自动响应式/无障碍检查仍未注册，不能把占位目录当作这些能力。
 
 Manifest 是发现协议，不提供访问控制或执行隔离。消费端必须依赖 Agent 客户端和本机的工具授权边界；运行已声明能力前，仍要阅读其依赖和副作用说明。
 
@@ -203,20 +203,20 @@ Agent 先用 `context/group/identity.md`、`sources.md` 和 `expression-boundary
 2. Agent 按规定顺序读取根规则、Manifest、项目上下文和任务说明；
 3. Agent 输出项目、任务、受众、来源和边界的工作判断；
 4. Agent 列出当前固定提交的 Manifest 能力，不把计划目录当作已实现能力；
-5. Agent 拒绝调用计划中的 HTML 工具并说明原因；
+5. 对历史 v0.1 空 Manifest，Agent 拒绝调用未注册的 HTML 工具；对新 Manifest，只调用明确登记的能力，并说明未注册能力；
 6. Agent 生成 HTML 作品结构草稿或待实现说明；
 7. Agent 把作品、来源和评审记录放到消费端规定目录；
 8. Agent 指出需要真人确认的技术判断和发布授权；
 9. Git 检查不包含凭据、缓存、构建产物或 submodule 内容复制。
 
-这套验收证明消费端发现协议和项目工作路线可执行，不证明 HTML 工具、模板、预览器或检查器已经实现。
+这套验收证明消费端发现协议和项目工作路线可执行，不证明浏览器预览器、公式引擎或浏览器级检查器已经实现。
 
 ## 12. 后续实现顺序
 
 1. 用本协议执行大工项目真实任务，记录 Agent 是否按路线工作；
 2. 提取跨项目通用的任务字段和停止条件；
 3. 实现 `html.external-expression` 技能的真实入口；
-4. 实现 HTML 模板、预览工具和确定性检查器；
+4. 已实现 Manifest 驱动的 HTML 模板/组件物料化；后续实现预览工具和确定性检查器；
 5. 通过 Manifest 暴露已经验证的能力；
 6. 在消费端固定新的 submodule commit，再重复端到端验证。
 

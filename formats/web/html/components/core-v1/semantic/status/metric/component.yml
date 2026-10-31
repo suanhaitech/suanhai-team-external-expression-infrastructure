@@ -1,0 +1,23 @@
+id: status.metric
+version: 1.0.0
+category: status
+role: 表达有单位、有口径和有来源的指标
+required_slots:
+  - label
+  - value
+  - unit
+  - state
+optional_slots:
+  - period
+  - definition
+  - source_ids
+states:
+  - confirmed
+  - candidate
+  - unverified
+  - not_applicable
+template: template.html
+styles: ../../semantic.css
+responsive: 宽屏三列、平板两列、窄屏单列
+accessibility: 标签、数值、单位和状态都必须以文字呈现
+provenance: 数值必须关联来源 ID，并给出定义或测量周期

@@ -1,0 +1,22 @@
+id: evidence.source
+version: 1.0.0
+category: evidence
+role: 标识来源的位置、日期/版本和允许使用范围
+required_slots:
+  - source_id
+  - locator
+  - usage
+optional_slots:
+  - date
+  - version
+  - notes
+states:
+  - candidate
+  - checked
+  - confirmed
+  - rejected
+template: template.html
+styles: ../../semantic.css
+responsive: 长路径和 URL 自然换行，不依赖固定宽度
+accessibility: 链接文本应描述目的，不使用裸 URL 作为唯一标签
+provenance: source_id 必须能解析到任务 sources.yml

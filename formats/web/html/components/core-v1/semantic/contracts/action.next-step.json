@@ -1,0 +1,11 @@
+{
+  "id": "action.next-step",
+  "version": "1.0.0",
+  "role": "Describe an actionable next step with an owner and a completion condition.",
+  "required_slots": ["action", "owner", "completion_condition"],
+  "optional_slots": ["due_date", "dependency", "source_ids"],
+  "states": ["proposed", "confirmed", "in_progress", "completed", "blocked"],
+  "responsive": "Action text, owner, and completion condition stack naturally on narrow screens.",
+  "accessibility": "Use a heading or list item with the action stated in text.",
+  "provenance": "Actions derived from project decisions should reference the decision or source record."
+}

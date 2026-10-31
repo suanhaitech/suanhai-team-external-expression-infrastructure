@@ -1,0 +1,18 @@
+id: content.summary
+version: 1.0.0
+category: content
+role: 说明页面或章节要让读者理解的核心内容
+required_slots:
+  - label
+  - text
+optional_slots:
+  - supporting_text
+  - source_ids
+states:
+  - draft
+  - confirmed
+template: template.html
+styles: ../../semantic.css
+responsive: 文本自然换行，所有视口保持单栏
+accessibility: 使用可见标签或标题，不以颜色作为唯一信息
+provenance: 包含事实判断时必须关联 report.yml 中的 source_ids

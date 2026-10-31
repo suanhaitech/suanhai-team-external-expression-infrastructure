@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="项目对外表达页面模板" />
     <title data-slot="page-title">[项目名称]｜项目概览</title>
+    <!-- SUANHAI_COMPONENT_STYLESHEETS -->
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="report.css" />
   </head>
@@ -29,6 +30,18 @@
             <span class="report-pill" data-slot="project-stage">[当前阶段]</span>
             <span class="report-pill" data-slot="evidence-status">[证据状态]</span>
             <span class="report-pill" data-slot="audience">[面向受众]</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-section report-components" id="structured-content">
+        <div class="report-shell">
+          <div class="report-section-heading">
+            <div class="report-kicker">结构化内容</div>
+            <h2>按任务选择的语义内容</h2>
+          </div>
+          <div class="report-component-stack">
+            <!-- SUANHAI_COMPONENTS -->
           </div>
         </div>
       </section>

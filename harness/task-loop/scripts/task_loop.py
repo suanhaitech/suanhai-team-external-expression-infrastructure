@@ -21,7 +21,9 @@ TASK_ID = re.compile(r"EXPR-\d{8}-[0-9a-f]{8}\Z")
 STATUSES = {"clarifying", "ready", "working", "review", "paused", "completed"}
 EVENTS = {"create", "brief", "align", "start", "checkpoint", "review", "feedback", "pause", "resume", "complete", "reopen"}
 # 新小组模板将报告任务产物放入 reports/；works/ 保留为旧消费端迁移期间的兼容入口。
-OUTPUT_ROOTS = {"reports", "works", "series", "courses", "books"}
+# 自建消费端可通过 .suanhai/expression.json 显式增加自己的顶层作品目录。
+DEFAULT_OUTPUT_ROOTS = {"reports", "works", "series", "courses", "books"}
+OUTPUT_CONFIG = Path(".suanhai/expression.json")
 BRIEF_FIELDS = ("audience", "purpose", "scope", "output", "acceptance")
 INFRA_REPOSITORY = "suanhai-team-external-expression-infrastructure"
 
@@ -54,6 +56,50 @@ def consumer_root(value: str) -> Path:
     return root
 
 
+def allowed_output_roots(root: Path) -> set[str]:
+    """读取消费端声明的输出根；默认集合保持公共模板和旧仓兼容。
+
+    配置只允许增加顶层目录名，不能把任务产物放入 vendor、.git、context 或
+    tasks。把这项配置放在消费端而不是基础设施仓，避免共享 submodule 替项目
+    决定事实和作品的存放位置。
+    """
+    config_path = root / OUTPUT_CONFIG
+    config_directory = config_path.parent
+    if config_directory.is_symlink() or config_path.is_symlink():
+        raise LoopError(f"消费端输出配置不能通过符号链接定位：{OUTPUT_CONFIG.as_posix()}")
+    if config_directory.exists() and not config_directory.is_dir():
+        raise LoopError(f"消费端输出配置目录不是目录：{config_directory.relative_to(root).as_posix()}")
+    if not config_path.exists():
+        return set(DEFAULT_OUTPUT_ROOTS)
+    if not config_path.is_file():
+        raise LoopError(f"消费端输出配置必须是普通文件：{OUTPUT_CONFIG.as_posix()}")
+    try:
+        config_path.resolve().relative_to(root)
+    except ValueError as error:
+        raise LoopError("消费端输出配置不能通过符号链接越出仓库根目录") from error
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8-sig"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise LoopError(f"消费端输出配置无法解析：{error}") from error
+    if not isinstance(config, dict) or set(config) != {"schema_version", "output_roots"}:
+        raise LoopError("消费端输出配置只允许 schema_version 和 output_roots 字段")
+    if type(config.get("schema_version")) is not int or config.get("schema_version") != 1:
+        raise LoopError("消费端输出配置 schema_version 必须为 1")
+    roots = config.get("output_roots")
+    if not isinstance(roots, list) or not roots or not all(isinstance(item, str) for item in roots):
+        raise LoopError("消费端输出配置 output_roots 必须是非空字符串数组")
+    if len(roots) != len(set(roots)):
+        raise LoopError("消费端输出配置 output_roots 不能重复")
+    allowed = set(DEFAULT_OUTPUT_ROOTS)
+    for item in roots:
+        if not re.fullmatch(r"[a-z][a-z0-9_-]*", item):
+            raise LoopError(f"消费端输出根必须是安全的顶层目录名：{item}")
+        if item.casefold() in {"vendor", ".git", "context", "tasks"}:
+            raise LoopError(f"消费端输出根不允许使用受保护目录：{item}")
+        allowed.add(item)
+    return allowed
+
+
 def safe_path(root: Path, relative: str, *, must_exist: bool = False, output: bool = False) -> Path:
     # 使用仓库相对 POSIX 路径，使同一份任务记录能在 Windows、Linux、macOS 上恢复。
     if not isinstance(relative, str) or not relative or "\\" in relative or ":" in relative:
@@ -63,8 +109,8 @@ def safe_path(root: Path, relative: str, *, must_exist: bool = False, output: bo
         raise LoopError("路径不允许绝对路径、空片段、. 或 ..")
     if any(part.casefold() in {"vendor", ".git"} for part in parts):
         raise LoopError("任务路径不允许进入 vendor 或 .git")
-    if output and parts[0] not in OUTPUT_ROOTS:
-        raise LoopError("作品路径必须位于 reports/、works/、series/、courses/ 或 books/ 下")
+    if output and parts[0] not in allowed_output_roots(root):
+        raise LoopError("作品路径必须位于消费端声明的输出根目录下")
     result = root.joinpath(*parts)
     resolved = result.resolve()
     try:
@@ -73,7 +119,7 @@ def safe_path(root: Path, relative: str, *, must_exist: bool = False, output: bo
         raise LoopError("路径通过符号链接越出消费端根目录") from error
     if any(part.casefold() in {"vendor", ".git"} for part in resolved_parts):
         raise LoopError("路径通过符号链接进入 vendor 或 .git")
-    if output and (not resolved_parts or resolved_parts[0] not in OUTPUT_ROOTS):
+    if output and (not resolved_parts or resolved_parts[0] not in allowed_output_roots(root)):
         raise LoopError("作品路径通过符号链接离开报告或作品目录")
     if must_exist and not result.exists():
         raise LoopError(f"路径不存在：{relative}")
@@ -94,6 +140,29 @@ def file_hash(path: Path) -> str:
     with path.open("rb") as stream:
         for chunk in iter(lambda: stream.read(65536), b""):
             digest.update(chunk)
+    return digest.hexdigest()
+
+
+def artifact_hash(path: Path) -> str:
+    """为单文件或自包含作品目录计算稳定 SHA-256。"""
+    if path.is_symlink():
+        raise LoopError(f"作品不能是符号链接：{path}")
+    if path.is_file():
+        return file_hash(path)
+    if not path.is_dir():
+        raise LoopError(f"作品必须是文件或目录：{path}")
+    digest = hashlib.sha256()
+    entries = sorted(path.rglob("*"), key=lambda item: item.relative_to(path).as_posix())
+    for entry in entries:
+        relative = entry.relative_to(path).as_posix()
+        if entry.is_symlink():
+            raise LoopError(f"作品目录不能包含符号链接：{relative}")
+        if entry.is_dir():
+            digest.update(f"D\0{relative}\0".encode("utf-8"))
+        elif entry.is_file():
+            digest.update(f"F\0{relative}\0{file_hash(entry)}\0".encode("utf-8"))
+        else:
+            raise LoopError(f"作品目录包含无法处理的文件类型：{relative}")
     return digest.hexdigest()
 
 
@@ -172,10 +241,10 @@ def validate_task(task: Any, root: Path, task_id: str, *, check_files: bool = Tr
             require_text(item.get("completion_quote"), "作品 completion_quote")
         elif "completion_quote" in item:
             raise LoopError("未确认的作品不能保存 completion_quote")
-        if check_files and not path.is_file():
-            raise LoopError("作品记录应指向单个文件")
+        if check_files and not path.is_file() and not path.is_dir():
+            raise LoopError("作品记录应指向文件或自包含目录")
         # 过去已确认版本不得被静默改写。这里验证哈希，不宣称提供文件访问控制。
-        if check_files and item.get("accepted_at") and file_hash(path) != item["sha256"]:
+        if check_files and item.get("accepted_at") and artifact_hash(path) != item["sha256"]:
             raise LoopError(f"已确认的历史作品被改动：{item['path']}")
     if task["status"] == "paused" and task.get("resume_status") not in STATUSES - {"paused", "completed"}:
         raise LoopError("暂停任务缺少有效恢复状态")
@@ -204,12 +273,12 @@ def readable_task(root: Path, task_id: str) -> dict[str, Any]:
         path = safe_path(root, artifact["path"], output=True)
         if not path.exists():
             diagnostics.append({"kind": "missing_artifact", "path": artifact["path"]})
-        elif not path.is_file():
-            diagnostics.append({"kind": "artifact_not_file", "path": artifact["path"]})
+        elif not path.is_file() and not path.is_dir():
+            diagnostics.append({"kind": "artifact_not_file_or_directory", "path": artifact["path"]})
         else:
             try:
-                actual = file_hash(path)
-            except OSError as error:
+                actual = artifact_hash(path)
+            except (LoopError, OSError) as error:
                 diagnostics.append({"kind": "artifact_unreadable", "path": artifact["path"], "error": str(error)})
                 continue
             if actual != artifact["sha256"]:
@@ -378,13 +447,13 @@ def apply_event(root: Path, task: dict[str, Any], args: argparse.Namespace) -> N
     elif event == "review":
         require_status(task, "working")
         if not args.artifact:
-            raise LoopError("进入评审需要 --artifact 指定实际作品文件")
+            raise LoopError("进入评审需要 --artifact 指定实际作品文件或自包含目录")
         path = safe_path(root, args.artifact, output=True, must_exist=True)
-        if not path.is_file():
-            raise LoopError("首版评审入口仅接受单个作品文件；依赖资源需另行检查")
+        if not path.is_file() and not path.is_dir():
+            raise LoopError("评审入口接受单个作品文件或自包含作品目录")
         if any(safe_path(root, item["path"], output=True).resolve() == path.resolve() and item["revision"] != task["revision"] for item in task["artifacts"]):
             raise LoopError("新修订不能复用过去版本的作品路径，请写入新版本路径")
-        task["artifacts"].append({"revision": task["revision"], "path": args.artifact, "sha256": file_hash(path), "reviewed_at": utc_now()})
+        task["artifacts"].append({"revision": task["revision"], "path": args.artifact, "sha256": artifact_hash(path), "reviewed_at": utc_now()})
         task["status"] = "review"
         following = following or "向用户展示具体版本，收集反馈或本轮确认"
     elif event in {"feedback", "reopen"}:
@@ -399,7 +468,7 @@ def apply_event(root: Path, task: dict[str, Any], args: argparse.Namespace) -> N
         quote = require_quote(args)
         artifact = current_artifact(task)
         path = safe_path(root, artifact["path"], output=True, must_exist=True)
-        if file_hash(path) != artifact["sha256"]:
+        if artifact_hash(path) != artifact["sha256"]:
             raise LoopError("待评审作品已变化，不能沿用此前确认；记录反馈并提交新的修订版本")
         artifact["accepted_at"] = utc_now()
         artifact["completion_quote"] = quote
@@ -512,7 +581,7 @@ def main(argv: list[str] | None = None) -> int:
             # 全量审计也检查未确认的旧修订，避免把已被覆盖的历史误作可追溯版本。
             for task in tasks:
                 for artifact in task["artifacts"]:
-                    if file_hash(safe_path(root, artifact["path"], output=True, must_exist=True)) != artifact["sha256"]:
+                    if artifact_hash(safe_path(root, artifact["path"], output=True, must_exist=True)) != artifact["sha256"]:
                         raise LoopError(f"历史作品内容与记录 SHA-256 不一致：{artifact['path']}")
             output = {"valid": True, "tasks": task_ids}
         else:

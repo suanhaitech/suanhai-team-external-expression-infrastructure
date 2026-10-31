@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/blob/main/schemas/html/component.schema.json",
+  "title": "Suanhai HTML semantic component contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "role", "required_slots", "optional_slots", "states", "responsive", "accessibility"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "version": {"type": "string", "minLength": 1},
+    "role": {"type": "string", "minLength": 1},
+    "required_slots": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "optional_slots": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "states": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "responsive": {"type": "string", "minLength": 1},
+    "accessibility": {"type": "string", "minLength": 1},
+    "provenance": {"type": "string"}
+  }
+}

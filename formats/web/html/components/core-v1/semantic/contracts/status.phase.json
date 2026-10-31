@@ -1,0 +1,11 @@
+{
+  "id": "status.phase",
+  "version": "1.0.0",
+  "role": "Describe a project phase and distinguish confirmed progress from candidate or unverified status.",
+  "required_slots": ["label", "state", "description"],
+  "optional_slots": ["as_of", "source_ids"],
+  "states": ["confirmed", "candidate", "unverified", "blocked"],
+  "responsive": "Content stacks vertically and wraps without fixed widths.",
+  "accessibility": "Render state as visible text in addition to any color treatment.",
+  "provenance": "A phase assertion should reference the sources that support its state."
+}

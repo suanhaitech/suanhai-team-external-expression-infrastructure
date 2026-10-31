@@ -17,17 +17,19 @@ capabilities:
     kind: tool
     path: harness/task-loop/scripts
     entrypoint: harness/task-loop/scripts/task_loop.py
-    purpose: 使用Python标准库管理消费端任务JSON、阅读视图、状态流转与单文件产出摘要；不是权限系统或Agent执行器
+    purpose: 使用Python标准库管理消费端任务JSON、阅读视图、状态流转与单文件/自包含目录产出摘要；支持消费端声明额外安全输出根，不是权限系统或Agent执行器
     inputs:
       - 消费端根目录与任务操作
       - 已有任务写入所需的预期记录版本
+      - 可选的 .suanhai/expression.json 消费端作品输出根配置
     outputs:
       - tasks目录中的task.json与生成的task.md
+      - 单文件或自包含目录作品的 SHA-256 评审记录
       - JSON格式的任务状态或明确错误
   - id: html.project-report-v1
     kind: template
-    path: templates/html-report/project-report-v1
-    entrypoint: templates/html-report/project-report-v1/index.html
+    path: formats/web/html/page-templates/project-report-v1
+    entrypoint: formats/web/html/page-templates/project-report-v1/index.html
     purpose: 离线项目概览、阶段进展和对外汇报页面的静态 HTML/CSS 模板；不包含项目事实、不会调用网络服务
     inputs:
       - 已对齐的消费端任务简报和允许使用的来源
@@ -35,6 +37,47 @@ capabilities:
     outputs:
       - 消费端作品目录中的可离线打开的 HTML 页面
       - 页面同目录的本地 CSS 文件
+  - id: html.semantic-components-v1
+    kind: template
+    path: formats/web/html/components/core-v1
+    entrypoint: formats/web/html/components/core-v1/README.md
+    purpose: 可被不同消费端复制的离线 HTML 设计令牌、响应式布局与六类语义组件 CSS/HTML 契约；不含公式引擎和自动预览
+    inputs:
+      - 消费端已对齐的页面内容与来源状态
+      - 选择使用的语义组件
+    outputs:
+      - 可复制到消费端产物目录的本地 CSS 和语义 HTML 结构
+      - 组件必填内容、状态、来源和可访问性契约
+  - id: html.materialize
+    kind: tool
+    path: tools/html-materialize
+    entrypoint: tools/html-materialize/materialize_html.py
+    purpose: 从已固定的基础设施 submodule 中按 Manifest 能力 ID 安全复制 HTML 页面模板和组件包，并把已选择的语义组件片段装配到显式插槽；默认只预览，显式应用需匹配计划摘要和任务记录版本
+    inputs:
+      - 消费端根目录、已进入 working 状态的任务编号及固定 submodule gitlink
+      - Manifest 中已登记的页面模板 ID、组件包 ID 和组件包 index.yml 中的语义组件 ID
+      - dry-run 返回的计划摘要与任务记录版本
+    outputs:
+      - 消费端任务版本目录中的自包含 HTML、CSS 和组件包文件
+      - 记录任务元数据的 report.yml，以及基础设施 commit、模板/组件版本和文件 SHA-256 的 materialization.json
+  - id: expression.html-production
+    kind: workflow
+    path: workflows/html-production
+    entrypoint: workflows/html-production/ENTRYPOINT.md
+    purpose: 跨消费端目录约定的 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、预览反馈、可用检查和人工收口；预览自动化、公式渲染及浏览器检查尚未实现
+    inputs:
+      - 用户提出的 HTML 目标、受众、用途、范围和完成标准
+      - 消费端项目上下文及用户提供的候选文档、链接和素材
+      - 消费端自己的任务、作品目录、事实核对及发布授权边界
+    outputs:
+      - 消费端任务记录、来源清单和页面结构
+      - 消费端中的版本化、自包含 HTML 产物及检查/评审记录
+    uses:
+      - expression.task-loop
+      - expression.task-record
+      - html.project-report-v1
+      - html.semantic-components-v1
+      - html.materialize
   - id: consumer.submodule-preflight
     kind: tool
     path: tools/submodule-preflight

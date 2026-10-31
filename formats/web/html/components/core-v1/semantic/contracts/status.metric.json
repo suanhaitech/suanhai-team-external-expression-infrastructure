@@ -1,0 +1,11 @@
+{
+  "id": "status.metric",
+  "version": "1.0.0",
+  "role": "Present a measured or explicitly pending value with its unit, measurement period, and source.",
+  "required_slots": ["label", "value", "unit", "state"],
+  "optional_slots": ["period", "definition", "source_ids"],
+  "states": ["confirmed", "candidate", "unverified", "not_applicable"],
+  "responsive": "Three columns on wide screens, two on tablet, and one on narrow screens.",
+  "accessibility": "Keep label, value, unit, and state in text; do not encode meaning only by size or color.",
+  "provenance": "A numeric value requires a source ID and a measurement definition or period."
+}

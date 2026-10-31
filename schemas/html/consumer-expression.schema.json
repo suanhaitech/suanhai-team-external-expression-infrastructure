@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/blob/main/schemas/html/consumer-expression.schema.json",
+  "title": "Suanhai consumer expression configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "output_roots"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "output_roots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]*$",
+        "not": {"enum": ["vendor", ".git", "context", "tasks"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ex-color-page);
+  color: var(--ex-color-ink);
+  font-family: var(--ex-font-body);
+  font-size: var(--ex-text-body);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: var(--ex-color-accent);
+  text-underline-offset: 0.16em;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--ex-color-accent);
+  outline-offset: 3px;
+}
+
+img,
+svg,
+video {
+  height: auto;
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

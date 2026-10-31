@@ -1,0 +1,11 @@
+{
+  "id": "content.summary",
+  "version": "1.0.0",
+  "role": "State the main point the reader should understand from a page or section.",
+  "required_slots": ["label", "text"],
+  "optional_slots": ["supporting_text", "source_ids"],
+  "states": ["draft", "confirmed"],
+  "responsive": "Text wraps naturally; the component remains one column at all viewport widths.",
+  "accessibility": "Use a section or aside with a visible heading; do not use color as the only signal.",
+  "provenance": "When the summary contains a factual claim, attach one or more source IDs in report metadata."
+}

@@ -28,9 +28,9 @@ reports/<任务编号>/v001/<产出文件>
 reports/<任务编号>/v002/<产出文件>
 ```
 
-报告类任务默认使用 `reports/`；系列、课程和书籍按消费端约定放在 `series/`、`courses/` 或 `books/`。旧消费端的 `works/` 仍受兼容支持，不自动迁移历史产物。产出不可放进 submodule。任务号形如 `EXPR-20261028-a1b2c3d4`，在当前仓库内定位，不是跨仓全局任务编号。
+报告类任务默认使用 `reports/`；系列、课程和书籍按消费端约定放在 `series/`、`courses/` 或 `books/`。旧消费端的 `works/` 仍受兼容支持，不自动迁移历史产物。自建仓可通过 `.suanhai/expression.json` 声明自己的额外顶层产出目录；不能把产出放进 `vendor/`、`.git/`、`context/` 或 `tasks/`。任务号形如 `EXPR-20261028-a1b2c3d4`，在当前仓库内定位，不是跨仓全局任务编号。
 
-`task.json` 记录用户请求、简报、状态、当前轮次、操作版本、历史、下一步和产出路径/摘要。用户原话用于记录对齐或完成的依据，不能由 Agent 编造；工具只检查记录是否存在，无法判断发言身份或授予发布权限。`mode: test` 是测试标识，不能变成真实业务或真人确认。
+`task.json` 记录用户请求、简报、状态、当前轮次、操作版本、历史、下一步和产出路径/摘要。产物可以是单个文件或包含 HTML、CSS 和本地资源的自包含目录；目录 SHA-256 覆盖相对路径及所有文件内容。用户原话用于记录对齐或完成的依据，不能由 Agent 编造；工具只检查记录是否存在，无法判断发言身份或授予发布权限。`mode: test` 是测试标识，不能变成真实业务或真人确认。
 
 ## 工具命令
 
@@ -64,7 +64,7 @@ python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/
 | `align` | clarifying → ready | 关键简报齐备，记录实际用户对齐原话 |
 | `start` | ready → working | 开始已确认范围内的制作 |
 | `checkpoint` | 保持状态 | 保存做了什么、检查结果、问题和下一步 |
-| `review` | working → review | 产出文件真实存在，记录路径和 SHA-256 |
+| `review` | working → review | 单文件或自包含目录真实存在，记录内容及资源路径的 SHA-256 |
 | `feedback --scope minor` | ready/working/review → 新轮次 | 局部调整，目标共识保持有效；ready保持ready，其余进入working |
 | `feedback --scope scope` | ready/working/review → clarifying，新轮次 | 受众、目标或范围变化，需要重新对齐，无需等到首个产出才可记录 |
 | `pause` / `resume` | 保存并恢复原状态 | 记录暂停原因及恢复后的下一步 |
@@ -78,13 +78,13 @@ python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/
 python vendor/suanhai-team-external-expression-infrastructure/harness/task-loop/scripts/task_loop.py --root . event ID --expect-version N --type feedback --scope minor --note "实际用户反馈；记录相应调整" --next-action "生成v002并检查"
 ```
 
-每轮使用新的产出路径，不能覆盖以前的评审版本或已确认版本。工具记录文件摘要并拒绝复用历史产出路径，无法阻止其他程序直接改文件；本机制不是文件访问控制。
+每轮使用新的产出路径，不能覆盖以前的评审版本或已确认版本。工具记录文件或目录摘要并拒绝复用历史产出路径，无法阻止其他程序直接改文件；本机制不是文件访问控制。
 
 ## 暂停、完成与恢复
 
 暂停前记录：当前版本、已做工作、检查结果、未解决问题和下一步。新会话拿到编号后先 `show`，核对当前仓库/submodule 和产出是否仍存在，再复述任务目标与当前进度。状态为 paused 时按用户续作要求 `resume`；completed 时按新需求 `reopen`。
 
-如果文件缺失、旧摘要不符、用户决定相互冲突，先说明差异，不根据旧聊天猜测或补造。`show` 对结构合法记录返回摘要及只读 `_diagnostics`，`list` 逐项显示损坏记录的错误，不因一条坏记录隐藏其他任务；这些诊断不写回 JSON。读取和诊断不改变状态；来源/产出缺失或已确认历史文件被改写时，写入会拒绝。待评审文件被外部改动时仍可登记反馈，但不能沿用旧摘要完成本轮。JSON本身损坏时可只读查看原文件，不据此重新创建同一任务。
+如果来源缺失、旧摘要不符、用户决定相互冲突，先说明差异，不根据旧聊天猜测或补造。`show` 对结构合法记录返回摘要及只读 `_diagnostics`，`list` 逐项显示损坏记录的错误，不因一条坏记录隐藏其他任务；这些诊断不写回 JSON。读取和诊断不改变状态；来源/产出缺失或已确认历史产物被改写时，写入会拒绝。待评审产物被外部改动时仍可登记反馈，但不能沿用旧摘要完成本轮。JSON 本身损坏时可只读查看原文件，不据此重新创建同一任务。
 
 `validate ID` 严格检查记录与历史产出；`render ID --expect-version N` 只用于在用户授权下重建阅读视图，不能清理其他文件或改写事实。简报的 output 可用作品目录作为稳定目标位置，具体每轮文件以 artifacts 中记录的路径为准。
 

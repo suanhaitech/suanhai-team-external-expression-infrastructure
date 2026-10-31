@@ -6,10 +6,10 @@
 
 ## 当前状态
 
-- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、离线项目汇报模板（`html.project-report-v1`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
+- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、网页 HTML 制作工作流（`expression.html-production`）、网页 HTML 页面模板（`html.project-report-v1`）、网页 HTML 语义组件包（`html.semantic-components-v1`）、HTML 模板与组件安全物料化工具（`html.materialize`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
 - `manifest.yml` 是能力发现的唯一入口；
 - `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
-- 实际能力以当前 `capabilities` 为准；任务循环、状态工具和项目汇报模板属于已实现能力，HTML 自动生成、预览和检查相关目录仍为 `planned / not implemented`；
+- 实际能力以当前 `capabilities` 为准；任务循环、状态工具、HTML 网页制作工作流、项目汇报页面模板、语义组件包和 `html.materialize` 物料化工具属于 `implemented / experimental`；浏览器预览、数学公式渲染和自动响应式/无障碍检查仍为 `planned / not implemented`；
 - 不得因为目录存在，就把计划能力描述为已经可用。
 
 ## 开发边界

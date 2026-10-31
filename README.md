@@ -2,7 +2,7 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环、任务状态工具、离线项目汇报模板、小组资产仓库模板，以及多条消费端工作流：小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。HTML 预览和检查器仍未实现。
+当前提供可发现的任务循环、任务状态工具、网页呈现形式下的 HTML 项目汇报页面模板和语义组件包，以及按 Manifest 能力 ID 将它们安全复制到消费端任务目录的物料化工具。仓库还提供小组资产仓库模板，以及多条消费端工作流：HTML 网页制作、小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。呈现形式从 `formats/` 并列组织；网页当前采用 HTML/CSS 实现，文档、演示文稿和打印形式尚未实现。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。浏览器自动预览、公式渲染和浏览器检查器仍未实现。
 
 本仓库另外提供可直接转发的一次性启动提示词：一类用于从 GitHub 公共模板建仓、递归克隆并初始化；另一类用于将基础设施首次接入既有仓库并安装消费端 Harness。前者适合新仓，后者适合保留既有结构的仓库；两者完成后，日常能力路由均依靠消费端根规则和固定 submodule Manifest。
 
@@ -13,7 +13,8 @@
 本仓库承载可以被多个小组复用的工程能力：
 
 - Agent 使用的技能说明；
-- HTML 和其他表达资产的模板；
+- `formats/` 中网页、文档、演示文稿等呈现形式内部的模板与组件；
+- 根 `templates/` 中的小组资产仓库脚手架模板；
 - 本地预览、渲染和检查工具；
 - 约束 Agent 输入、工作目录、检查点和输出的 Harness；
 - 能被父仓库以 Git submodule 固定版本引用的文件协议。
@@ -28,7 +29,10 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | --- | --- | --- |
 | `expression.task-loop` | workflow | 由消费端 Agent 执行的任务协作循环，使用任务记录工具 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
-| `html.project-report-v1` | template | 离线项目概览、阶段进展和对外汇报 HTML/CSS 模板 |
+| `html.project-report-v1` | template | 网页形式下，离线项目概览、阶段进展和对外汇报 HTML/CSS 页面模板 |
+| `html.semantic-components-v1` | template | 网页形式下，离线设计令牌、响应式基础和六类语义 HTML 组件契约 |
+| `html.materialize` | tool | 从固定 Manifest 安全复制页面模板和组件，并把选定语义片段装配到已对齐任务目录，记录来源 commit 与文件哈希 |
+| `expression.html-production` | workflow | 跨消费端组织任务、来源、页面模板组件、迭代和人工收口的 HTML 网页制作流程 |
 | `consumer.submodule-preflight` | tool | 只读核对消费端 submodule 的固定 gitlink、工作区和远端稳定分支快照 |
 | `consumer.group-asset-bootstrap` | tool | 在已固定 submodule 的消费端安全铺设小组资产仓模板 |
 | `consumer.group-asset-onboarding` | workflow | 引导负责人确认小组身份、多项目上下文、来源和边界 |
@@ -48,6 +52,13 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端 submodule 版本协议](docs/submodule-consumer-versioning.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](harness/task-loop/ENTRYPOINT.md)
+- [HTML 网页制作工作流入口](workflows/html-production/ENTRYPOINT.md)
+- [HTML 网页制作工作流协议](workflows/html-production/WORKFLOW.md)
+- [HTML 可复用基础设施框架](docs/html-framework.md)
+- [HTML 语义组件核心包 v1](formats/web/html/components/core-v1/README.md)
+- [HTML 模板与组件物料化工具](tools/html-materialize/README.md)
+- [HTML 消费端端到端测试流程](docs/html-e2e-consumer-test.md)
+- [可直接转发的 HTML 端到端测试提示词](docs/html-e2e-consumer-test-prompt.md)
 - [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
 
 ## 工作流与可转发启动提示词
@@ -92,4 +103,4 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 ## 当前阶段边界
 
-本阶段先验证任务循环、跨会话恢复和一套离线 HTML 模板，不接入数据库、云端 API 或部署流程。模板不等于自动 HTML 生成器，消费端仍需由 Agent 按任务上下文填充并评审内容。
+HTML 网页制作工作流、语义组件包和模板/组件安全物料化工具目前为 `implemented / experimental`：工作流规范 Agent 如何跨不同消费端完成任务登记、来源核对、版本化产出和人工评审；物料化工具按 Manifest ID 将选定资产复制到已对齐任务目录；组件包提供离线 CSS 与语义契约。自动浏览器预览、数学公式渲染和自动化响应式/无障碍检查尚未实现，不能宣称为可调用能力。

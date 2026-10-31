@@ -1,0 +1,32 @@
+id: html.semantic-components-v1
+kind: template
+version: 1.0.0
+entrypoint: README.md
+catalog: index.yml
+stylesheets:
+  - styles.css
+foundations:
+  - foundations/tokens.css
+  - foundations/base.css
+layout:
+  - layout/layout.css
+semantic_stylesheet: semantic/semantic.css
+themes:
+  - themes/technical-light.css
+offline: true
+network_dependencies: []
+javascript_dependencies: []
+components:
+  - content.summary
+  - status.phase
+  - status.metric
+  - evidence.claim
+  - evidence.source
+  - action.next-step
+responsive_viewports_px:
+  - 320
+  - 390
+  - 768
+  - 1280
+print: A4
+status: implemented / experimental

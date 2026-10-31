@@ -1,0 +1,118 @@
+.ex-summary,
+.ex-phase,
+.ex-metric,
+.ex-claim,
+.ex-source,
+.ex-action {
+  border: var(--ex-border);
+  border-radius: var(--ex-radius);
+  min-width: 0;
+  padding: var(--ex-space-4);
+}
+
+.ex-summary,
+.ex-action {
+  background: var(--ex-color-accent-soft);
+  border-left: 4px solid var(--ex-color-accent);
+}
+
+.ex-summary p:last-child,
+.ex-phase p:last-child,
+.ex-metric p:last-child,
+.ex-claim p:last-child,
+.ex-source p:last-child,
+.ex-action p:last-child {
+  margin-bottom: 0;
+}
+
+.ex-summary__label,
+.ex-phase__label,
+.ex-metric__label,
+.ex-claim__label,
+.ex-source__label,
+.ex-action__label {
+  color: var(--ex-color-muted);
+  display: block;
+  font-size: var(--ex-text-small);
+  font-weight: 700;
+  margin-bottom: var(--ex-space-1);
+}
+
+.ex-phase[data-state="confirmed"],
+.ex-claim[data-state="confirmed"] {
+  background: var(--ex-color-success-soft);
+  border-left: 4px solid var(--ex-color-success);
+}
+
+.ex-phase[data-state="candidate"],
+.ex-claim[data-state="candidate"] {
+  background: var(--ex-color-warning-soft);
+  border-left: 4px solid var(--ex-color-warning);
+}
+
+.ex-phase[data-state="unverified"],
+.ex-claim[data-state="unverified"] {
+  background: var(--ex-color-danger-soft);
+  border-left: 4px solid var(--ex-color-danger);
+}
+
+.ex-metric-grid {
+  display: grid;
+  gap: var(--ex-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ex-metric__value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ex-metric__unit {
+  color: var(--ex-color-muted);
+  font-size: var(--ex-text-small);
+  margin-left: var(--ex-space-1);
+}
+
+.ex-metric__source,
+.ex-claim__source,
+.ex-action__owner {
+  color: var(--ex-color-muted);
+  font-size: var(--ex-text-small);
+}
+
+.ex-source {
+  background: var(--ex-color-surface);
+  font-size: var(--ex-text-small);
+}
+
+.ex-source code,
+.ex-claim code {
+  font-family: var(--ex-font-code);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1024px) {
+  .ex-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ex-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .ex-summary,
+  .ex-phase,
+  .ex-metric,
+  .ex-claim,
+  .ex-source,
+  .ex-action {
+    break-inside: avoid;
+  }
+}

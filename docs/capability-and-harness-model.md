@@ -82,7 +82,11 @@ AGENTS.md                 基础设施仓库自身总 Harness
 harness/                  已有工作流 Harness 的兼容路径
 workflows/                新工作流及其 Harness
 tools/                    确定性工具
-templates/                可复用模板
+formats/                  并列的呈现形式（web、document、slides 等）
+  web/html/               网页的 HTML 实现及其内部复用资产
+    page-templates/       完整页面模板
+    components/           HTML 组件包
+templates/                仓库脚手架等非呈现模板
 skills/                   领域指导
 checks/                   结果检查器
 manifest.yml              对外 Capability 注册和发现入口
@@ -98,8 +102,11 @@ manifest.yml              对外 Capability 注册和发现入口
 | `consumer.group-asset-onboarding` | Workflow Capability | `harness/group-asset-repository/ENTRYPOINT.md` | 消费端上下文和负责人确认 |
 | `expression.task-loop` | Workflow Capability | `harness/task-loop/ENTRYPOINT.md` | `expression.task-record` |
 | `expression.task-record` | Tool Capability | `harness/task-loop/scripts/task_loop.py` | Python 标准库 |
+| `expression.html-production` | Workflow Capability | `workflows/html-production/ENTRYPOINT.md` | `expression.task-loop`, `expression.task-record`, HTML 页面模板和语义组件包 |
+| `html.materialize` | Tool Capability | `tools/html-materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的页面模板/组件包、已对齐任务 |
 | `consumer.submodule-preflight` | Tool Capability | `tools/submodule-preflight/submodule_preflight.py` | Git CLI |
-| `html.project-report-v1` | Template Capability | `templates/html-report/project-report-v1/index.html` | 消费端已对齐任务和来源 |
+| `html.project-report-v1` | Template Capability | `formats/web/html/page-templates/project-report-v1/index.html` | 消费端已对齐任务和来源 |
+| `html.semantic-components-v1` | Template Capability | `formats/web/html/components/core-v1/README.md` | 离线样式令牌、布局与六种语义组件 |
 | `consumer.submodule-update` | Workflow Capability | `workflows/submodule-update/ENTRYPOINT.md` | `consumer.submodule-preflight` |
 | `consumer.infrastructure-adoption` | Workflow Capability | `workflows/infrastructure-adoption/ENTRYPOINT.md` | `consumer.infrastructure-adoption-harness`, `consumer.submodule-preflight` |
 | `consumer.infrastructure-adoption-harness` | Tool Capability | `tools/infrastructure-adoption-harness/install_harness.py` | 在既有消费端根 `AGENTS.md` 中预览或安装共享长期 Harness |

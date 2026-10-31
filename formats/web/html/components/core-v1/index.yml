@@ -1,0 +1,33 @@
+schema_version: 1
+package: html.semantic-components-v1
+components:
+  - id: content.summary
+    category: content
+    contract: semantic/contracts/content.summary.json
+    definition: semantic/content/summary/component.yml
+    template: semantic/content/summary/template.html
+  - id: status.phase
+    category: status
+    contract: semantic/contracts/status.phase.json
+    definition: semantic/status/phase/component.yml
+    template: semantic/status/phase/template.html
+  - id: status.metric
+    category: status
+    contract: semantic/contracts/status.metric.json
+    definition: semantic/status/metric/component.yml
+    template: semantic/status/metric/template.html
+  - id: evidence.claim
+    category: evidence
+    contract: semantic/contracts/evidence.claim.json
+    definition: semantic/evidence/claim/component.yml
+    template: semantic/evidence/claim/template.html
+  - id: evidence.source
+    category: evidence
+    contract: semantic/contracts/evidence.source.json
+    definition: semantic/evidence/source/component.yml
+    template: semantic/evidence/source/template.html
+  - id: action.next-step
+    category: action
+    contract: semantic/contracts/action.next-step.json
+    definition: semantic/action/next-step/component.yml
+    template: semantic/action/next-step/template.html

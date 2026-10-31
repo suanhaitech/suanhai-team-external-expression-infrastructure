@@ -1,0 +1,6 @@
+/* Agent 的稳定样式入口；页面只需要引入这一份文件。 */
+@import url("foundations/tokens.css");
+@import url("foundations/base.css");
+@import url("layout/layout.css");
+@import url("semantic/semantic.css");
+@import url("themes/technical-light.css");

@@ -1,0 +1,11 @@
+{
+  "id": "evidence.claim",
+  "version": "1.0.0",
+  "role": "Express one reviewable factual claim with an explicit verification state.",
+  "required_slots": ["claim", "state"],
+  "optional_slots": ["source_ids", "limitation", "reviewer"],
+  "states": ["confirmed", "candidate", "unverified", "rejected"],
+  "responsive": "The claim and its state remain in normal document flow and wrap on all widths.",
+  "accessibility": "State is visible as text and belongs to the claim in the document structure.",
+  "provenance": "Confirmed claims must reference source IDs; unverified claims must not be phrased as settled conclusions."
+}

@@ -1,0 +1,24 @@
+schema_version: 1
+task_id: "EXPR-20261031-1234abcd"
+revision: 1
+title: "HTML 页面"
+template: "html.project-report-v1"
+template_version: "1.0.0"
+infrastructure_commit: "0123456789abcdef0123456789abcdef01234567"
+audience: "内部评审者"
+purpose: "验证 HTML 页面骨架物料化"
+status: draft
+components:
+  - "html.semantic-components-v1"
+semantic_components:
+  - "status.phase"
+  - "action.next-step"
+source_ids: []
+authorization:
+  status: pending
+materialization:
+  tool: html.materialize
+  version: 1
+  artifact_version: "v001"
+  record: materialization.json
+  infrastructure_commit: "0123456789abcdef0123456789abcdef01234567"

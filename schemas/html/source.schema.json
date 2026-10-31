@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/blob/main/schemas/html/source.schema.json",
+  "title": "Suanhai HTML source record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sources"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "locator", "status", "usage"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+          "kind": {"enum": ["file", "url", "meeting", "user_statement", "generated"]},
+          "locator": {"type": "string", "minLength": 1},
+          "version": {"type": "string"},
+          "date": {"type": "string"},
+          "status": {"enum": ["candidate", "checked", "confirmed", "rejected"]},
+          "usage": {"enum": ["internal_only", "citable", "public"]},
+          "notes": {"type": "string"}
+        }
+      },
+      "uniqueItems": true
+    }
+  }
+}

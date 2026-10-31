@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure/blob/main/schemas/html/report.schema.json",
+  "title": "Suanhai HTML report metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task_id", "revision", "template", "audience", "purpose", "status", "components", "semantic_components", "source_ids", "authorization", "infrastructure_commit", "materialization"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "task_id": {"type": "string", "pattern": "^EXPR-[0-9]{8}-[0-9a-f]{8}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1},
+    "template": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "template_version": {"type": "string", "minLength": 1},
+    "infrastructure_commit": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"},
+    "audience": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "status": {"enum": ["draft", "review", "accepted", "restricted"]},
+    "components": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "semantic_components": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "uniqueItems": true
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "uniqueItems": true
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pending", "internal", "approved", "expired"]},
+        "audience": {"type": "string"},
+        "confirmed_by": {"type": "string"},
+        "confirmed_at": {"type": "string"},
+        "expires_at": {"type": "string"}
+      }
+    },
+    "materialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version", "artifact_version", "record", "infrastructure_commit"],
+      "properties": {
+        "tool": {"const": "html.materialize"},
+        "version": {"const": 1},
+        "artifact_version": {"type": "string", "pattern": "^v[0-9]{3}$"},
+        "record": {"const": "materialization.json"},
+        "infrastructure_commit": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"}
+      }
+    }
+  }
+}

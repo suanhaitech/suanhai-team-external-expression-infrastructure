@@ -1,0 +1,23 @@
+id: action.next-step
+version: 1.0.0
+category: action
+role: 表达下一步、责任主体和完成标准
+required_slots:
+  - action
+  - owner
+  - completion_condition
+optional_slots:
+  - due_date
+  - dependency
+  - source_ids
+states:
+  - proposed
+  - confirmed
+  - in_progress
+  - completed
+  - blocked
+template: template.html
+styles: ../../semantic.css
+responsive: 行动、责任人和完成标准在窄屏自然纵向排列
+accessibility: 使用标题或列表项，并用文字陈述行动
+provenance: 来源于项目决策的行动应关联决策或来源记录

@@ -327,6 +327,67 @@ class TaskLoopTest(unittest.TestCase):
         task = self.event(task, "align", user_quote="测试用户：报告输出位置已确认。")
         self.assertEqual(task["status"], "ready")
 
+    def test_consumer_can_declare_a_custom_output_root(self):
+        config_directory = self.root / ".suanhai"
+        config_directory.mkdir()
+        (config_directory / "expression.json").write_text(
+            json.dumps({"schema_version": 1, "output_roots": ["web"]}),
+            encoding="utf-8",
+        )
+        task = self.brief(self.create(), output="web/EXPR/v001/index.html")
+        self.assertEqual(task["brief"]["output"], "web/EXPR/v001/index.html")
+        task = self.event(task, "align", user_quote="测试用户：自建仓目录已确认。")
+        task = self.event(task, "start")
+        artifact = self.root / "web/EXPR/v001/index.html"
+        artifact.parent.mkdir(parents=True)
+        artifact.write_text("<h1>自建仓测试产物</h1>", encoding="utf-8")
+        task = self.event(task, "review", artifact="web/EXPR/v001/index.html")
+        self.assertTrue(self.cli("validate", task["id"])["valid"])
+
+    def test_html_directory_artifact_hash_covers_local_resources(self):
+        task = self.working_task()
+        artifact = self.root / "reports" / task["id"] / "v001"
+        (artifact / "assets").mkdir(parents=True)
+        (artifact / "index.html").write_text("<link rel='stylesheet' href='assets/report.css'>", encoding="utf-8")
+        (artifact / "assets/report.css").write_text("body { color: #202b36; }", encoding="utf-8")
+        task = self.event(task, "review", artifact=f"reports/{task['id']}/v001")
+        self.assertTrue(self.cli("validate", task["id"])["valid"])
+        task = self.event(task, "complete", user_quote="测试用户：确认这个离线目录版本，不授权发布。")
+        (artifact / "assets/report.css").write_text("body { color: #963f38; }", encoding="utf-8")
+        self.cli("validate", task["id"], ok=False)
+
+    def test_directory_artifact_rejects_nested_symlinks_when_supported(self):
+        task = self.working_task()
+        artifact = self.root / "reports" / task["id"] / "v001"
+        artifact.mkdir(parents=True)
+        (artifact / "index.html").write_text("<h1>测试</h1>", encoding="utf-8")
+        external = self.base / "external.css"
+        external.write_text("body {}", encoding="utf-8")
+        try:
+            (artifact / "external.css").symlink_to(external)
+        except (OSError, NotImplementedError) as error:
+            self.skipTest(f"当前系统不允许创建测试符号链接：{error}")
+        self.cli(
+            "event", task["id"], "--expect-version", task["version"],
+            "--type", "review", "--note", "拒绝包含符号链接的目录",
+            "--artifact", f"reports/{task['id']}/v001", ok=False,
+        )
+
+    def test_custom_output_root_config_cannot_authorize_protected_paths(self):
+        config_directory = self.root / ".suanhai"
+        config_directory.mkdir()
+        (config_directory / "expression.json").write_text(
+            json.dumps({"schema_version": 1, "output_roots": ["vendor"]}),
+            encoding="utf-8",
+        )
+        task = self.create()
+        self.cli(
+            "brief", task["id"], "--expect-version", task["version"],
+            "--audience", "测试受众", "--purpose", "测试用途", "--scope", "测试范围",
+            "--output", "vendor/output.html", "--acceptance", "路径必须被拒绝",
+            "--source", "context/input.md", ok=False,
+        )
+
     def test_symlink_escape_is_rejected(self):
         outside = self.base / "outside"
         outside.mkdir()

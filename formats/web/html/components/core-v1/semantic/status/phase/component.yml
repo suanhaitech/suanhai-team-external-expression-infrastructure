@@ -1,0 +1,21 @@
+id: status.phase
+version: 1.0.0
+category: status
+role: 表达阶段、当前状态和判断依据
+required_slots:
+  - label
+  - state
+  - description
+optional_slots:
+  - as_of
+  - source_ids
+states:
+  - confirmed
+  - candidate
+  - unverified
+  - blocked
+template: template.html
+styles: ../../semantic.css
+responsive: 内容在窄屏纵向排列并自然换行
+accessibility: 状态必须以文字呈现，颜色只能作为辅助
+provenance: 阶段判断应关联支撑其状态的来源 ID

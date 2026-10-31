@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="用于展示通用 HTML 语义组件的示例页面" />
+    <title>HTML 语义组件示例</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="ex-container ex-stack" id="top">
+      <header class="ex-section ex-prose">
+        <p>组件包 v1 · 示例数据，不代表真实项目</p>
+        <h1>HTML 语义组件</h1>
+        <p>这些组件用于承载可核查的信息对象，组件契约与视觉样式分开维护。</p>
+      </header>
+
+      <section class="ex-section ex-stack" aria-labelledby="summary-title">
+        <h2 id="summary-title">核心摘要</h2>
+        <article class="ex-summary">
+          <span class="ex-summary__label">示例摘要</span>
+          <p>这是演示文字。真实页面应先确认受众、用途和来源，再决定摘要内容。</p>
+        </article>
+      </section>
+
+      <section class="ex-section ex-stack" aria-labelledby="status-title">
+        <h2 id="status-title">状态与指标</h2>
+        <article class="ex-phase" data-state="candidate">
+          <span class="ex-phase__label">阶段状态 · 候选</span>
+          <p>状态说明需要根据来源核对后再确认。</p>
+        </article>
+        <div class="ex-metric-grid">
+          <article class="ex-metric">
+            <span class="ex-metric__label">已登记的示例来源</span>
+            <span class="ex-metric__value">3<span class="ex-metric__unit">份</span></span>
+            <p class="ex-metric__source">口径：仅统计本页示例内容</p>
+          </article>
+          <article class="ex-metric">
+            <span class="ex-metric__label">待核验数值</span>
+            <span class="ex-metric__value">待核验</span>
+            <p class="ex-metric__source">不得用演示值替代项目事实</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="ex-section ex-stack" aria-labelledby="evidence-title">
+        <h2 id="evidence-title">判断与来源</h2>
+        <article class="ex-claim" data-state="unverified">
+          <span class="ex-claim__label">待核验判断</span>
+          <p>本示例没有对任何真实项目作出技术结论。</p>
+          <p class="ex-claim__source">来源状态：尚未登记</p>
+        </article>
+        <article class="ex-source">
+          <span class="ex-source__label">来源示例</span>
+          <p><strong>source_id:</strong> <code>sample-source</code></p>
+          <p><strong>允许用途:</strong> internal_only</p>
+          <p>在正式产物中，该 ID 必须与任务的 sources.yml 对应。</p>
+        </article>
+      </section>
+
+      <section class="ex-section ex-stack" aria-labelledby="action-title">
+        <h2 id="action-title">下一步</h2>
+        <article class="ex-action">
+          <span class="ex-action__label">拟议行动</span>
+          <p>由内容负责人核对页面中的事实与来源。</p>
+          <p class="ex-action__owner">责任人：待确认 · 完成条件：来源和表述均完成核对</p>
+        </article>
+      </section>
+
+      <footer class="ex-section ex-prose">
+        <p>这是基础设施包的视觉与结构示例。页面中的示例状态不是项目数据。</p>
+      </footer>
+    </main>
+  </body>
+</html>

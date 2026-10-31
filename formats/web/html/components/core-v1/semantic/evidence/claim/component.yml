@@ -1,0 +1,21 @@
+id: evidence.claim
+version: 1.0.0
+category: evidence
+role: 表达一个带明确核验状态的可复查判断
+required_slots:
+  - claim
+  - state
+optional_slots:
+  - source_ids
+  - limitation
+  - reviewer
+states:
+  - confirmed
+  - candidate
+  - unverified
+  - rejected
+template: template.html
+styles: ../../semantic.css
+responsive: 判断和状态保持文档流并在所有宽度自然换行
+accessibility: 状态作为文本属于判断的文档结构
+provenance: 已确认判断必须关联来源，未核验判断不能写成定论

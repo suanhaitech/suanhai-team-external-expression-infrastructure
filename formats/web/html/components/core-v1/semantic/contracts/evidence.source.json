@@ -1,0 +1,11 @@
+{
+  "id": "evidence.source",
+  "version": "1.0.0",
+  "role": "Identify a source and explain its location, date/version, and allowed use.",
+  "required_slots": ["source_id", "locator", "usage"],
+  "optional_slots": ["date", "version", "notes"],
+  "states": ["candidate", "checked", "confirmed", "rejected"],
+  "responsive": "Long paths and URLs wrap; no fixed-width source column is required.",
+  "accessibility": "Link text must describe the destination; do not use a bare URL as the only label.",
+  "provenance": "The source ID must resolve to an entry in the task's sources.yml."
+}
