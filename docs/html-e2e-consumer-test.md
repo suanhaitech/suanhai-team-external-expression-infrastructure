@@ -231,7 +231,10 @@ py -3 "<实际路径>/tools/html-materialize/materialize_html.py" `
 
 ```powershell
 Get-ChildItem -Recurse -File reports/<TASK_ID>/v001
-rg -n -g "*.html" -g "*.css" 'href=["'']https?://|src=["'']https?://|url\(\s*["'']?https?://|//cdn' reports/<TASK_ID>/v001
+$externalRefs = rg -n -g "*.html" -g "*.css" 'href=["'']https?://|src=["'']https?://|url\(\s*["'']?https?://|//cdn' reports/<TASK_ID>/v001
+$rgExit = $LASTEXITCODE
+if ($rgExit -eq 0) { $externalRefs; throw "发现远程运行时资源，停止并报告" }
+if ($rgExit -gt 1) { throw "rg 检查器执行失败，退出码：$rgExit" }
 git diff --check
 ```
 
@@ -240,6 +243,7 @@ git diff --check
 - `index.html` 中存在本次选择的 `data-component`：`content.summary`、`status.phase`、`status.metric`、`evidence.claim`、`action.next-step`；
 - HTML 引用的 CSS 都是相对路径，引用的本地文件真实存在；
 - 页面、CSS、组件包不依赖 CDN、远程字体、远程图片或运行时网络；相对路径的本地 `@import` 可以保留，需核对其目标文件存在；
+- PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误；
 - 编辑页面前，`materialization.json` 的文件 SHA-256 与实际文件一致；编辑后，未编辑资源仍匹配，`index.html` 哈希变化应被解释为消费端内容填充；
 - `report.yml` 记录模板、组件包、语义组件、来源和 pending 授权状态；
 - 页面占位符已替换为合成测试内容。

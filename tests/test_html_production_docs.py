@@ -85,6 +85,8 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn('rg -n -g "*.html" -g "*.css"', doc)
         self.assertIn("以工具返回的完整清单为准", doc)
         self.assertIn("相对路径的本地 `@import` 可以保留", doc)
+        self.assertIn("$rgExit -eq 0", doc)
+        self.assertIn("$rgExit -gt 1", doc)
 
     def test_standalone_e2e_prompt_discovers_fixed_dependency(self):
         doc = (ROOT / "docs/html-e2e-consumer-test-prompt.md").read_text(encoding="utf-8")
@@ -103,6 +105,8 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("浏览器检查未执行", doc)
         self.assertIn('Test-Path -LiteralPath $sourcePath', doc)
         self.assertIn("相对路径的本地 `@import` 可以保留", doc)
+        self.assertIn("$rgExit -eq 0", doc)
+        self.assertIn("$rgExit -gt 1", doc)
 
     def test_component_package_is_self_contained_and_contracts_are_complete(self):
         package = (COMPONENTS / "package.yml").read_text(encoding="utf-8")

@@ -134,10 +134,13 @@ align 后再次 show，使用最新 version 执行 start：
 
 执行并保存：
     Get-ChildItem -Recurse -File "reports/$taskId/v001"
-    rg -n -g "*.html" -g "*.css" 'href=["'']https?://|src=["'']https?://|url\(\s*["'']?https?://|//cdn' "reports/$taskId/v001"
+    $externalRefs = rg -n -g "*.html" -g "*.css" 'href=["'']https?://|src=["'']https?://|url\(\s*["'']?https?://|//cdn' "reports/$taskId/v001"
+    $rgExit = $LASTEXITCODE
+    if ($rgExit -eq 0) { $externalRefs; throw "发现远程运行时资源，停止并报告" }
+    if ($rgExit -gt 1) { throw "rg 检查器执行失败，退出码：$rgExit" }
     git diff --check
 
-只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component；CSS 和资源都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
+只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component；CSS 和资源都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
 
 本地浏览器打开 reports/$taskId/v001/index.html，检查桌面、手机和 A4 打印预览。没有浏览器或截图时明确记录 not-run / 浏览器检查未执行，不能把静态检查说成视觉验收。截图只能存放仓库外临时目录。
 
