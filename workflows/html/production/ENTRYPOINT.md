@@ -32,9 +32,11 @@ align with user
     ↓
 choose template/components
     ↓
+start task (working)
+    ↓
 html.materialize dry-run → review plan → apply exact plan
     ↓
-start and materialize v001
+fill content in materialized v001
     ↓
 html.viewport-check → runtime interaction/preview/check → optional html.pdf-export
     ↓

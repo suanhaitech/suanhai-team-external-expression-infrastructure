@@ -157,7 +157,7 @@ align 后再次 show，使用最新 version 执行 start：
 
 编辑前按 materialization.json 的 files 清单核对基线 SHA-256。然后将标题换成“HTML 基础设施端到端测试”，填入五个已选语义组件的合成文本，替换所有可能被误认为事实的占位内容。
 
-创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、响应式布局 ID 和语义组件 ID。
+创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；核对 report.yml 并更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、响应式布局 ID、运行时包 ID 和语义组件 ID。本轮为覆盖运行时能力而显式选择 `html.runtime-kit-v1`，不代表所有业务页面默认包含它。
 
 编辑后不得再次对同一目录 apply。若需修改，通过 task-loop feedback 创建新修订和 v002，不覆盖 v001。materialization.json 是初始物料化基线；编辑 index.html 后其哈希变化是预期的，未编辑共享 CSS、组件包和元数据应保持基线哈希。
 
@@ -171,13 +171,15 @@ align 后再次 show，使用最新 version 执行 start：
     if ($rgExit -gt 1) { throw "rg 检查器执行失败，退出码：$rgExit" }
     git diff --check
 
-只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component，以及 `data-runtime-toolbar`、`data-runtime-fullscreen`、`data-runtime-pdf` 和至少一个 `data-math`；CSS、KaTeX、字体和脚本都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
+只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 源码有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component、`data-runtime-toolbar` 工具栏容器和至少一个 `data-math`；CSS、KaTeX、字体和脚本都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。`data-runtime-fullscreen` 和 `data-runtime-pdf` 按钮由 `runtime.js` 运行后注入，应在浏览器 DOM 中检查，不要求这些标记预先出现在 index.html 源码中。未运行浏览器时，只能报告静态容器及资源检查结果，动态按钮与交互均为 `not-run`。
 
 执行响应式和 PDF 工具：
     py -3 "$infra/infrastructure/html/tools/viewport-check/viewport_check.py" --html "reports/$taskId/v001/index.html" --output "reports/$taskId/v001/viewport-check.json" --fail-on-overflow
     py -3 "$infra/infrastructure/html/tools/pdf-export/export_pdf.py" --root "reports/$taskId/v001" --input index.html --output report.pdf --metadata pdf-export.json --paper a4
 
-`html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。浏览器可用时，另外检查公式渲染、自动/窄屏/平板/桌面模式切换、全屏进入/退出、“保存 PDF”按钮和打印媒体下工具栏隐藏。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
+`html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。浏览器可用时，在脚本运行后的 DOM 核对工具栏和动态按钮，实际切换自动/窄屏/平板/桌面模式、进入/退出全屏、点击“保存 PDF”并检查打印媒体隐藏工具栏，逐项记录预期行为、实际结果及限制；公式渲染也需实际观察。仅发现按钮或生成 PDF 文件不能替代这些交互检查。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
+
+每个视口必须记录目标宽高和页面实际 `window.innerWidth` / `window.innerHeight`。Chrome 的 `--window-size` 可能受最小窗口宽度限制，参数写 390 不代表实际视口达到 390px；运行时的“窄屏”模式也只调整 CSS，不模拟设备视口。手机检查应使用设备模拟、可设定 viewport 的浏览器工具或真机达到目标 390px，并检查文本、导航、表格和水平溢出。若实际宽度仍为 504px 等更宽值，只记录该宽度的结果，将 390px 手机检查标为 `not-run`，不能据此判定手机适配通过或失败。
 
 ## 6. review 和 validate
 
@@ -197,6 +199,7 @@ align 后再次 show，使用最新 version 执行 start：
 - TASK_ID、任务状态和生成目录；
 - Manifest、submodule 预检、任务 create/brief/align/start、dry-run、apply、组件插入、离线资源、report.yml/materialization.json、review、validate 的逐项结果；
 - 桌面、手机、打印检查分别为 pass、fail 或 not-run；
+- 各视口目标宽高与实际 window.innerWidth/window.innerHeight；运行时公式、模式切换、全屏进入/退出、页面内保存 PDF 的逐项结果，区分静态容器、动态按钮存在和实际操作；
 - 实际关键命令、plan_sha256、task_record_version；
 - git status --short --branch 和 git submodule status --recursive 摘要；
 - 未解决问题；

@@ -66,6 +66,8 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [HTML PDF 导出工具](infrastructure/html/tools/pdf-export/README.md)
 - [HTML 消费端端到端测试流程](docs/html-e2e-consumer-test.md)
 - [可直接转发的 HTML 端到端测试提示词](docs/html-e2e-consumer-test-prompt.md)
+- [可直接转发的 HTML 制作启动提示词](workflows/html/production/START_HTML_PRODUCTION.md)
+- [HTML 基础设施稳定发布与消费端迁移说明](docs/html-infrastructure-stable-release.md)
 - [小组资产仓初始化工作流](workflows/group-asset-repository-onboarding/ENTRYPOINT.md)
 - [小组资产仓模板源](infrastructure/group-asset-repository/templates/group-asset-repository-v1/README.md)
 - [小组资产仓模板铺设工具](infrastructure/group-asset-repository/tools/bootstrap/README.md)

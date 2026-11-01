@@ -188,6 +188,8 @@ py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" -
 
 把 dry-run 摘要展示给用户，等待用户明确确认。没有确认前不要加 `--apply`。
 
+本轮显式选择 `html.runtime-kit-v1` 是为了覆盖公式和页面工具栏的测试，不代表普通 HTML 制作必须使用运行时包；业务任务仍按实际需求选择。
+
 ## 4. apply 和页面内容填充
 
 用户确认 dry-run 后，使用完全相同的参数，额外加上：
@@ -230,8 +232,8 @@ py -3 "<实际路径>/infrastructure/html/tools/materialize/materialize_html.py"
 
 2. 在编辑页面前，根据 `materialization.json` 的 `files` 清单计算并核对所有物料化文件 SHA-256。模板包的 README、元数据和许可证文件也会随包复制；以完整的 dry-run `would_write` 清单为准。
 3. 用最小合成内容替换页面占位符，只写入与测试任务对应的内容。例如把页面标题改为“HTML 基础设施端到端测试”，把状态、指标、证据和下一步组件填入合成文本。不要把占位符保留成看似真实的项目事实。
-4. 创建 `reports/<TASK_ID>/v001/sources.yml`，登记 `id: synthetic-html-e2e`，引用 `context/e2e-html-test/source.md`，并说明它是 synthetic、仅内部测试、不具备发布授权。
-5. 更新模板包带来的 `README.md`，说明该目录是 `mode: test` 产物、使用的基础设施 commit、模板 ID、组件包 ID 和语义组件 ID。
+4. 创建 `reports/<TASK_ID>/v001/sources.yml`，登记 `id: synthetic-html-e2e`，引用 `context/e2e-html-test/<TASK_ID>/source.md`，并说明它是 synthetic、仅内部测试、不具备发布授权。
+5. 核对 `report.yml` 并更新模板包带来的 `README.md`，说明该目录是 `mode: test` 产物、使用的基础设施 commit、模板 ID、组件包 ID、响应式布局 ID、运行时包 ID 和语义组件 ID。
 6. 修改页面后，不要再次运行同一 apply 覆盖用户内容。若需要重新物料化，先保留 v001，按任务反馈创建新修订和 v002。`materialization.json` 的哈希是首次物料化基线；填充页面后 `index.html` 哈希变化是预期的，未编辑资源应保持匹配。
 
 ## 5. 离线资源和页面检查
@@ -250,23 +252,23 @@ git diff --check
 确认：
 
 - `index.html` 中存在本次选择的 `data-component`：`content.summary`、`status.phase`、`status.metric`、`evidence.claim`、`action.next-step`；
-- 选择运行时包时，`index.html` 含 `data-runtime-toolbar`、`data-runtime-fullscreen`、`data-runtime-pdf`、运行时 CSS/脚本和 KaTeX 的相对路径，并至少放置一个 `data-math` 合成公式；
+- 选择运行时包时，`index.html` 源码含 `data-runtime-toolbar` 工具栏容器、运行时 CSS/脚本和 KaTeX 的相对路径，并至少放置一个 `data-math` 合成公式；`data-runtime-fullscreen` 和 `data-runtime-pdf` 按钮由 `runtime.js` 在运行后注入，应在浏览器 DOM 检查，不要求这些动态标记预先出现在 HTML 源码中；
 - HTML 引用的 CSS 都是相对路径，引用的本地文件真实存在；
 - 页面、CSS、组件包不依赖 CDN、远程字体、远程图片或运行时网络；相对路径的本地 `@import` 可以保留，需核对其目标文件存在；
 - PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误；
 - 编辑页面前，`materialization.json` 的文件 SHA-256 与实际文件一致；编辑后，未编辑资源仍匹配，`index.html` 哈希变化应被解释为消费端内容填充；
-- `report.yml` 记录模板、组件包、语义组件、来源和 pending 授权状态；
+- `report.yml` 记录模板、组件包、响应式布局、可选运行时包、语义组件、来源和 pending 授权状态；
 - 页面占位符已替换为合成测试内容。
-- 运行时工具栏可切换自动、窄屏、平板和桌面模式，可进入/退出全屏，并通过“保存 PDF”打开浏览器打印对话框；打印媒体隐藏工具栏；未实际执行时必须写 `not-run`。
+- 运行时工具栏可切换自动、窄屏、平板和桌面模式，可进入/退出全屏，并通过“保存 PDF”打开浏览器打印对话框；打印媒体隐藏工具栏。分别记录静态容器检查、动态按钮存在及实际点击结果；未运行浏览器时，动态按钮和交互为 `not-run`，仅有按钮不能证明交互通过。
 
 浏览器检查必须区分“已实际检查”和“未执行”：
 
 - 用本地浏览器打开 `reports/<TASK_ID>/v001/index.html`，检查桌面视图；
-- 将窗口缩窄到手机宽度，检查导航、文本、组件和表格是否溢出；
+- 使用设备模拟、可设定 viewport 的浏览器工具或真机达到目标 390px 手机视口，检查导航、文本、组件和表格是否溢出；记录目标宽高及实际 `window.innerWidth` / `window.innerHeight`。Chrome `--window-size` 可能被最小窗口宽度限制；若参数为 390 而实际为 504px，只能记录 504px 检查结果，390px 手机检查为 `not-run`，不能当作手机适配通过或失败。运行时“窄屏”显示模式只调整 CSS，也不替代真实视口检查；
 - 使用打印预览检查 A4 页面；
 - 如测试机能生成截图，保存到仓库外的临时目录，不要把截图或缓存作为测试资产提交。
 
-执行固定版本中的 `html.viewport-check`，保存 `viewport-check.json`；如果本机有 Playwright 和浏览器，记录各视口结果，否则浏览器部分标记 `not-run`。浏览器可用时，另外检查公式渲染、模式切换、全屏进入/退出、“保存 PDF”按钮和打印媒体隐藏工具栏。再按用户确认的纸张和方向执行 `html.pdf-export`，保存 `report.pdf` 与 `pdf-export.json`；找不到浏览器时标记 `not-run`，不能伪造 PDF。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
+执行固定版本中的 `html.viewport-check`，保存 `viewport-check.json`；如果本机有 Playwright 和浏览器，记录各视口结果，否则浏览器部分标记 `not-run`。浏览器可用时，在脚本执行后的 DOM 核对工具栏及动态按钮，实际观察公式渲染、操作模式切换、全屏进入/退出、点击“保存 PDF”打开打印对话框并检查打印媒体隐藏工具栏；每项记录预期行为、实际结果和限制。再按用户确认的纸张和方向执行 `html.pdf-export`，保存 `report.pdf` 与 `pdf-export.json`；找不到浏览器时标记 `not-run`，不能伪造 PDF。PDF 生成成功不能替代页面内按钮、打印预览或版式检查。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
 
 ## 6. 任务 review 和 validate
 
@@ -329,6 +331,8 @@ submodule gitlink/HEAD：<完整 SHA>
 - 浏览器桌面检查：<pass/fail/not-run>
 - 手机视图检查：<pass/fail/not-run>
 - 打印视图检查：<pass/fail/not-run>
+- 各视口目标宽高/实际 window.innerWidth 和 window.innerHeight：<逐项记录；目标 390px 未达到则手机检查 not-run>
+- 运行时公式、模式切换、全屏进入/退出、页面内保存 PDF：<逐项 pass/fail/not-run，附实际操作和结果；静态容器与动态按钮存在分别报告>
 - task-loop review：<pass/fail>
 - task-loop validate：<pass/fail>
 

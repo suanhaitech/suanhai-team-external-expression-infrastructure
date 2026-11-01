@@ -55,3 +55,11 @@ git submodule update --init --recursive -- vendor/suanhai-team-external-expressi
 完整首启和新机器测试流程见基础设施 `docs/group-asset-repository-bootstrap.md`。模板结构更新与基础设施版本升级分别评审；父仓 gitlink 是实际基础设施版本的唯一事实来源。
 
 如果需要检查或更新基础设施 submodule，在本仓根目录向 Agent 说明“检查基础设施版本”或“更新基础设施 submodule”。Agent 应从 Manifest 路由到 `consumer.submodule-update`，先运行只读预检，展示明确目标 commit 和影响，再按用户确认在短期分支中更新父仓 gitlink。不会因为远端出现新提交而自动升级。
+
+## 制作 HTML 页面
+
+在本仓根目录向平常使用的 Agent 说明页面目标、受众、用途和材料，要求按 `expression.html-production` 登记任务并对齐需求。也可以发送固定基础设施中的 [HTML 制作启动提示词](vendor/suanhai-team-external-expression-infrastructure/workflows/html/production/START_HTML_PRODUCTION.md)。页面内容和来源保存在本仓，模板、组件、样式和运行时从固定 Manifest 选择并物料化到任务版本目录。
+
+需要数学公式、显示模式、全屏或页面内“保存 PDF”按钮时，明确选择 `html.runtime-kit-v1`；跨设备布局选择 `html.responsive-layout-v1`。运行时按钮不会自动出现在旧页面或未选择运行时包的页面中。页面内保存 PDF 打开浏览器打印对话框；需要生成 PDF 文件时再调用 `html.pdf-export`。浏览器、手机视口或打印检查未执行时，必须记录 `not-run`。
+
+公共模板发布时固定基础设施稳定 `main` 上的一个完整 commit；新建仓继承该 gitlink，之后不会自动随模板或基础设施更新。已有仓仍通过 `consumer.submodule-update` 受控升级。
