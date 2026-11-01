@@ -6,7 +6,7 @@
 
 ## 使用
 
-先按照 [新仓建立流程](../../docs/group-asset-repository-bootstrap.md) 创建消费端并固定基础设施 submodule。再从消费端根目录运行：
+先按照 [新仓建立流程](../../../../docs/group-asset-repository-bootstrap.md) 创建消费端并固定基础设施 submodule。再从消费端根目录运行：
 
 ```powershell
 py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py --root . --dry-run
