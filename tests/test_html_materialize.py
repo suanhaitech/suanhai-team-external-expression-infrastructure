@@ -13,12 +13,13 @@ import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-TOOL = Path("tools/html-materialize/materialize_html.py")
+TOOL = Path("infrastructure/html/tools/materialize/materialize_html.py")
 SUBMODULE = Path("vendor/suanhai-team-external-expression-infrastructure")
 TASK_ID = "EXPR-20261031-1234abcd"
 PUBLIC_URL = "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure.git"
 TEMPLATE_ID = "html.project-report-v1"
 COMPONENT_ID = "html.semantic-components-v1"
+RUNTIME_KIT_ID = "html.runtime-kit-v1"
 
 
 def environment() -> dict[str, str]:
@@ -56,32 +57,35 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         git(cls.source, "config", "user.email", "test@example.invalid")
         git(cls.source, "config", "core.autocrlf", "false")
 
-        shutil.copytree(REPO_ROOT / "formats/web/html", cls.source / "formats/web/html")
-        shutil.copytree(
-            REPO_ROOT / "formats/web/html/layouts",
-            cls.source / "formats/web/html/layouts",
-            dirs_exist_ok=True,
-        )
-        (cls.source / TOOL.parent).mkdir(parents=True)
-        shutil.copy2(REPO_ROOT / TOOL, cls.source / TOOL)
+        shutil.copytree(REPO_ROOT / "infrastructure/html", cls.source / "infrastructure/html")
         (cls.source / "manifest.yml").write_text(
             "schema_version: 2\n"
             "repository: suanhai-team-external-expression-infrastructure\n"
             "capabilities:\n"
             "  - id: html.project-report-v1\n"
             "    kind: template\n"
-            "    path: formats/web/html/page-templates/project-report-v1\n"
-            "    entrypoint: formats/web/html/page-templates/project-report-v1/index.html\n"
+            "    path: infrastructure/html/page-templates/project-report-v1\n"
+            "    entrypoint: infrastructure/html/page-templates/project-report-v1/index.html\n"
             "    purpose: test\n"
             "  - id: html.semantic-components-v1\n"
             "    kind: template\n"
-            "    path: formats/web/html/components/core-v1\n"
-            "    entrypoint: formats/web/html/components/core-v1/README.md\n"
+            "    path: infrastructure/html/components/core-v1\n"
+            "    entrypoint: infrastructure/html/components/core-v1/README.md\n"
             "    purpose: test\n"
             "  - id: html.responsive-layout-v1\n"
             "    kind: template\n"
-            "    path: formats/web/html/layouts/responsive-v1\n"
-            "    entrypoint: formats/web/html/layouts/responsive-v1/styles.css\n"
+            "    path: infrastructure/html/styles/responsive-v1\n"
+            "    entrypoint: infrastructure/html/styles/responsive-v1/styles.css\n"
+            "    purpose: test\n"
+            "  - id: html.runtime-kit-v1\n"
+            "    kind: template\n"
+            "    path: infrastructure/html/runtime-kits/runtime-kit-v1\n"
+            "    entrypoint: infrastructure/html/runtime-kits/runtime-kit-v1/runtime.js\n"
+            "    purpose: test\n"
+            "  - id: html.materialize\n"
+            "    kind: tool\n"
+            "    path: infrastructure/html/tools/materialize\n"
+            "    entrypoint: infrastructure/html/tools/materialize/materialize_html.py\n"
             "    purpose: test\n",
             encoding="utf-8",
         )
@@ -174,6 +178,8 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         report = (self.output / "report.yml").read_text(encoding="utf-8")
         self.assertIn('template: "html.project-report-v1"', report)
         self.assertIn('audience: "内部评审者"', report)
+        self.assertIn("layouts: []", report)
+        self.assertIn("runtime_kits: []", report)
         self.assertIn('tool: html.materialize', report)
 
     def test_layout_package_is_materialized_and_linked(self):
@@ -194,6 +200,55 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertTrue((self.output / "assets/html-responsive-layout-v1/media.css").is_file())
         record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
         self.assertEqual(record["layouts"][0]["id"], "html.responsive-layout-v1")
+
+    def test_runtime_kit_is_materialized_with_offline_assets_and_controls(self):
+        preview = self.cli("--runtime-kit-id", RUNTIME_KIT_ID)
+        self.assertEqual(preview["runtime_kits"][0]["id"], RUNTIME_KIT_ID)
+        runtime_root = f"reports/{TASK_ID}/v001/assets/html-runtime-kit-v1"
+        expected = {
+            f"{runtime_root}/runtime.css",
+            f"{runtime_root}/runtime.js",
+            f"{runtime_root}/math/katex.min.css",
+            f"{runtime_root}/math/katex.min.js",
+            f"{runtime_root}/math/LICENSE",
+            f"{runtime_root}/math/fonts/KaTeX_Main-Regular.woff2",
+        }
+        self.assertTrue(expected.issubset(set(preview["would_write"])))
+
+        applied = self.cli(
+            "--runtime-kit-id", RUNTIME_KIT_ID,
+            "--apply",
+            "--expect-plan-sha256", preview["plan_sha256"],
+            "--expect-task-version", str(preview["task_record_version"]),
+        )
+        self.assertEqual(applied["runtime_kits"][0]["id"], RUNTIME_KIT_ID)
+        html = (self.output / "index.html").read_text(encoding="utf-8")
+        self.assertIn('href="assets/html-runtime-kit-v1/runtime.css"', html)
+        self.assertIn('href="assets/html-runtime-kit-v1/math/katex.min.css"', html)
+        self.assertIn('src="assets/html-runtime-kit-v1/math/katex.min.js"', html)
+        self.assertIn('src="assets/html-runtime-kit-v1/runtime.js"', html)
+        self.assertIn('data-runtime-toolbar', html)
+        self.assertTrue((self.output / "assets/html-runtime-kit-v1/math/LICENSE").is_file())
+        self.assertTrue((self.output / "assets/html-runtime-kit-v1/math/fonts/KaTeX_Main-Regular.woff2").is_file())
+        record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["runtime_kits"][0]["id"], RUNTIME_KIT_ID)
+        self.assertEqual(record["runtime_kits"][0]["version"], "1.0.0")
+        report = (self.output / "report.yml").read_text(encoding="utf-8")
+        self.assertIn('runtime_kits:', report)
+        self.assertIn('"html.runtime-kit-v1"', report)
+
+    def test_runtime_kit_selection_is_idempotent(self):
+        preview = self.cli("--runtime-kit-id", RUNTIME_KIT_ID)
+        args = (
+            "--runtime-kit-id", RUNTIME_KIT_ID,
+            "--apply", "--expect-plan-sha256", preview["plan_sha256"],
+            "--expect-task-version", str(preview["task_record_version"]),
+        )
+        first = self.cli(*args)
+        self.assertTrue(first["written"])
+        second = self.cli(*args)
+        self.assertEqual(second["written"], [])
+        self.assertEqual(set(second["unchanged"]), set(preview["would_write"]))
 
     def test_apply_requires_matching_preview_and_task_versions(self):
         missing = self.cli("--apply", ok=False)

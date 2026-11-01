@@ -2,21 +2,21 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环、任务状态工具、网页呈现形式下的 HTML 项目汇报页面模板和语义组件包，以及按 Manifest 能力 ID 将它们安全复制到消费端任务目录的物料化工具。仓库还提供小组资产仓库模板，以及多条消费端工作流：HTML 网页制作、小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。呈现形式从 `formats/` 并列组织；网页当前采用 HTML/CSS 实现，文档、演示文稿和打印形式尚未实现。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。多视口检查和 PDF 导出已提供，但依赖消费端本机浏览器运行时；公式渲染和完整无障碍检查仍未实现。
+当前提供可发现的任务循环、任务状态工具、HTML 项目汇报页面模板、语义组件包、响应式布局包和离线页面运行时包，以及按 Manifest 能力 ID 将它们安全复制到消费端任务目录的物料化工具。运行时包随页面复制 KaTeX、字体和工具栏脚本，提供公式渲染、显示模式切换、全屏和浏览器保存 PDF 入口。仓库还提供小组资产仓库模板，以及多条消费端工作流：HTML 网页制作、小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。工作流集中在 `workflows/`，全部可复用模板、工具和领域资源集中在 `infrastructure/<领域>/`；文档、演示文稿和打印形式尚未实现。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。多视口检查和确定性 PDF 导出已提供，但依赖消费端本机浏览器运行时；完整自动化无障碍检查仍未实现。
 
 本仓库另外提供可直接转发的一次性启动提示词：一类用于从 GitHub 公共模板建仓、递归克隆并初始化；另一类用于将基础设施首次接入既有仓库并安装消费端 Harness。前者适合新仓，后者适合保留既有结构的仓库；两者完成后，日常能力路由均依靠消费端根规则和固定 submodule Manifest。
 
-本仓库自身由根 `AGENTS.md` 约束；对消费端提供的工作流以 Capability 形式注册在 `manifest.yml` 中。工作流是面向一个完整目标的复合能力，通常由工作流目录中的 Harness 约束 Agent 执行，并调用工具、模板、技能和检查器。
+本仓库自身由根 `AGENTS.md` 约束；对消费端提供的工作流以 Capability 形式注册在 `manifest.yml` 中。工作流是面向一个完整目标的复合能力，其 `ENTRYPOINT.md` 约束 Agent 如何执行；工作流调用的模板、工具、运行资源、技能和检查协议按领域放在 `infrastructure/<领域>/`。目录分组不代表需要继续拆成子工作流。
 
 ## 仓库职责
 
 本仓库承载可以被多个小组复用的工程能力：
 
 - Agent 使用的技能说明；
-- `formats/` 中网页、文档、演示文稿等呈现形式内部的模板与组件；
-- 根 `templates/` 中的小组资产仓库脚手架模板；
-- 本地预览、渲染和检查工具；
-- 约束 Agent 输入、工作目录、检查点和输出的 Harness；
+- `workflows/` 中面向完整目标的工作流及其执行协议；
+- `infrastructure/` 中按领域组织的可复用页面资产、运行时和专用工具；
+- `infrastructure/<领域>/` 中的可复用资产、工具、技能和检查协议；
+- 各工作流入口中约束 Agent 输入、工作目录、检查点和输出的 Harness；
 - 能被父仓库以 Git submodule 固定版本引用的文件协议。
 
 项目事实、客户资料、科研材料、成员责任、任务来源和最终表达资产属于各小组自己的资产仓库，不应复制到本仓库。
@@ -30,7 +30,8 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `expression.task-loop` | workflow | 由消费端 Agent 执行的任务协作循环，使用任务记录工具 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 | `html.project-report-v1` | template | 网页形式下，离线项目概览、阶段进展和对外汇报 HTML/CSS 页面模板 |
-| `html.semantic-components-v1` | template | 网页形式下，离线设计令牌、响应式基础和六类语义 HTML 组件契约 |
+| `html.semantic-components-v1` | template | 离线设计令牌、基础排版布局和六类语义 HTML 组件契约 |
+| `html.runtime-kit-v1` | template | 网页形式下，离线 KaTeX 公式、显示模式切换、全屏和浏览器保存 PDF 运行时包 |
 | `html.materialize` | tool | 从固定 Manifest 安全复制页面模板和组件，并把选定语义片段装配到已对齐任务目录，记录来源 commit 与文件哈希 |
 | `html.responsive-layout-v1` | template | 网页内部可复用的响应式布局、长宽比、方向、打印和安全溢出 CSS 规则 |
 | `html.viewport-check` | tool | 检查本地资源、viewport 元标签和多视口水平溢出，可选生成截图 |
@@ -54,22 +55,24 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
 - [消费端 submodule 版本协议](docs/submodule-consumer-versioning.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
-- [任务循环入口](harness/task-loop/ENTRYPOINT.md)
-- [HTML 网页制作工作流入口](workflows/html-production/ENTRYPOINT.md)
-- [HTML 网页制作工作流协议](workflows/html-production/WORKFLOW.md)
+- [任务循环入口](workflows/task-loop/ENTRYPOINT.md)
+- [HTML 网页制作工作流入口](workflows/html/production/ENTRYPOINT.md)
+- [HTML 网页制作工作流协议](workflows/html/production/WORKFLOW.md)
 - [HTML 可复用基础设施框架](docs/html-framework.md)
-- [HTML 语义组件核心包 v1](formats/web/html/components/core-v1/README.md)
-- [HTML 模板与组件物料化工具](tools/html-materialize/README.md)
-- [HTML 响应式布局包](formats/web/html/layouts/responsive-v1/README.md)
-- [HTML 多视口检查工具](tools/html-viewport-check/README.md)
-- [HTML PDF 导出工具](tools/html-pdf-export/README.md)
+- [HTML 语义组件核心包 v1](infrastructure/html/components/core-v1/README.md)
+- [HTML 模板与组件物料化工具](infrastructure/html/tools/materialize/README.md)
+- [HTML 响应式布局包](infrastructure/html/styles/responsive-v1/README.md)
+- [HTML 多视口检查工具](infrastructure/html/tools/viewport-check/README.md)
+- [HTML PDF 导出工具](infrastructure/html/tools/pdf-export/README.md)
 - [HTML 消费端端到端测试流程](docs/html-e2e-consumer-test.md)
 - [可直接转发的 HTML 端到端测试提示词](docs/html-e2e-consumer-test-prompt.md)
-- [小组资产仓初始化 Harness](harness/group-asset-repository/ENTRYPOINT.md)
+- [小组资产仓初始化工作流](workflows/group-asset-repository-onboarding/ENTRYPOINT.md)
+- [小组资产仓模板源](infrastructure/group-asset-repository/templates/group-asset-repository-v1/README.md)
+- [小组资产仓模板铺设工具](infrastructure/group-asset-repository/tools/bootstrap/README.md)
 
 ## 工作流与可转发启动提示词
 
-- [小组资产仓创建与初始化提示词](workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)：从公共模板创建新仓，随后调用消费端初始化流程；
+- [小组资产仓创建与初始化提示词](workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md)：从公共模板创建新仓，随后调用消费端初始化流程；
 - [既有仓库接入基础设施提示词](workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)：为现有仓库固定接入 submodule 并安装消费端根 Harness；
 - [既有仓库接入工作流入口](workflows/infrastructure-adoption/ENTRYPOINT.md)；
 - [小组资产仓从 GitHub 模板到新机器初始化](docs/group-asset-repository-bootstrap.md)
@@ -109,4 +112,4 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 ## 当前阶段边界
 
-HTML 网页制作工作流、语义组件包、响应式布局包、模板/组件安全物料化工具、多视口检查和 PDF 导出目前为 `implemented / experimental`：它们分别提供可复用布局、资产复制、静态/可选浏览器检查和本地打印输出。浏览器检查依赖消费端本机运行时，数学公式渲染和完整自动化无障碍检查尚未实现，不能把 `not-run` 写成通过。
+HTML 网页制作工作流、语义组件包、响应式样式包、离线运行时包、模板/组件安全物料化工具、多视口检查和 PDF 导出目前为 `implemented / experimental`：它们分别提供页面制作编排、语义结构、可复用布局、页面内公式/显示/全屏/浏览器保存 PDF 能力、资产复制、静态/可选浏览器检查和本地 PDF 输出。浏览器检查和 PDF 导出依赖消费端本机运行时；运行时包缺少浏览器时不能声称交互或视觉检查通过，完整自动化无障碍检查仍未实现。

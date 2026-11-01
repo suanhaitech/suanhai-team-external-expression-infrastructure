@@ -28,9 +28,9 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 本仓库存在两层 Harness：
 
 1. 根 `AGENTS.md` 是基础设施仓库自身的总 Harness，约束维护 Agent 如何修改、验证和发布共享能力；
-2. 工作流目录下的入口是消费端工作流 Harness，约束小组资产仓中的 Agent 如何执行某一个已发现的 Workflow Capability。已有 `harness/` 入口继续作为兼容路径保留。
+2. 工作流目录下的入口是消费端工作流 Harness，约束小组资产仓中的 Agent 如何执行某一个已发现的 Workflow Capability。当前工作流入口统一位于 `workflows/<workflow>/ENTRYPOINT.md`。
 
-工作流不是 Harness 的同义词。工作流描述“要完成什么完整目标”，Harness 描述“Agent 如何在边界内完成它”；工作流再调用 `tools/`、`templates/`、`skills/` 和 `checks/`。能力发现通过 Manifest 完成，能力发现本身不授予 Git 或外部系统权限。
+工作流不是 Harness 的同义词。工作流描述“要完成什么完整目标”，Harness 描述“Agent 如何在边界内完成它”；工作流再调用 `infrastructure/<领域>/` 中的工具、模板、技能和检查协议。能力发现通过 Manifest 完成，能力发现本身不授予 Git 或外部系统权限。
 
 ## 消费端工作层
 
@@ -41,19 +41,19 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 
 消费端 Harness 把两类入口连接成任务路线，但不把项目事实复制到共享仓库，也不把计划目录提升成能力。消费端必须在根 `AGENTS.md` 显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)，否则 submodule 中的文档不会自动改变 Agent 行为。完整协议和冒烟测试见 [消费端对外表达 Harness v0.1](consumer-repository-harness-v0.1.md) 和 [消费端 Agent 冒烟测试](consumer-repository-smoke-test.md)。
 
-新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。呈现形式按 `formats/` 并列组织：网页位于 `formats/web/`，HTML 是网页的实现材料类型；页面模板位于 `formats/web/html/page-templates/`，通用组件位于同级的 `formats/web/html/components/`。根 `templates/group-asset-repository-v1/` 仅表示仓库脚手架模板，不是呈现形式层。
+新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。共享能力分为两个主要领域：`workflows/` 放各自可独立触发的工作流，`infrastructure/<领域>/` 放工作流可复用的模板、工具、运行资源、Schema、技能和检查协议。HTML 页面资产位于 `infrastructure/html/`；小组资产仓库模板源位于 `infrastructure/group-asset-repository/templates/`。
 
-如果组长希望 Agent 代办建仓和本地克隆，使用 `workflows/` 下自包含的[创建与初始化提示词](../workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)。它是一次性工作流启动入口，不是消费端长期 Harness；在 submodule 尚不存在时即可单独分享。建仓、递归克隆和固定依赖核验后，Agent 再读取新仓根规则并调用消费端初始化 Harness。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
+如果组长希望 Agent 代办建仓和本地克隆，使用 `workflows/` 下自包含的[创建与初始化提示词](../workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md)。它是一次性工作流启动入口，不是消费端长期 Harness；在 submodule 尚不存在时即可单独分享。建仓、递归克隆和固定依赖核验后，Agent 再读取新仓根规则并调用消费端初始化工作流。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
 
 已经有自己仓库、但不想采用公共模板的团队，可使用[既有仓库接入提示词](../workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md)。这是一段一次性的启动入口：它授权 Agent 审计仓库后接入固定 commit 的 submodule，并调用 Manifest 注册的 `consumer.infrastructure-adoption-harness` 预览校验后安装根 `AGENTS.md` 规则。提示词授权后无需二次确认；若 submodule 已正确接入，则不重复添加，但仍核对和补装缺失的根 Harness。工具只追加带标记的 Harness，不覆盖本仓规则，也不复制公共模板目录；遇到冲突时停止。接入完成后由消费端 Harness 持续路由固定 Manifest 能力；只要 Agent 客户端会读取根 `AGENTS.md` 且 submodule 已初始化，后续任务就不需重复这段提示词。升级仍通过独立的 submodule 更新工作流显式进行。
 
-模板源文件保存在本仓 `templates/group-asset-repository-v1/`，源目录本身不嵌套自身 submodule；维护者将其发布到独立模板仓时配置依赖。铺设工具是维护者从空仓建模版和工具回归的备用入口，只复制空结构，不承担现有仓库自动迁移。初始化 Harness 引导当前使用者区分小组身份与项目事实、保留来源与确认依据。小组上下文位于 `context/group/`，零到多个项目位于 `context/projects/`；初始化进度保存在 `context/initialization.md`。
+模板源文件保存在本仓 `infrastructure/group-asset-repository/templates/group-asset-repository-v1/`，源目录本身不嵌套自身 submodule；维护者将其发布到独立模板仓时配置依赖。铺设工具是维护者从空仓建模版和工具回归的备用入口，只复制空结构，不承担现有仓库自动迁移。小组初始化工作流引导当前使用者区分小组身份与项目事实、保留来源与确认依据。小组上下文位于 `context/group/`，零到多个项目位于 `context/projects/`；初始化进度保存在 `context/initialization.md`。
 
 ## 任务循环与恢复
 
-当前 [任务循环入口](../harness/task-loop/ENTRYPOINT.md) 由 Manifest 发现，配套 Python 工具以消费端 `tasks/<编号>/task.json` 为唯一任务事实源，生成 `task.md` 阅读视图。状态、共识记录、反馈、产出摘要和下一步留在消费端；共享仓只维护通用协议与工具。
+当前 [任务循环入口](../workflows/task-loop/ENTRYPOINT.md) 由 Manifest 发现；配套 Python 工具位于 `infrastructure/task-loop/tools/task-record/`，以消费端 `tasks/<编号>/task.json` 为唯一任务事实源并生成 `task.md` 阅读视图。状态、共识记录、反馈、产出摘要和下一步留在消费端；共享仓只维护通用协议与工具。
 
-HTML 网页制作由 [`expression.html-production`](../workflows/html-production/ENTRYPOINT.md) 组织需求澄清、来源登记、页面模板和组件选择、版本化产物、响应式检查、可选 PDF 导出、用户反馈及人工收口。Agent 可使用 [`html.materialize`](../tools/html-materialize/README.md) 将已登记资产安全复制到消费端已对齐任务目录，并记录固定 submodule commit 和文件哈希；工作流要求先预览计划，再应用同一摘要的计划。`html.viewport-check` 和 `html.pdf-export` 依赖消费端本机浏览器运行时；公式渲染和完整无障碍检查尚未实现。
+HTML 网页制作由 [`expression.html-production`](../workflows/html/production/ENTRYPOINT.md) 组织需求澄清、来源登记、页面模板和组件选择、版本化产物、运行时装配、响应式检查、可选 PDF 导出、用户反馈及人工收口。Agent 可使用 [`html.materialize`](../infrastructure/html/tools/materialize/README.md) 将已登记资产安全复制到消费端已对齐任务目录，并记录固定 submodule commit 和文件哈希；工作流要求先预览计划，再应用同一摘要的计划。`html.runtime-kit-v1` 提供完全离线的 KaTeX 公式、显示模式、全屏和浏览器保存 PDF 入口；`html.viewport-check` 和 `html.pdf-export` 的浏览器部分仍依赖消费端本机运行时，完整自动化无障碍检查尚未实现。
 
 用户协作循环负责目标和版本确认，Agent 内部循环负责授权范围内的制作与检查。状态工具不运行 Agent、不提供 HTML 生成或浏览器预览，也无法证明用户身份或发布权限。跨设备恢复依赖父仓文件同步与准确 submodule gitlink，不由任务编号自动完成。
 

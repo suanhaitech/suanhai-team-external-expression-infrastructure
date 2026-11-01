@@ -1,0 +1,18 @@
+id: html.runtime-kit-v1
+kind: runtime-kit
+version: 1.0.0
+entrypoint: runtime.js
+catalog: index.yml
+stylesheets:
+  - runtime.css
+  - math/katex.min.css
+scripts:
+  - math/katex.min.js
+  - runtime.js
+math_engine:
+  name: KaTeX
+  version: 0.16.25
+  license: MIT
+offline: true
+network_dependencies: []
+status: implemented / experimental

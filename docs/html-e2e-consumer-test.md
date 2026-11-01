@@ -46,7 +46,7 @@
 
 ## 0. 工作区和权限预检
 
-1. 读取当前仓库根目录的 `README.md`、`AGENTS.md`，再读取 `.gitmodules`、submodule 的 `manifest.yml`、`workflows/html-production/WORKFLOW.md`、`tools/html-materialize/README.md` 和任务循环入口。
+1. 读取当前仓库根目录的 `README.md`、`AGENTS.md`，再读取 `.gitmodules`、submodule 的 `manifest.yml`、`workflows/html/production/WORKFLOW.md`、`infrastructure/html/tools/materialize/README.md` 和任务循环入口。
 2. 执行并保存输出：
 
    ```powershell
@@ -76,6 +76,7 @@
    - `html.project-report-v1`
    - `html.semantic-components-v1`
    - `html.responsive-layout-v1`
+   - `html.runtime-kit-v1`
    - `html.materialize`
    - `html.viewport-check`
    - `html.pdf-export`
@@ -90,7 +91,7 @@
 3. 运行消费端 submodule 预检工具。公共模板路径示例：
 
    ```powershell
-   py -3 "<实际路径>/tools/submodule-preflight/submodule_preflight.py" `
+   py -3 "<实际路径>/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py" `
      --root . `
      --path "<实际路径>"
    ```
@@ -121,7 +122,7 @@
 先执行 `create` 取得任务编号，再创建唯一来源文件；之后每个任务写入命令前都执行 `show`，使用刚返回的最新版本。下面 `N0`、`N1`、`N2` 分别是各自操作前刚查询到的版本，不能复用旧版本号：
 
 ```powershell
-   py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . create --test `
+   py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" --root . create --test `
   --title "HTML 基础设施端到端合成测试" `
   --request "验证模板、语义组件、任务循环和离线资源，不代表真实项目页面"
 
@@ -135,7 +136,7 @@ Set-Content -LiteralPath $sourcePath -Encoding utf8 -Value @"
 This file is synthetic test input only. It is not a project fact and must not be published.
 "@
 
-py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . brief <TASK_ID> `
+py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" --root . brief <TASK_ID> `
   --expect-version <N0> `
   --audience "内部测试者" `
   --purpose "验证 HTML 基础设施消费端流程" `
@@ -144,12 +145,12 @@ py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . brief <TA
   --acceptance "页面离线可打开、组件已装配、资源路径闭合、review 和 validate 通过" `
   --source $sourcePath
 
-py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . event <TASK_ID> `
+py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" --root . event <TASK_ID> `
   --expect-version <N1> --type align `
   --note "合成测试目标、来源、输出根和完成标准已由测试者确认" `
   --user-quote "<测试者实际确认原话；不得由 Agent 编造>"
 
-py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . event <TASK_ID> `
+py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" --root . event <TASK_ID> `
   --expect-version <N2> --type start `
   --note "开始执行已确认范围内的 HTML 消费端测试" `
   --next-action "完成物料化、页面检查并等待评审"
@@ -160,11 +161,13 @@ py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . event <TA
 从当前固定 submodule 的工具入口执行 dry-run。组件包和语义组件 ID 不要混淆：
 
 ```powershell
-   py -3 "<实际路径>/tools/html-materialize/materialize_html.py" `
+   py -3 "<实际路径>/infrastructure/html/tools/materialize/materialize_html.py" `
   --root . `
   --submodule-path "<实际路径>" `
   --task-id <TASK_ID> `
   --template-id html.project-report-v1 `
+  --layout-id html.responsive-layout-v1 `
+  --runtime-kit-id html.runtime-kit-v1 `
   --component-package-id html.semantic-components-v1 `
   --component-id content.summary `
   --component-id status.phase `
@@ -190,11 +193,13 @@ py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" --root . event <TA
 用户确认 dry-run 后，使用完全相同的参数，额外加上：
 
 ```powershell
-py -3 "<实际路径>/tools/html-materialize/materialize_html.py" `
+py -3 "<实际路径>/infrastructure/html/tools/materialize/materialize_html.py" `
   --root . `
   --submodule-path "<实际路径>" `
   --task-id <TASK_ID> `
   --template-id html.project-report-v1 `
+  --layout-id html.responsive-layout-v1 `
+  --runtime-kit-id html.runtime-kit-v1 `
   --component-package-id html.semantic-components-v1 `
   --component-id content.summary `
   --component-id status.phase `
@@ -220,6 +225,7 @@ py -3 "<实际路径>/tools/html-materialize/materialize_html.py" `
    LICENSE
    NOTICE
    assets/html-semantic-components-v1/
+   assets/html-runtime-kit-v1/
    ```
 
 2. 在编辑页面前，根据 `materialization.json` 的 `files` 清单计算并核对所有物料化文件 SHA-256。模板包的 README、元数据和许可证文件也会随包复制；以完整的 dry-run `would_write` 清单为准。
@@ -244,12 +250,14 @@ git diff --check
 确认：
 
 - `index.html` 中存在本次选择的 `data-component`：`content.summary`、`status.phase`、`status.metric`、`evidence.claim`、`action.next-step`；
+- 选择运行时包时，`index.html` 含 `data-runtime-toolbar`、`data-runtime-fullscreen`、`data-runtime-pdf`、运行时 CSS/脚本和 KaTeX 的相对路径，并至少放置一个 `data-math` 合成公式；
 - HTML 引用的 CSS 都是相对路径，引用的本地文件真实存在；
 - 页面、CSS、组件包不依赖 CDN、远程字体、远程图片或运行时网络；相对路径的本地 `@import` 可以保留，需核对其目标文件存在；
 - PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误；
 - 编辑页面前，`materialization.json` 的文件 SHA-256 与实际文件一致；编辑后，未编辑资源仍匹配，`index.html` 哈希变化应被解释为消费端内容填充；
 - `report.yml` 记录模板、组件包、语义组件、来源和 pending 授权状态；
 - 页面占位符已替换为合成测试内容。
+- 运行时工具栏可切换自动、窄屏、平板和桌面模式，可进入/退出全屏，并通过“保存 PDF”打开浏览器打印对话框；打印媒体隐藏工具栏；未实际执行时必须写 `not-run`。
 
 浏览器检查必须区分“已实际检查”和“未执行”：
 
@@ -258,14 +266,14 @@ git diff --check
 - 使用打印预览检查 A4 页面；
 - 如测试机能生成截图，保存到仓库外的临时目录，不要把截图或缓存作为测试资产提交。
 
-执行固定版本中的 `html.viewport-check`，保存 `viewport-check.json`；如果本机有 Playwright 和浏览器，记录各视口结果，否则浏览器部分标记 `not-run`。再按用户确认的纸张和方向执行 `html.pdf-export`，保存 `report.pdf` 与 `pdf-export.json`；找不到浏览器时标记 `not-run`，不能伪造 PDF。公式渲染和自动无障碍检查仍未实现。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
+执行固定版本中的 `html.viewport-check`，保存 `viewport-check.json`；如果本机有 Playwright 和浏览器，记录各视口结果，否则浏览器部分标记 `not-run`。浏览器可用时，另外检查公式渲染、模式切换、全屏进入/退出、“保存 PDF”按钮和打印媒体隐藏工具栏。再按用户确认的纸张和方向执行 `html.pdf-export`，保存 `report.pdf` 与 `pdf-export.json`；找不到浏览器时标记 `not-run`，不能伪造 PDF。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
 
 ## 6. 任务 review 和 validate
 
 页面和资源检查通过后，使用当前任务循环记录自包含目录：
 
 ```powershell
-py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" `
+py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" `
   --root . event <TASK_ID> `
   --expect-version <最新 version> `
   --type review `
@@ -273,7 +281,7 @@ py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" `
   --artifact "reports/<TASK_ID>/v001" `
   --next-action "等待测试负责人评审，不执行发布"
 
-py -3 "<实际路径>/harness/task-loop/scripts/task_loop.py" `
+py -3 "<实际路径>/infrastructure/task-loop/tools/task-record/task_loop.py" `
   --root . validate <TASK_ID>
 ```
 

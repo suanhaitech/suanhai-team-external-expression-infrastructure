@@ -16,7 +16,7 @@
 ```text
 python -m unittest discover -s tests -p "test_*.py" -v
 python -m unittest tests.test_group_asset_bootstrap -v
-python -m py_compile tools/group-asset-bootstrap/materialize_template.py harness/task-loop/scripts/task_loop.py tests/test_group_asset_bootstrap.py
+python -m py_compile infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py infrastructure/task-loop/tools/task-record/task_loop.py tests/test_group_asset_bootstrap.py
 ruby scripts/validate_manifest.rb
 git diff --check
 ```

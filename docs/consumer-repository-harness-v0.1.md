@@ -1,6 +1,6 @@
 # 消费端对外表达 Harness v0.1
 
-> **状态**：基础工作协议；可运行的任务循环与状态工具由当前 Manifest 声明，入口见 [任务循环](../harness/task-loop/ENTRYPOINT.md)
+> **状态**：基础工作协议；可运行的任务循环与状态工具由当前 Manifest 声明，入口见 [任务循环](../workflows/task-loop/ENTRYPOINT.md)
 > **适用对象**：通过 Git submodule 使用本仓库的小组对外表达资产仓库
 > **版本**：v0.1
 
@@ -107,7 +107,7 @@ Agent 必须：
 5. 读取能力入口说明及其依赖入口，确认输入、输出、副作用和边界；
 6. 在任务或评审记录中保留实际使用的能力 ID 和 submodule commit；如果清单为空，则记录“无可用共享能力”和 submodule commit，不虚构能力 ID。
 
-历史 v0.1 骨架的 `capabilities` 为空。当前 Manifest schema v2 允许以 `kind: workflow` 注册复合工作流，并用 `uses` 声明依赖；当前版本还注册了 `expression.html-production` HTML 网页制作工作流、`html.semantic-components-v1` 离线语义组件包、`html.responsive-layout-v1`、`html.viewport-check`、`html.pdf-export` 和 `html.materialize`。实际可用项始终以消费端固定提交的 Manifest 为准；公式渲染和完整自动化无障碍检查仍未注册，不能把占位目录当作这些能力。
+历史 v0.1 骨架的 `capabilities` 为空。当前 Manifest schema v2 允许以 `kind: workflow` 注册复合工作流，并用 `uses` 声明依赖；当前版本还注册了 `expression.html-production` HTML 网页制作工作流、`html.semantic-components-v1` 离线语义组件包、`html.responsive-layout-v1`、`html.runtime-kit-v1`、`html.viewport-check`、`html.pdf-export` 和 `html.materialize`。实际可用项始终以消费端固定提交的 Manifest 为准；运行时公式渲染已由 `html.runtime-kit-v1` 提供，完整自动化无障碍检查仍未注册，不能把占位目录当作这些能力。
 
 Manifest 是发现协议，不提供访问控制或执行隔离。消费端必须依赖 Agent 客户端和本机的工具授权边界；运行已声明能力前，仍要阅读其依赖和副作用说明。
 

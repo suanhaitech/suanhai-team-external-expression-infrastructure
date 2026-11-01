@@ -1,0 +1,16 @@
+schema_version: 1
+id: html.runtime-kit-v1
+version: 1.0.0
+components:
+  - id: math-rendering
+    purpose: 使用随包锁定的 KaTeX 在本地渲染 data-math 标记，并保留失败降级文本
+    marker: data-math
+  - id: display-mode-controls
+    purpose: 提供自动、窄屏、平板和桌面布局密度选择
+    marker: SUANHAI_RUNTIME_TOOLBAR
+  - id: print-control
+    purpose: 打开浏览器打印对话框并允许用户保存为 PDF；确定性 PDF 仍由 html.pdf-export 负责
+    marker: data-runtime-pdf
+  - id: fullscreen-control
+    purpose: 使用浏览器 Fullscreen API 切换全屏和退出全屏，并在不支持时禁用按钮
+    marker: data-runtime-fullscreen

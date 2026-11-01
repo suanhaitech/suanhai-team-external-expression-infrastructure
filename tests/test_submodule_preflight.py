@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "tools/submodule-preflight/submodule_preflight.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py"
 
 
 class SubmodulePreflightTest(unittest.TestCase):

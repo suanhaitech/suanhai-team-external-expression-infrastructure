@@ -49,7 +49,7 @@ Manifest 中的 `kind` 描述能力的主要形态：
 
 ### Workflow
 
-Workflow 是一个面向完整目标的复合执行单元。它组织多个步骤、状态、确认点和停止条件，并调用其他 Capability 完成目标。工作流的代码量可以很小；“复合”指它承担一个完整目标，而不是指实现必须复杂。
+Workflow 是一个面向完整目标的执行单元。它可以组织多个步骤、状态、确认点和停止条件，并调用其他 Capability 完成目标。当前设计不要求人为拆分子工作流；只有在真实复用中出现稳定、独立且需要单独版本治理的阶段时，才考虑新增独立工作流能力。
 
 例如，submodule 更新工作流包括：预检当前状态、选择已验收 commit、展示差异、等待用户确认、在短期分支更新父仓 gitlink、验证并形成可审阅变更。
 
@@ -79,40 +79,61 @@ Harness：Agent 如何在边界内执行这个过程
 
 ```text
 AGENTS.md                 基础设施仓库自身总 Harness
-harness/                  已有工作流 Harness 的兼容路径
-workflows/                新工作流及其 Harness
-tools/                    确定性工具
-formats/                  并列的呈现形式（web、document、slides 等）
-  web/html/               网页的 HTML 实现及其内部复用资产
-    page-templates/       完整页面模板
-    components/           HTML 组件包
-templates/                仓库脚手架等非呈现模板
-skills/                   领域指导
-checks/                   结果检查器
 manifest.yml              对外 Capability 注册和发现入口
+workflows/                可独立触发的完整工作流及其执行入口
+  html/production/        HTML 制作工作流
+  task-loop/              任务循环工作流
+  group-asset-repository-create-and-initialize/
+                          创建并初始化小组资产仓工作流
+  group-asset-repository-onboarding/
+                          消费端身份和项目上下文初始化工作流
+  infrastructure-adoption/
+                          既有仓库接入基础设施工作流
+  submodule-update/       消费端 submodule 受控更新工作流
+infrastructure/           工作流消费的可复用资产和领域工具
+  html/                   HTML 页面、组件、样式、运行时、Schema、技能和工具
+  group-asset-repository/ 小组资产仓模板与初始化工具
+  repository-management/  仓库接入和 submodule 管理工具
+  task-loop/              任务记录工具
+schemas/                  根仓库协议 Schema（当前仅保留 Manifest Schema）
+顶层 templates/、skills/、checks/、tools/、harness/ 不再承载可调用能力
 ```
 
-工作流 Capability 在 Manifest 中使用 `kind: workflow`，新入口通常指向 `workflows/<workflow>/ENTRYPOINT.md`；已有入口可以继续使用 `harness/` 兼容路径。可选 `uses` 字段列出它依赖的其他已声明 Capability ID；校验脚本会拒绝未声明的依赖。工作流目录的 `WORKFLOW.md` 和 `ENTRYPOINT.md` 可以引用这些依赖，但不会因此把工具或模板变成工作流。
+工作流 Capability 在 Manifest 中使用 `kind: workflow`，入口指向 `workflows/<workflow>/ENTRYPOINT.md`。可选 `uses` 字段列出它依赖的其他已声明 Capability ID；校验脚本会拒绝未声明的依赖。工作流目录的 `WORKFLOW.md` 和 `ENTRYPOINT.md` 可以引用这些依赖，但不会因此把工具或模板变成工作流。能力的真实位置以 Manifest 的 `path` 和 `entrypoint` 为准。
 
 ## 当前实例
 
 | 能力 | 形态 | Harness/入口 | 依赖 |
 | --- | --- | --- | --- |
-| `consumer.group-asset-create-and-initialize` | Workflow Capability | `workflows/group-asset-repository/ENTRYPOINT.md` | 建仓并初始化工作流；可转发提示词位于同目录 |
-| `consumer.group-asset-onboarding` | Workflow Capability | `harness/group-asset-repository/ENTRYPOINT.md` | 消费端上下文和负责人确认 |
-| `expression.task-loop` | Workflow Capability | `harness/task-loop/ENTRYPOINT.md` | `expression.task-record` |
-| `expression.task-record` | Tool Capability | `harness/task-loop/scripts/task_loop.py` | Python 标准库 |
-| `expression.html-production` | Workflow Capability | `workflows/html-production/ENTRYPOINT.md` | `expression.task-loop`, `expression.task-record`, HTML 页面模板和语义组件包 |
-| `html.materialize` | Tool Capability | `tools/html-materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的页面模板/组件包、已对齐任务 |
-| `consumer.submodule-preflight` | Tool Capability | `tools/submodule-preflight/submodule_preflight.py` | Git CLI |
-| `html.project-report-v1` | Template Capability | `formats/web/html/page-templates/project-report-v1/index.html` | 消费端已对齐任务和来源 |
-| `html.semantic-components-v1` | Template Capability | `formats/web/html/components/core-v1/README.md` | 离线样式令牌、布局与六种语义组件 |
+| `consumer.group-asset-create-and-initialize` | Workflow Capability | `workflows/group-asset-repository-create-and-initialize/ENTRYPOINT.md` | 建仓并初始化工作流；可转发提示词位于同目录 |
+| `consumer.group-asset-onboarding` | Workflow Capability | `workflows/group-asset-repository-onboarding/ENTRYPOINT.md` | 消费端上下文和负责人确认 |
+| `expression.task-loop` | Workflow Capability | `workflows/task-loop/ENTRYPOINT.md` | `expression.task-record` |
+| `expression.task-record` | Tool Capability | `infrastructure/task-loop/tools/task-record/task_loop.py` | Python 标准库 |
+| `expression.html-production` | Workflow Capability | `workflows/html/production/ENTRYPOINT.md` | `expression.task-loop`, `expression.task-record`, HTML 页面模板、语义组件包和按需运行时包 |
+| `html.materialize` | Tool Capability | `infrastructure/html/tools/materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的页面模板/布局/运行时/组件包、已对齐任务 |
+| `consumer.submodule-preflight` | Tool Capability | `infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py` | Git CLI |
+| `html.project-report-v1` | Template Capability | `infrastructure/html/page-templates/project-report-v1/index.html` | 消费端已对齐任务和来源 |
+| `html.semantic-components-v1` | Template Capability | `infrastructure/html/components/core-v1/README.md` | 离线样式令牌、布局与六种语义组件 |
+| `html.responsive-layout-v1` | Template Capability | `infrastructure/html/styles/responsive-v1/README.md` | 离线响应式、长宽比、方向和打印布局规则 |
+| `html.runtime-kit-v1` | Template Capability | `infrastructure/html/runtime-kits/runtime-kit-v1/README.md` | 离线 KaTeX 公式、显示模式、全屏和浏览器保存 PDF 入口 |
 | `consumer.submodule-update` | Workflow Capability | `workflows/submodule-update/ENTRYPOINT.md` | `consumer.submodule-preflight` |
 | `consumer.infrastructure-adoption` | Workflow Capability | `workflows/infrastructure-adoption/ENTRYPOINT.md` | `consumer.infrastructure-adoption-harness`, `consumer.submodule-preflight` |
-| `consumer.infrastructure-adoption-harness` | Tool Capability | `tools/infrastructure-adoption-harness/install_harness.py` | 在既有消费端根 `AGENTS.md` 中预览或安装共享长期 Harness |
+| `consumer.infrastructure-adoption-harness` | Tool Capability | `infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py` | 在既有消费端根 `AGENTS.md` 中预览或安装共享长期 Harness |
 
 ## 权限和留痕
 
 Harness 是行为协议，不是权限沙箱。关键边界还要由用户确认、Agent 客户端权限、Git 分支/CI 规则和可验证工具共同承担。工作流应遵守：先读后写、显式目标、幂等或拒绝覆盖、保留历史、短期分支、可审阅变更和明确停止原因。
 
 工作流执行的任务记录、项目事实、来源、素材和最终作品留在消费端；基础设施仓只维护可复用协议和能力，不复制消费端业务事实。
+
+## 初始化工作流迁移说明
+
+此前“初始化资产仓库”的能力仍然存在，没有被删除。整体重构后：
+
+- 创建仓库并完成首次初始化的完整工作流位于 `workflows/group-asset-repository-create-and-initialize/`；
+- 已有仓库的身份、项目上下文和表达边界初始化工作流位于 `workflows/group-asset-repository-onboarding/`；
+- 模板铺设工具位于 `infrastructure/group-asset-repository/tools/bootstrap/`；
+- 既有仓库接入基础设施的工作流位于 `workflows/infrastructure-adoption/`；
+- submodule 预检和 Harness 安装工具位于 `infrastructure/repository-management/tools/`。
+
+消费端或旧文档如果仍引用迁移前的 `harness/`、顶层 `tools/`、`templates/`、`schemas/`、`skills/` 或 `checks/` 路径，应按 `manifest.yml` 的当前路径更新。不要复制旧目录形成第二套事实源。

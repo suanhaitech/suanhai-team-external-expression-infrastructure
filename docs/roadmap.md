@@ -21,11 +21,11 @@
 
 当前已新增通用小组资产仓模板、只创建缺失文件的铺设工具、初始化访谈 Harness、组长可直接转发的建仓初始化提示词，以及既有仓库首次接入基础设施工作流。新模板采用 `topics/` 与 `reports/`，支持零到多个项目并保留旧仓 `works/` 兼容；既有仓接入流程不迁移其目录结构，由一次性提示词授权 Agent 固定 submodule 并安装消费端根 Harness；已有正确 submodule 时仍会补装缺失的 Harness。接入后的日常能力路由依赖该根文件和 Agent 客户端的加载行为。入口见[小组仓建立流程](group-asset-repository-bootstrap.md)、[小组仓代建与初始化流程](group-asset-repository-create-and-initialize.md)和[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)。
 
-已在开发线加入通用 HTML 制作工作流 `expression.html-production`、页面模板包和离线语义组件包 `html.semantic-components-v1`。呈现形式层使用 `formats/`：网页与未来的文档、演示文稿并列；网页的 HTML 实现位于 `formats/web/html/`，页面模板位于 `page-templates/`，组件位于同级的 `components/`。组件包以 `package.yml`、`index.yml`、foundation、layout、semantic、theme 和 examples 分层，Agent 可以先按机器可读目录选择组件，再读取单组件契约和模板。工作流规定任务登记、澄清、来源、内容结构、版本化产物、反馈和人工收口。两者适用于公共模板仓和保留自有目录的既有消费端。
+HTML 制作采用两个互补板块：`workflows/html/production/` 组织任务登记、澄清、来源、内容结构、版本化产物、反馈和人工收口；`infrastructure/html/` 集中页面模板、语义组件、响应式样式、运行时和专用工具。组件包以 `package.yml`、`index.yml`、foundations、layout、semantic、themes 和 examples 分层，Agent 可以先按机器可读目录选择组件，再读取单组件契约和模板。两者适用于公共模板仓和保留自有目录的既有消费端。
 
 已增加 `html.materialize`，可按 Manifest 能力 ID 将已登记页面模板和组件包安全复制到已对齐任务的版本目录，并记录来源 commit、能力版本和文件哈希。Agent 不再逐文件手工复制基础设施资产；它仍负责选择、填充项目内容和人工评审。
 
-当前已实现首版 `html.responsive-layout-v1`、`html.viewport-check` 和 `html.pdf-export`：分别提供响应式布局资产、多视口/本地资源检查和本地浏览器 PDF 导出。浏览器检查与导出依赖消费端本机运行时；缺少运行时必须返回 `not-run`。后续仍需完善浏览器预览、无障碍检查和离线数学公式渲染。内容判断、专业准确性和对外授权仍由真人负责。
+当前已实现首版 `html.responsive-layout-v1`、`html.runtime-kit-v1`、`html.viewport-check` 和 `html.pdf-export`：分别提供响应式布局资产、离线公式/显示模式/打印运行时、多视口/本地资源检查和本地浏览器 PDF 导出。浏览器检查与导出依赖消费端本机运行时；缺少运行时必须返回 `not-run`。后续仍需完善浏览器预览、无障碍检查和运行时交互的自动化验证。内容判断、专业准确性和对外授权仍由真人负责。
 
 ## 再下一阶段：真实消费端验证
 

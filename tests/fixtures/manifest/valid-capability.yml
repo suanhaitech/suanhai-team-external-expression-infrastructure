@@ -10,6 +10,6 @@ capabilities:
       - tools.preflight
   - id: tools.preflight
     kind: tool
-    path: tools/submodule-preflight
-    entrypoint: tools/submodule-preflight/submodule_preflight.py
+    path: infrastructure/repository-management/tools/submodule-preflight
+    entrypoint: infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py
     purpose: fixture dependency target

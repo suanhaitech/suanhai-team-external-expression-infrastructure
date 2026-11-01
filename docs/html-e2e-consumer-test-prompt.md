@@ -84,6 +84,7 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 - html.project-report-v1
 - html.semantic-components-v1
 - html.responsive-layout-v1
+- html.runtime-kit-v1
 - html.materialize
 - html.viewport-check
 - html.pdf-export
@@ -96,7 +97,7 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 如果测试机有 Ruby，执行 ruby "$infra/scripts/validate_manifest.rb"；没有 Ruby 就记录 Manifest 官方校验未执行，不能写成通过。
 
 执行消费端 submodule 预检：
-    py -3 "$infra/tools/submodule-preflight/submodule_preflight.py" --root . --path $submodulePath
+    py -3 "$infra/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py" --root . --path $submodulePath
 预检中除 `remote_matches_expected: warn` 之外任何失败都要停止，不绕过版本、URL 或工作区检查。稳定 `origin/main` 应包含 `$expectedInfrastructureCommit`；如果远端快照暂时不可比较，只记录为远端状态未知，不把它写成能力缺失或自动升级信号。不能把浮动分支名写成版本锁。
 
 ## 2. 创建合成来源和测试任务
@@ -104,7 +105,7 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 确认 context、tasks、reports 目录存在；缺少时停止并报告，不自行迁移或创建目录。
 
 保存任务工具路径并创建 mode: test 任务：
-    $taskTool = "$infra/harness/task-loop/scripts/task_loop.py"
+    $taskTool = "$infra/infrastructure/task-loop/tools/task-record/task_loop.py"
     $created = py -3 $taskTool --root . create --test --title "HTML 基础设施端到端合成测试" --request "验证模板、语义组件、任务循环和离线资源，不代表真实项目页面" | ConvertFrom-Json
     $taskId = $created.id
 
@@ -140,7 +141,7 @@ align 后再次 show，使用最新 version 执行 start：
 ## 3. 物料化 dry-run
 
 组件包 ID 与语义组件 ID 不同。组件包使用 --component-package-id，语义组件使用重复的 --component-id。先运行 dry-run，不得加 --apply：
-    $dryRun = py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e | ConvertFrom-Json
+    $dryRun = py -3 "$infra/infrastructure/html/tools/materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --runtime-kit-id html.runtime-kit-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e | ConvertFrom-Json
     $dryRun | ConvertTo-Json -Depth 20
 
 确认 mode 为 dry-run、没有写入，output 为 reports/$taskId/v001，commit 与 submodule SHA 一致，would_write 是完整清单，plan_sha256 和 task_record_version 存在，且无冲突。
@@ -150,7 +151,7 @@ align 后再次 show，使用最新 version 执行 start：
 ## 4. apply 和最小合成内容
 
 用户确认后，使用同样参数运行 apply，并传入 --expect-plan-sha256 $dryRun.plan_sha256 和 --expect-task-version $dryRun.task_record_version。不要更改模板、组件、来源或 submodule 参数：
-    py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e --apply --expect-plan-sha256 $dryRun.plan_sha256 --expect-task-version $dryRun.task_record_version
+    py -3 "$infra/infrastructure/html/tools/materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --runtime-kit-id html.runtime-kit-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e --apply --expect-plan-sha256 $dryRun.plan_sha256 --expect-task-version $dryRun.task_record_version
 
 按完整 would_write 清单检查输出；模板 README.md、template.yml、LICENSE、NOTICE 也可能被复制，不要擅自删除。
 
@@ -170,13 +171,13 @@ align 后再次 show，使用最新 version 执行 start：
     if ($rgExit -gt 1) { throw "rg 检查器执行失败，退出码：$rgExit" }
     git diff --check
 
-只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component；CSS 和资源都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
+只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component，以及 `data-runtime-toolbar`、`data-runtime-fullscreen`、`data-runtime-pdf` 和至少一个 `data-math`；CSS、KaTeX、字体和脚本都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
 
 执行响应式和 PDF 工具：
-    py -3 "$infra/tools/html-viewport-check/viewport_check.py" --html "reports/$taskId/v001/index.html" --output "reports/$taskId/v001/viewport-check.json" --fail-on-overflow
-    py -3 "$infra/tools/html-pdf-export/export_pdf.py" --root "reports/$taskId/v001" --input index.html --output report.pdf --metadata pdf-export.json --paper a4
+    py -3 "$infra/infrastructure/html/tools/viewport-check/viewport_check.py" --html "reports/$taskId/v001/index.html" --output "reports/$taskId/v001/viewport-check.json" --fail-on-overflow
+    py -3 "$infra/infrastructure/html/tools/pdf-export/export_pdf.py" --root "reports/$taskId/v001" --input index.html --output report.pdf --metadata pdf-export.json --paper a4
 
-`html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
+`html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。浏览器可用时，另外检查公式渲染、自动/窄屏/平板/桌面模式切换、全屏进入/退出、“保存 PDF”按钮和打印媒体下工具栏隐藏。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
 
 ## 6. review 和 validate
 

@@ -17,7 +17,7 @@ MANIFEST = (ROOT / "manifest.yml").read_text(encoding="utf-8")
 ENTRYPOINT = (ROOT / "workflows/infrastructure-adoption/ENTRYPOINT.md").read_text(encoding="utf-8")
 WORKFLOW = (ROOT / "workflows/infrastructure-adoption/WORKFLOW.md").read_text(encoding="utf-8")
 PROMPT = (ROOT / "workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md").read_text(encoding="utf-8")
-INSTALLER = (ROOT / "tools/infrastructure-adoption-harness/install_harness.py").read_text(encoding="utf-8")
+INSTALLER = (ROOT / "infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py").read_text(encoding="utf-8")
 
 
 class InfrastructureAdoptionDocsTest(unittest.TestCase):
@@ -39,8 +39,8 @@ class InfrastructureAdoptionDocsTest(unittest.TestCase):
         )
         self.assertIsNotNone(tool_match, "Harness 安装工具必须单独注册")
         self.assertIn("kind: tool", tool_match.group(1))
-        self.assertIn("tools/infrastructure-adoption-harness/install_harness.py", tool_match.group(1))
-        self.assertTrue((ROOT / "tools/infrastructure-adoption-harness/install_harness.py").is_file())
+        self.assertIn("infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py", tool_match.group(1))
+        self.assertTrue((ROOT / "infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py").is_file())
         self.assertTrue((ROOT / "workflows/infrastructure-adoption/WORKFLOW.md").is_file())
         self.assertTrue((ROOT / "workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md").is_file())
 
