@@ -546,8 +546,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         record["reason"] = "未检测到可用的 Chrome、Edge 或 Chromium；未安装或配置浏览器，因此未运行导出。"
         _write_new_file(metadata, (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
         return record
-    # Windows 浏览器可能按系统代码页输出版本信息；显式容错解码，避免
-    # `text=True` 的默认 UTF-8 解码在线程读取时抛出 UnicodeDecodeError。
+    # 浏览器版本由 DevTools 会话返回；不额外执行 --version，避免 Windows
+    # 启动器阻塞或按系统代码页输出而影响真正的导出。
     with LocalArtifactServer(root) as origin:
         relative_url = "/".join(quote(part) for part in Path(html_relative).parts)
         page_url = f"{origin}/{relative_url}"
