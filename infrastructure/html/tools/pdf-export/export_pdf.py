@@ -385,7 +385,12 @@ def _print_pdf(
             port = None
             while time.monotonic() < deadline:
                 if active_port.is_file():
-                    lines = active_port.read_text(encoding="ascii", errors="replace").splitlines()
+                    try:
+                        lines = active_port.read_text(encoding="ascii", errors="replace").splitlines()
+                    except PermissionError:
+                        # Windows 浏览器刚创建端口文件时可能仍持有独占句柄；
+                        # 这属于启动竞态，继续轮询比直接把导出判为失败更准确。
+                        lines = []
                     if lines and lines[0].isdigit():
                         port = int(lines[0])
                         break
