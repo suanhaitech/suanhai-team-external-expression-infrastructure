@@ -187,6 +187,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # JSON 是跨进程协议，不能依赖 Windows 控制台的系统代码页输出中文。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     args = build_parser().parse_args(argv)
     html_path = args.html.resolve()
     if not html_path.is_file() or html_path.suffix.lower() != ".html":

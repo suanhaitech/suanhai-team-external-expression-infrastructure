@@ -548,9 +548,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         return record
     # Windows 浏览器可能按系统代码页输出版本信息；显式容错解码，避免
     # `text=True` 的默认 UTF-8 解码在线程读取时抛出 UnicodeDecodeError。
-    version_result = subprocess.run([browser, "--version"], capture_output=True, timeout=10)
-    version_output = version_result.stdout or version_result.stderr
-    browser_version = version_output.decode("utf-8", errors="replace").strip() if version_output else "unknown"
     with LocalArtifactServer(root) as origin:
         relative_url = "/".join(quote(part) for part in Path(html_relative).parts)
         page_url = f"{origin}/{relative_url}"
@@ -572,7 +569,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         {
             "status": "completed",
             "output": output.relative_to(root).as_posix(),
-            "browser": {"path": browser, "version": browser_identification or browser_version},
+            "browser": {"path": browser, "version": browser_identification or "unknown"},
             "sha256": hashlib.sha256(pdf).hexdigest(),
             "bytes": len(pdf),
             "reason": None,

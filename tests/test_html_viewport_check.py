@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -60,6 +61,21 @@ class HtmlViewportCheckTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["viewports"], [{"id": "phone", "width": 390, "height": 844, "media": "screen"}])
+
+    def test_cli_json_survives_non_utf8_windows_console(self):
+        with tempfile.TemporaryDirectory(prefix="viewport-check-") as directory:
+            root = Path(directory)
+            html = root / "index.html"
+            html.write_text('<html><head><meta name="viewport" content="width=device-width"></head><body></body></html>', encoding="utf-8")
+            environment = {**os.environ, "PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"}
+            result = subprocess.run(
+                [sys.executable, str(TOOL), "--html", str(html), "--viewport", "phone=390x844"],
+                capture_output=True,
+                env=environment,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", errors="replace"))
+            payload = json.loads(result.stdout.decode("utf-8"))
+            self.assertEqual(payload["tool"], "html.viewport-check")
 
 
 if __name__ == "__main__":
