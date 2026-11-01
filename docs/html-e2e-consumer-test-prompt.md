@@ -1,16 +1,16 @@
 # 可直接转发的 HTML 端到端测试提示词
 
-将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。可以从 Agent 当前打开的任意工作目录发送；提示词会先在固定测试父目录创建一个全新 clone，再在其中完成测试。基础设施候选 commit 已固定，无需预先填写 submodule 路径或任务编号。该流程面向 Windows PowerShell，要求安装 Git 和 Python 3.10+；Ruby 只用于官方 Manifest 校验。
+将下面“测试机 Agent 提示词”全文发送给测试机上你平常使用的 Agent。可以从 Agent 当前打开的任意工作目录发送；提示词会先在固定测试父目录创建一个全新 clone，再在其中完成测试。测试启动时从基础设施仓库稳定 `main` 解析完整 commit SHA，并在报告和消费端 gitlink 中固定该 SHA；无需手工填写版本、submodule 路径或任务编号。该流程面向 Windows PowerShell，要求安装 Git 和 Python 3.10+；Ruby 只用于官方 Manifest 校验。
 
 ## 测试机 Agent 提示词
 
 你现在可能位于任意工作目录。先按“0. 创建隔离测试 clone”在 `D:\Works\Suanhaitech\Repos` 下新建独立消费端仓库；后续所有读取、写入和 Git 命令都必须针对这个新 clone，不能操作启动时所在目录中的任何仓库。本轮只验证固定基础设施 submodule、任务循环、HTML 模板、语义组件、物料化、离线资源和审计记录。使用合成测试内容，不制作真实项目页面，不发布，不部署。
 
-本轮唯一测试候选为基础设施 commit `149759f18edf54c83bdfbadf8326c3031c10bb4f`，来自远程短期分支 `codex/feat-html-production-workflow`。它不是稳定 `main` 发布版。全程按该 SHA 固定，不得改用浮动分支头。
+本轮使用基础设施仓库稳定 `main` 在测试启动时解析出的完整 40 位 SHA。该 SHA 只在本轮测试中由 `git ls-remote` 解析一次，随后全程按该不可变 SHA 固定；不得把 `main`、`develop` 或其他浮动分支头直接写入消费端 gitlink。
 
 总规则：
 - 只修改当前消费端仓库的隔离测试分支；不得修改 submodule 内的文件。
-- 不执行 git submodule update --remote，不根据远端 main/develop 自动选择版本。
+- 不执行 `git submodule update --remote`，不把远端分支名直接写入版本锁；只接受测试启动时从稳定 `main` 解析并记录的完整 SHA。
 - 不自动提交、推送、部署或发布。需要记录 gitlink 的本地测试提交前，先展示差异并等用户确认。
 - 不 stash、reset --hard、clean、删除用户文件或覆盖已有作品。
 - 每次已有任务写入前先 show，使用刚刚读取的最新 --expect-version；版本冲突就停止并重新读取。
@@ -49,8 +49,7 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
     git config --file .gitmodules --get-regexp "^submodule\..*\.(path|url)$"
     git submodule status --recursive
 
-如果刚创建的 clone 中 `.gitmodules` 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。将候选 SHA 保存为 `$expectedInfrastructureCommit`：
-    $expectedInfrastructureCommit = "149759f18edf54c83bdfbadf8326c3031c10bb4f"
+如果刚创建的 clone 中 `.gitmodules` 缺失、父仓有未说明改动或 submodule 工作区不干净，停止并报告。不要 stash、reset、clean 或删除文件。
 
 确认当前分支等于刚才创建的 `$testBranch`，并且当前路径位于 `$consumerRoot`。若不一致，停止；不得在 `main`、`develop`、启动时所在仓库或其他日常分支继续。
 
@@ -61,16 +60,21 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
     $submoduleHead = (git -C $infra rev-parse HEAD).Trim()
     git -C $infra status --porcelain
 
+通过基础设施 submodule 的远端稳定 `main` 解析本轮固定 SHA：
+    $stableMainSha = (git -C $infra ls-remote origin refs/heads/main).Split()[0]
+    if ($stableMainSha -notmatch '^[0-9a-f]{40}$') { throw "无法解析基础设施稳定 main 的完整 commit SHA" }
+    $expectedInfrastructureCommit = $stableMainSha
+
 父仓 HEAD gitlink、index gitlink 和 submodule HEAD 必须先互相一致，submodule 工作区必须干净。然后确认当前父仓分支是隔离测试分支；若不是且工作区干净，先请求用户同意创建 `codex/e2e-html-production-YYYYMMDD`，不要直接在 `main`、`develop` 或日常分支继续。
 
-如果三者不一致，或当前 gitlink 不是 `$expectedInfrastructureCommit`，先在已确认的隔离测试分支执行受控候选更新：
-    git -C $infra fetch origin codex/feat-html-production-workflow
+如果三者不一致，或当前 gitlink 不是 `$expectedInfrastructureCommit`，先在已确认的隔离测试分支执行受控稳定版本更新：
+    git -C $infra fetch origin main
     git -C $infra cat-file -e "$expectedInfrastructureCommit^{commit}"
     git -C $infra checkout --detach $expectedInfrastructureCommit
     git add -- $submodulePath
     git diff --cached --submodule
 
-核对暂存区只有该 submodule gitlink 变更后，向用户展示旧 SHA、新 SHA 和 `git diff --cached --submodule`，等待用户明确确认再创建仅含 gitlink 的本地测试提交。拒绝确认则停止。测试父仓分支绝不推送。完成后父仓 HEAD gitlink、index gitlink、submodule HEAD 必须完全等于候选 SHA；若远程候选分支不能获取该完整 commit，则停止，不猜测或改用最新 `main/develop`。
+核对暂存区只有该 submodule gitlink 变更后，向用户展示旧 SHA、新 SHA 和 `git diff --cached --submodule`，等待用户明确确认再创建仅含 gitlink 的本地测试提交。拒绝确认则停止。测试父仓分支绝不推送。完成后父仓 HEAD gitlink、index gitlink、submodule HEAD 必须完全等于 `$expectedInfrastructureCommit`；若稳定 `main` 的完整 SHA 不能获取，则停止，不猜测或改用其他分支。
 
 ## 1. 验证固定版本能力
 
@@ -90,7 +94,7 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 
 执行消费端 submodule 预检：
     py -3 "$infra/tools/submodule-preflight/submodule_preflight.py" --root . --path $submodulePath
-预检中除 `remote_matches_expected: warn` 之外任何失败都要停止，不绕过版本、URL 或工作区检查。若稳定 `origin/main` 尚未包含短期测试候选，记录这一个 drift warning；只有前述精确候选 SHA 已从指定短期分支成功获取且父仓 gitlink 三方一致时才继续。不能把该警告写成稳定发布或 main 已更新。
+预检中除 `remote_matches_expected: warn` 之外任何失败都要停止，不绕过版本、URL 或工作区检查。稳定 `origin/main` 应包含 `$expectedInfrastructureCommit`；如果远端快照暂时不可比较，只记录为远端状态未知，不把它写成能力缺失或自动升级信号。不能把浮动分支名写成版本锁。
 
 ## 2. 创建合成来源和测试任务
 

@@ -18,18 +18,18 @@
 
 | 名称 | 含义 |
 | --- | --- |
-| `INFRA_COMMIT` | 基础设施仓库本轮测试使用的完整 40 位 commit SHA |
+| `INFRA_COMMIT` | 测试启动时从基础设施稳定 `main` 解析并记录的完整 40 位 commit SHA |
 | `CONSUMER_ROOT` | 测试机上的小组资产仓库根目录 |
 | `SUBMODULE_PATH` | 消费端 `.gitmodules` 中基础设施的相对路径，公共模板通常是 `vendor/suanhai-team-external-expression-infrastructure` |
 | `TEST_BRANCH` | 只用于本轮测试的消费端分支，例如 `codex/e2e-html-production-20261031` |
 
-如果 `INFRA_COMMIT` 尚未发布到基础设施远程仓库，先停止测试。不能让测试 Agent 使用另一台机器上的未提交文件，也不能用“远端最新提交”猜测 SHA。
+测试开始时必须通过基础设施远程的 `refs/heads/main` 解析 `INFRA_COMMIT`，并在测试报告、消费端 gitlink 和任务元数据中使用同一个完整 SHA。不能让测试 Agent 使用另一台机器上的未提交文件，也不能把 `main`、`develop` 或“远端最新提交”作为浮动版本锁。
 
 父仓库必须把 submodule gitlink 提交到 `INFRA_COMMIT`。这是工具的安全前提：父仓 `HEAD`、index 和 submodule `HEAD` 必须指向同一个 commit。若测试消费端还固定在旧 commit，应在隔离测试分支中只更新这个 gitlink，并形成一个本地测试提交；该提交不需要推送，但必须保留以便复现测试结果。
 
 ## 推荐执行方式
 
-在测试机上启动你平常使用的 Agent，把下面的“测试机 Agent 提示词”全文发送给它。提示词可以从任意起始工作目录运行，会先在 `D:\Works\Suanhaitech\Repos` 创建唯一的公共模板 clone 和隔离测试分支，再自动发现 submodule 路径。提示词中的 `INFRA_COMMIT` 已固定为本轮候选 SHA，无需手工替换。Agent 会在创建本地 gitlink 测试提交和执行 `html.materialize apply` 前分别停下，等待你确认。
+在测试机上启动你平常使用的 Agent，把下面的“测试机 Agent 提示词”全文发送给它。提示词可以从任意起始工作目录运行，会先在 `D:\Works\Suanhaitech\Repos` 创建唯一的公共模板 clone 和隔离测试分支，再自动发现 submodule 路径，并从稳定 `main` 解析本轮 `INFRA_COMMIT`。Agent 会在创建本地 gitlink 测试提交和执行 `html.materialize apply` 前分别停下，等待你确认。
 
 ## 测试机 Agent 提示词
 
