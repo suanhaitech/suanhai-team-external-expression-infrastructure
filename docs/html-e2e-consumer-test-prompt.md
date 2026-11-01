@@ -83,10 +83,13 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 - expression.task-record
 - html.project-report-v1
 - html.semantic-components-v1
+- html.responsive-layout-v1
 - html.materialize
+- html.viewport-check
+- html.pdf-export
 - expression.html-production
 
-确认页面模板 index.html 有样式和语义组件插槽，组件包有 package.yml、index.yml、组件契约及组件模板。
+确认页面模板 index.html 有样式和语义组件插槽，组件包有 package.yml、index.yml、组件契约及组件模板；响应式布局包有 package.yml、index.yml 和 CSS；两个工具入口存在。
 
 若任一能力不存在，说明候选版本不完整。停止并返回当前 submodule SHA 和缺少能力，不得绕过检查或修改候选 submodule 内容。
 
@@ -137,7 +140,7 @@ align 后再次 show，使用最新 version 执行 start：
 ## 3. 物料化 dry-run
 
 组件包 ID 与语义组件 ID 不同。组件包使用 --component-package-id，语义组件使用重复的 --component-id。先运行 dry-run，不得加 --apply：
-    $dryRun = py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e | ConvertFrom-Json
+    $dryRun = py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e | ConvertFrom-Json
     $dryRun | ConvertTo-Json -Depth 20
 
 确认 mode 为 dry-run、没有写入，output 为 reports/$taskId/v001，commit 与 submodule SHA 一致，would_write 是完整清单，plan_sha256 和 task_record_version 存在，且无冲突。
@@ -147,13 +150,13 @@ align 后再次 show，使用最新 version 执行 start：
 ## 4. apply 和最小合成内容
 
 用户确认后，使用同样参数运行 apply，并传入 --expect-plan-sha256 $dryRun.plan_sha256 和 --expect-task-version $dryRun.task_record_version。不要更改模板、组件、来源或 submodule 参数：
-    py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e --apply --expect-plan-sha256 $dryRun.plan_sha256 --expect-task-version $dryRun.task_record_version
+    py -3 "$infra/tools/html-materialize/materialize_html.py" --root . --submodule-path $submodulePath --task-id $taskId --template-id html.project-report-v1 --layout-id html.responsive-layout-v1 --component-package-id html.semantic-components-v1 --component-id content.summary --component-id status.phase --component-id status.metric --component-id evidence.claim --component-id action.next-step --source-id synthetic-html-e2e --apply --expect-plan-sha256 $dryRun.plan_sha256 --expect-task-version $dryRun.task_record_version
 
 按完整 would_write 清单检查输出；模板 README.md、template.yml、LICENSE、NOTICE 也可能被复制，不要擅自删除。
 
 编辑前按 materialization.json 的 files 清单核对基线 SHA-256。然后将标题换成“HTML 基础设施端到端测试”，填入五个已选语义组件的合成文本，替换所有可能被误认为事实的占位内容。
 
-创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、语义组件 ID。
+创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、响应式布局 ID 和语义组件 ID。
 
 编辑后不得再次对同一目录 apply。若需修改，通过 task-loop feedback 创建新修订和 v002，不覆盖 v001。materialization.json 是初始物料化基线；编辑 index.html 后其哈希变化是预期的，未编辑共享 CSS、组件包和元数据应保持基线哈希。
 
@@ -169,7 +172,11 @@ align 后再次 show，使用最新 version 执行 start：
 
 只对 HTML/CSS 搜索运行时外链，README 和许可证中的普通链接不算页面资源；相对路径的本地 `@import` 可以保留，但目标文件必须存在。PowerShell 中 `rg` 退出码 0 表示发现匹配、1 表示没有匹配（符合预期）、大于 1 表示检查器错误。确认 index.html 有 content.summary、status.phase、status.metric、evidence.claim、action.next-step 五个 data-component；CSS 和资源都是相对路径且目标文件存在；无 CDN、远程字体、远程图片和运行时网络依赖。
 
-本地浏览器打开 reports/$taskId/v001/index.html，检查桌面、手机和 A4 打印预览。没有浏览器或截图时明确记录 not-run / 浏览器检查未执行，不能把静态检查说成视觉验收。截图只能存放仓库外临时目录。
+执行响应式和 PDF 工具：
+    py -3 "$infra/tools/html-viewport-check/viewport_check.py" --html "reports/$taskId/v001/index.html" --output "reports/$taskId/v001/viewport-check.json" --fail-on-overflow
+    py -3 "$infra/tools/html-pdf-export/export_pdf.py" --root "reports/$taskId/v001" --input index.html --output report.pdf --metadata pdf-export.json --paper a4
+
+`html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
 
 ## 6. review 和 validate
 

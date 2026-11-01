@@ -48,6 +48,17 @@ capabilities:
     outputs:
       - 可复制到消费端产物目录的本地 CSS 和语义 HTML 结构
       - 组件必填内容、状态、来源和可访问性契约
+  - id: html.responsive-layout-v1
+    kind: template
+    path: formats/web/html/layouts/responsive-v1
+    entrypoint: formats/web/html/layouts/responsive-v1/styles.css
+    purpose: 可复用的 HTML 响应式布局、屏幕长宽比、方向、打印和安全溢出规则；不包含项目事实或浏览器运行时
+    inputs:
+      - 消费端 HTML 页面及其已选择的组件
+      - 目标设备视口和打印范围
+    outputs:
+      - 可复制到消费端页面目录的本地响应式 CSS 和布局契约
+      - 固定的多视口与打印行为说明
   - id: html.materialize
     kind: tool
     path: tools/html-materialize
@@ -60,11 +71,33 @@ capabilities:
     outputs:
       - 消费端任务版本目录中的自包含 HTML、CSS 和组件包文件
       - 记录任务元数据的 report.yml，以及基础设施 commit、模板/组件版本和文件 SHA-256 的 materialization.json
+  - id: html.pdf-export
+    kind: tool
+    path: tools/html-pdf-export
+    entrypoint: tools/html-pdf-export/export_pdf.py
+    purpose: 使用本机 Chrome、Edge 或 Chromium 将自包含 HTML 通过本地 HTTP 和 DevTools 打印为 PDF，并记录打印环境与文件哈希；找不到浏览器时明确返回 not-run
+    inputs:
+      - 消费端任务版本目录中的自包含 HTML 页面
+      - 纸张、方向、页边距、缩放和背景打印参数
+    outputs:
+      - 任务版本目录中的 PDF 文件
+      - pdf-export.json 导出配置、浏览器版本、字节数和 SHA-256
+  - id: html.viewport-check
+    kind: tool
+    path: tools/html-viewport-check
+    entrypoint: tools/html-viewport-check/viewport_check.py
+    purpose: 检查自包含 HTML 的本地资源、viewport 元标签和多视口响应式行为；可选使用 Playwright 生成桌面、移动、宽屏和 A4 截图，浏览器不可用时明确返回 not-run
+    inputs:
+      - 消费端任务版本目录中的 index.html 和本地资源
+      - 默认或自定义视口尺寸
+    outputs:
+      - 静态资源检查、多视口溢出结果和可选截图
+      - 可保存的 JSON 检查记录
   - id: expression.html-production
     kind: workflow
     path: workflows/html-production
     entrypoint: workflows/html-production/ENTRYPOINT.md
-    purpose: 跨消费端目录约定的 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、预览反馈、可用检查和人工收口；预览自动化、公式渲染及浏览器检查尚未实现
+    purpose: 跨消费端目录约定的 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、响应式检查、PDF 导出、反馈和人工收口；浏览器能力按本机可用性报告
     inputs:
       - 用户提出的 HTML 目标、受众、用途、范围和完成标准
       - 消费端项目上下文及用户提供的候选文档、链接和素材
@@ -77,7 +110,10 @@ capabilities:
       - expression.task-record
       - html.project-report-v1
       - html.semantic-components-v1
+      - html.responsive-layout-v1
       - html.materialize
+      - html.viewport-check
+      - html.pdf-export
   - id: consumer.submodule-preflight
     kind: tool
     path: tools/submodule-preflight

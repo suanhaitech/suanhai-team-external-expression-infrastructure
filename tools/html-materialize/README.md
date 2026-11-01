@@ -10,7 +10,7 @@
 - 父仓 HEAD 与 index 中的 submodule gitlink 一致，submodule 干净；
 - `tasks/<任务编号>/task.json` 已进入 `working`，且创建任务时记录的基础设施 commit 与当前 gitlink 一致；
 - `brief.output` 已明确为稳定的 `<输出根>/<任务编号>`；工具按当前任务修订生成 `vNNN` 目录，也兼容旧记录中已经写入的 `<输出根>/<任务编号>/vNNN`；
-- 页面模板和组件包均已在当前 Manifest 注册。
+- 页面模板、可选响应式布局包和组件包均已在当前 Manifest 注册。
 
 ## 两阶段操作
 
@@ -21,6 +21,7 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/tools/html-material
   --root . `
   --task-id EXPR-20261031-1234abcd `
   --template-id html.project-report-v1 `
+  --layout-id html.responsive-layout-v1 `
   --component-package-id html.semantic-components-v1 `
   --component-id status.phase `
   --component-id action.next-step
@@ -33,6 +34,7 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/tools/html-material
   --root . `
   --task-id EXPR-20261031-1234abcd `
   --template-id html.project-report-v1 `
+  --layout-id html.responsive-layout-v1 `
   --component-package-id html.semantic-components-v1 `
   --component-id status.phase `
   --component-id action.next-step `
@@ -45,7 +47,7 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/tools/html-material
 
 ## 输出
 
-工具把页面模板文件复制到 `brief.output` 对应的 `vNNN` 版本目录，将组件包复制到 `assets/<组件包ID转目录名>/`，并把 `--component-id` 选择的语义 HTML 片段插入模板声明的组件插槽，同时在模板声明的样式插槽中加入相对 CSS 引用。`report.yml` 初始化任务元数据、模板/组件选择和待确认授权状态；`materialization.json` 记录任务/修订、基础设施 commit、模板和组件版本以及复制文件的 SHA-256。项目事实、来源清单和最终授权状态仍由 Agent 按工作流填充；工具只交付结构起点。
+工具把页面模板文件复制到 `brief.output` 对应的 `vNNN` 版本目录，将响应式布局包复制到 `assets/<布局ID转目录名>/`，将组件包复制到 `assets/<组件包ID转目录名>/`，并把 `--component-id` 选择的语义 HTML 片段插入模板声明的组件插槽，同时在模板声明的样式插槽中加入相对 CSS 引用。`report.yml` 初始化任务元数据、模板/布局/组件选择和待确认授权状态；`materialization.json` 记录任务/修订、基础设施 commit、模板、布局和组件版本以及复制文件的 SHA-256。项目事实、来源清单和最终授权状态仍由 Agent 按工作流填充；工具只交付结构起点。
 
 默认只预览，不写文件。应用时必须提供最近一次预览的计划摘要和任务记录版本。工具预检全部目标、拒绝覆盖不同内容、拒绝符号链接及越界路径；重复应用相同计划是幂等的，内容发生变化则停止，不覆盖用户修改。
 

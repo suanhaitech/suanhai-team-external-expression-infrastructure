@@ -24,11 +24,13 @@
 确认后再：
 - 从固定 Manifest 中选择已实现的模板和组件；
 - 调用 Manifest 中的 `html.materialize`，先预览计划，再在用户确认后按相同计划摘要复制模板与组件；
+- 页面需要跨设备适配时，在物料化命令中选择 `html.responsive-layout-v1`，不要手工从未知路径复制 CSS；
 - 生成内容结构和 report.yml；
 - 在任务简报登记的输出根（默认 `reports/<task-id>`）下创建工具生成的 `vNNN` 自包含 HTML 版本目录；
 - 如果作品目录不在 reports/、works/、series/、courses/、books/ 下，先按 schemas/html/consumer-expression.schema.json 建立 .suanhai/expression.json 声明额外的安全顶层目录；
 - 只使用相对路径和已登记来源，不使用 CDN、远程字体或远程图片；
-- 进行可用的结构、资源、来源、响应式和打印检查；
+- 调用 `html.viewport-check` 做静态资源和默认多视口检查；如果要交付 PDF，在确认纸张、方向和页边距后调用 `html.pdf-export`；
+- 进行可用的结构、资源、来源、响应式和打印检查；将浏览器缺失记录为 `not-run`，不把它写成通过；
 - 提供本地预览或截图供我反馈。
 
 我反馈后不要覆盖旧版本。局部反馈生成新的 vNNN，范围变化回到任务澄清。只有我明确确认当前版本后，才记录任务完成；完成不等于专业验收或对外发布授权。

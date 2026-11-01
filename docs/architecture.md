@@ -53,7 +53,7 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 
 当前 [任务循环入口](../harness/task-loop/ENTRYPOINT.md) 由 Manifest 发现，配套 Python 工具以消费端 `tasks/<编号>/task.json` 为唯一任务事实源，生成 `task.md` 阅读视图。状态、共识记录、反馈、产出摘要和下一步留在消费端；共享仓只维护通用协议与工具。
 
-HTML 网页制作由 [`expression.html-production`](../workflows/html-production/ENTRYPOINT.md) 组织需求澄清、来源登记、页面模板和组件选择、版本化产物、用户反馈及人工收口。Agent 可使用 [`html.materialize`](../tools/html-materialize/README.md) 将已登记资产安全复制到消费端已对齐任务目录，并记录固定 submodule commit 和文件哈希；工作流要求先预览计划，再应用同一摘要的计划。浏览器预览、公式渲染和浏览器级检查尚未实现。
+HTML 网页制作由 [`expression.html-production`](../workflows/html-production/ENTRYPOINT.md) 组织需求澄清、来源登记、页面模板和组件选择、版本化产物、响应式检查、可选 PDF 导出、用户反馈及人工收口。Agent 可使用 [`html.materialize`](../tools/html-materialize/README.md) 将已登记资产安全复制到消费端已对齐任务目录，并记录固定 submodule commit 和文件哈希；工作流要求先预览计划，再应用同一摘要的计划。`html.viewport-check` 和 `html.pdf-export` 依赖消费端本机浏览器运行时；公式渲染和完整无障碍检查尚未实现。
 
 用户协作循环负责目标和版本确认，Agent 内部循环负责授权范围内的制作与检查。状态工具不运行 Agent、不提供 HTML 生成或浏览器预览，也无法证明用户身份或发布权限。跨设备恢复依赖父仓文件同步与准确 submodule gitlink，不由任务编号自动完成。
 

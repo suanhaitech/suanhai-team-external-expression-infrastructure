@@ -255,6 +255,8 @@ def capability_asset(
         raise MaterializeError(f"页面模板必须位于 formats/web/html/page-templates/：{capability['id']}")
     if role == "component" and not relative.as_posix().startswith("formats/web/html/components/"):
         raise MaterializeError(f"HTML 组件包必须位于 formats/web/html/components/：{capability['id']}")
+    if role == "layout" and not relative.as_posix().startswith("formats/web/html/layouts/"):
+        raise MaterializeError(f"HTML 响应式布局包必须位于 formats/web/html/layouts/：{capability['id']}")
 
     source_root = infrastructure.joinpath(*relative.parts)
     assert_inside(infrastructure, source_root, "Manifest path")
@@ -497,6 +499,7 @@ def report_metadata(
     infrastructure_commit: str,
     template: dict[str, Any],
     components: list[dict[str, Any]],
+    layouts: list[dict[str, Any]],
     semantic_components: list[dict[str, Any]],
     source_ids: list[str],
 ) -> bytes:
@@ -514,6 +517,9 @@ def report_metadata(
     ]
     for component in components:
         lines.append(f"  - {yaml_quote(component['id'])}")
+    lines.append("layouts:")
+    for layout in layouts:
+        lines.append(f"  - {yaml_quote(layout['id'])}")
     lines.append("semantic_components:")
     for component in semantic_components:
         lines.append(f"  - {yaml_quote(component['id'])}")
@@ -676,6 +682,7 @@ def build_plan(
     template_id: str,
     component_package_id: str,
     component_ids: list[str],
+    layout_id: str | None,
     task_id: str,
     version: str,
     task_revision: int,
@@ -713,8 +720,28 @@ def build_plan(
         raise MaterializeError("至少通过 --component-id 选择一个组件目录中的语义组件")
 
     selected_components: list[dict[str, Any]] = []
+    selected_layouts: list[dict[str, Any]] = []
     snippets: list[bytes] = []
     copied: dict[PurePosixPath, bytes] = {}
+
+    if layout_id:
+        layout_capability = manifest.get(layout_id)
+        if layout_capability is None:
+            raise MaterializeError(f"Manifest 没有登记响应式布局包：{layout_id}")
+        layout_root, layout_metadata = capability_asset(infrastructure, layout_capability, role="layout")
+        layout_target = PurePosixPath("assets") / component_slug(layout_id)
+        for relative, content in package_files(layout_root):
+            output_path = layout_target / relative
+            if output_path in copied:
+                raise MaterializeError(f"响应式布局包输出路径冲突：{output_path.as_posix()}")
+            copied[output_path] = content
+        selected_layouts.append({
+            "id": layout_id,
+            "version": layout_metadata["version"],
+            "source": layout_capability["path"],
+            "entrypoint": layout_capability["entrypoint"],
+            "destination": layout_target.as_posix(),
+        })
 
     if len(component_ids) != len(set(component_ids)):
         raise MaterializeError("--component-id 不允许重复")
@@ -758,7 +785,7 @@ def build_plan(
         "entrypoint": package_capability["entrypoint"],
         "destination": package_target.as_posix(),
     }]
-    template_contents = inject_component_stylesheets(template_contents, selected_packages)
+    template_contents = inject_component_stylesheets(template_contents, selected_packages + selected_layouts)
     template_contents = inject_semantic_components(template_contents, snippets)
     # 组件样式插槽是显式模板契约，避免对 HTML 做不稳定的任意文本重写。
     for relative, content in template_contents:
@@ -787,6 +814,7 @@ def build_plan(
             "destination": ".",
         },
         "components": selected_packages,
+        "layouts": selected_layouts,
         "semantic_components": selected_components,
         "files": [],
     }
@@ -797,6 +825,7 @@ def build_plan(
         infrastructure_commit,
         materialization["template"],
         materialization["components"],
+        materialization["layouts"],
         materialization["semantic_components"],
         source_ids,
     )
@@ -834,6 +863,7 @@ def main() -> int:
     parser.add_argument("--template-id", required=True, help="Manifest 中登记的页面模板能力 ID")
     parser.add_argument("--component-package-id", default="html.semantic-components-v1", help="Manifest 中登记的 HTML 组件包能力 ID")
     parser.add_argument("--component-id", action="append", default=[], help="组件包 index.yml 中登记的语义组件 ID，可重复指定")
+    parser.add_argument("--layout-id", help="Manifest 中登记的 HTML 响应式布局包能力 ID")
     parser.add_argument("--apply", action="store_true", help="写入文件；未指定时只输出 dry-run 计划")
     parser.add_argument("--expect-plan-sha256", help="必须与最近一次 dry-run 的 plan_sha256 一致，防止应用不同计划")
     parser.add_argument("--expect-task-version", type=int, help="--apply 时必须匹配 dry-run 读取的任务 version")
@@ -857,6 +887,7 @@ def main() -> int:
             args.template_id,
             args.component_package_id,
             args.component_id,
+            args.layout_id,
             args.task_id,
             version,
             task["revision"],
@@ -889,7 +920,7 @@ def main() -> int:
                 )):
                     raise MaterializeError("任务在 dry-run 后发生变化；没有写入，请重新读取任务并生成计划")
                 latest_package, _ = build_plan(
-                    infrastructure, manifest, args.template_id, args.component_package_id, args.component_id,
+                    infrastructure, manifest, args.template_id, args.component_package_id, args.component_id, args.layout_id,
                     args.task_id, version, latest_task["revision"], latest_task["version"], commit,
                     latest_task, args.source_id,
                 )
@@ -913,6 +944,7 @@ def main() -> int:
             "plan_sha256": digest,
             "template": materialization["template"],
             "components": materialization["components"],
+            "layouts": materialization["layouts"],
             "semantic_components": materialization["semantic_components"],
             "written": [path.relative_to(root).as_posix() for path, _ in writes] if args.apply else [],
             "would_write": [path.relative_to(root).as_posix() for path, _ in writes],

@@ -36,7 +36,7 @@ html.materialize dry-run → review plan → apply exact plan
     ↓
 start and materialize v001
     ↓
-preview/check
+html.viewport-check → preview/check → optional html.pdf-export
     ↓
 review → feedback → v002/v003
     ↓
@@ -53,7 +53,9 @@ complete or pause for later
 - 任何页面模板都必须声明入口、版本、离线要求、资源和组件依赖；组件包通过 `--component-package-id` 选择，语义片段通过重复的 `--component-id` 选择，工具只把已登记片段插入显式插槽；
 - 组件包必须通过 `index.yml` 按稳定组件 ID 发现，Agent 不得扫描 CSS 猜测组件语义；
 - 组件包可被模板复制到消费端报告目录，也可由已有仓库按相对路径引用，但交付页面必须自包含；
-- 不能把当前不存在的预览器、公式渲染器或检查器当作已经可调用能力。
+- 不能把 Manifest 未列出的交互式预览器、公式渲染器或其他检查器当作已经可调用能力；已列出的 `html.viewport-check` 与 `html.pdf-export` 仍须按其 `not-run` 语义执行。
+- `html.viewport-check` 的浏览器部分依赖消费端本机 Playwright 和浏览器运行时；返回 `not-run` 时必须如实保留，不能宣称通过。
+- `html.pdf-export` 只在用户确认纸张、方向和输出路径后调用；浏览器不可用时不伪造 PDF 或完成状态。
 
 ## 停止条件
 

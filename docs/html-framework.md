@@ -74,6 +74,14 @@ report.yml / sources.yml 内容协议
 
 ### 技术表达层
 
+当前已实现的通用工程能力包括：
+
+- `html.responsive-layout-v1`：按可用宽度、屏幕长宽比、方向和打印媒体组织 CSS 布局，并为长文本、媒体、表格和代码提供安全边界；
+- `html.viewport-check`：检查 viewport 元标签、本地资源、CSS URL 和默认多视口水平溢出；可选使用 Playwright 生成截图；
+- `html.pdf-export`：通过本机 Chrome、Edge 或 Chromium 的 DevTools 打印协议，把自包含 HTML 导出为 PDF，并保存浏览器、纸张配置和 SHA-256。
+
+浏览器运行时缺失时，检查和导出必须返回 `not-run`，不能伪造视觉或 PDF 结果。PDF 与屏幕布局共享设计令牌和组件契约，但分别使用 `@media print`/`@page` 与 viewport 媒体查询验证。
+
 后续按复用需求增加：
 
 - 数学公式：本地 KaTeX 资源、行内/块级公式、可访问替代文本、移动端长公式和打印规则；

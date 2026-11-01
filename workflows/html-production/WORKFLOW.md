@@ -56,7 +56,7 @@ Agent 从当前 Manifest 选择已实现的页面模板和组件包，读取其�
 
 组件选择应记录在 `report.yml` 中。先选择 Manifest 中的组件包，再从其 `index.yml` 选择稳定的语义组件 ID；物料化工具会把选中的片段插入页面的组件插槽，并同时复制完整组件包，后续可按契约继续调整。组件是语义信息对象，不是任意视觉卡片；每个组件应能关联来源状态、响应式行为和无障碍要求。
 
-当 Manifest 注册 `html.materialize` 时，应调用 `tools/html-materialize/materialize_html.py` 物料化已选模板和组件，不要逐文件手工复制。先 dry-run，核对目标目录、能力版本和基础设施 commit，再把预览返回的 `plan_sha256` 与 `task_record_version` 一并传给 `--apply`。工具要求任务已进入 `working`，并从已经对齐的 `brief.output` 推导任务修订路径。遇到缺少能力、路径不匹配、gitlink 不一致或目标冲突时停止，不绕开工具直接复制。
+当 Manifest 注册 `html.materialize` 时，应调用 `tools/html-materialize/materialize_html.py` 物料化已选模板、响应式布局包和组件，不要逐文件手工复制。需要响应式布局时传入 `--layout-id html.responsive-layout-v1`。先 dry-run，核对目标目录、能力版本和基础设施 commit，再把预览返回的 `plan_sha256` 与 `task_record_version` 一并传给 `--apply`。工具要求任务已进入 `working`，并从已经对齐的 `brief.output` 推导任务修订路径。遇到缺少能力、路径不匹配、gitlink 不一致或目标冲突时停止，不绕开工具直接复制。
 
 ### 5. 生成首版
 
@@ -73,15 +73,17 @@ reports/<task-id>/v001/
 
 HTML 和 CSS 使用相对路径，资源自包含，不依赖 CDN、远程字体、远程图片或运行时网络服务。物料化结果中的 `materialization.json` 保留共享资产来源 commit 与文件哈希；模板占位内容必须被真实内容替换，不能把占位文字当作项目事实。
 
-### 6. 预览与反馈
+### 6. 响应式检查、预览与 PDF
+
+Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。若本机具备 Playwright 浏览器运行时，可生成视口截图；否则保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
 
 Agent 生成本地预览或截图，至少检查桌面、手机和打印视图。用户反馈按以下类别记录：内容、事实/来源、结构、视觉、屏幕适配、打印/无障碍和范围变化。
 
-局部反馈生成新版本目录，例如 `v002`，不得覆盖旧版本；范围变化必须回到澄清阶段。没有浏览器预览或检查器时，必须明确报告该能力尚未实现，不能宣称已完成验证。
+局部反馈生成新版本目录，例如 `v002`，不得覆盖旧版本；范围变化必须回到澄清阶段。浏览器运行时不可用时，必须明确报告 `not-run`，不能宣称已完成视觉验证。
 
 ### 7. 检查与评审
 
-Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路径在任务目录内、来源 ID 闭合、HTML 结构和本地资源可解析。未来增加的预览、响应式、无障碍和公式检查也应在这里接入。
+Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路径在任务目录内、来源 ID 闭合、HTML 结构和本地资源可解析，并保存 `html.viewport-check` 的静态结果；如果本机具备 Playwright，再保存真实视口结果。用户要求 PDF 时，还要保存 `html.pdf-export` 的元数据。无障碍和公式检查尚未注册，必须把这两个缺口保留在评审限制中。
 
 检查通过不代表专业事实正确，也不代表对外发布授权。Chaos 或消费端负责人分别完成项目事实、表达质量和发布授权确认。
 
@@ -103,4 +105,4 @@ Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路�
 - `expression.task-loop`
 - `expression.task-record`
 - `html.project-report-v1` 或当前 Manifest 中适合任务的页面模板；
-- 当前 Manifest 中已实现的 HTML 组件、预览和检查能力。
+- 当前 Manifest 中已实现的 HTML 组件、响应式布局、物料化、视口检查和 PDF 导出能力。

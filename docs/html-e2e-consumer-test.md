@@ -75,7 +75,10 @@
    - `expression.task-record`
    - `html.project-report-v1`
    - `html.semantic-components-v1`
+   - `html.responsive-layout-v1`
    - `html.materialize`
+   - `html.viewport-check`
+   - `html.pdf-export`
    - `expression.html-production`
 2. 运行 Manifest 官方校验器（如果测试机安装了 Ruby）：
 
@@ -255,7 +258,7 @@ git diff --check
 - 使用打印预览检查 A4 页面；
 - 如测试机能生成截图，保存到仓库外的临时目录，不要把截图或缓存作为测试资产提交。
 
-当前基础设施没有自动浏览器预览、截图、公式渲染或自动无障碍检查器。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
+执行固定版本中的 `html.viewport-check`，保存 `viewport-check.json`；如果本机有 Playwright 和浏览器，记录各视口结果，否则浏览器部分标记 `not-run`。再按用户确认的纸张和方向执行 `html.pdf-export`，保存 `report.pdf` 与 `pdf-export.json`；找不到浏览器时标记 `not-run`，不能伪造 PDF。公式渲染和自动无障碍检查仍未实现。没有实际打开浏览器时，必须明确写“浏览器检查未执行”，不能把静态测试当作视觉验收。
 
 ## 6. 任务 review 和 validate
 

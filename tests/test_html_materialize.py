@@ -57,6 +57,11 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         git(cls.source, "config", "core.autocrlf", "false")
 
         shutil.copytree(REPO_ROOT / "formats/web/html", cls.source / "formats/web/html")
+        shutil.copytree(
+            REPO_ROOT / "formats/web/html/layouts",
+            cls.source / "formats/web/html/layouts",
+            dirs_exist_ok=True,
+        )
         (cls.source / TOOL.parent).mkdir(parents=True)
         shutil.copy2(REPO_ROOT / TOOL, cls.source / TOOL)
         (cls.source / "manifest.yml").write_text(
@@ -72,6 +77,11 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
             "    kind: template\n"
             "    path: formats/web/html/components/core-v1\n"
             "    entrypoint: formats/web/html/components/core-v1/README.md\n"
+            "    purpose: test\n"
+            "  - id: html.responsive-layout-v1\n"
+            "    kind: template\n"
+            "    path: formats/web/html/layouts/responsive-v1\n"
+            "    entrypoint: formats/web/html/layouts/responsive-v1/styles.css\n"
             "    purpose: test\n",
             encoding="utf-8",
         )
@@ -165,6 +175,25 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertIn('template: "html.project-report-v1"', report)
         self.assertIn('audience: "内部评审者"', report)
         self.assertIn('tool: html.materialize', report)
+
+    def test_layout_package_is_materialized_and_linked(self):
+        preview = self.cli("--layout-id", "html.responsive-layout-v1")
+        self.assertIn(
+            f"reports/{TASK_ID}/v001/assets/html-responsive-layout-v1/styles.css",
+            preview["would_write"],
+        )
+        applied = self.cli(
+            "--layout-id", "html.responsive-layout-v1",
+            "--apply",
+            "--expect-plan-sha256", preview["plan_sha256"],
+            "--expect-task-version", str(preview["task_record_version"]),
+        )
+        self.assertEqual(applied["layouts"][0]["id"], "html.responsive-layout-v1")
+        html = (self.output / "index.html").read_text(encoding="utf-8")
+        self.assertIn('href="assets/html-responsive-layout-v1/styles.css"', html)
+        self.assertTrue((self.output / "assets/html-responsive-layout-v1/media.css").is_file())
+        record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["layouts"][0]["id"], "html.responsive-layout-v1")
 
     def test_apply_requires_matching_preview_and_task_versions(self):
         missing = self.cli("--apply", ok=False)
