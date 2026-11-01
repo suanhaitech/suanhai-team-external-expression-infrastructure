@@ -1,0 +1,34 @@
+schema_version: 1
+id: html.responsive-layout-v1
+version: 1.0.0
+contract:
+  required:
+    - viewport-meta
+    - responsive-shell
+  optional:
+    - responsive-grid
+    - responsive-media
+    - responsive-table
+    - responsive-code
+    - responsive-cluster
+  invariants:
+    - layout-must-not-create-horizontal-overflow
+    - content-width-must-follow-container
+    - print-rules-must-not-depend-on-screen-media
+viewports:
+  - id: narrow-portrait
+    width: 390
+    height: 844
+  - id: tablet
+    width: 768
+    height: 1024
+  - id: desktop
+    width: 1366
+    height: 768
+  - id: wide-landscape
+    width: 1920
+    height: 1080
+  - id: print-a4
+    width: 794
+    height: 1123
+    media: print

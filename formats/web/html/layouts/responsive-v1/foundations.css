@@ -1,0 +1,93 @@
+:root {
+  --responsive-content-max: 72rem;
+  --responsive-gutter: clamp(1rem, 3vw, 3rem);
+  --responsive-gap: clamp(1rem, 2.5vw, 2rem);
+  --responsive-radius: 0.75rem;
+  --responsive-line-height: 1.65;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 0;
+  overflow-x: hidden;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  line-height: var(--responsive-line-height);
+  overflow-wrap: anywhere;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+pre,
+code {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+.responsive-shell {
+  inline-size: min(100%, var(--responsive-content-max));
+  min-inline-size: 0;
+  margin-inline: auto;
+  padding-inline: var(--responsive-gutter);
+}
+
+.responsive-grid {
+  display: grid;
+  min-inline-size: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--responsive-gap);
+}
+
+.responsive-grid > *,
+.responsive-cluster > * {
+  min-inline-size: 0;
+}
+
+.responsive-media {
+  max-inline-size: 100%;
+  block-size: auto;
+  object-fit: contain;
+}
+
+.responsive-table {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.responsive-table > table {
+  min-inline-size: 32rem;
+  border-collapse: collapse;
+}
+
+.responsive-code {
+  max-inline-size: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.responsive-cluster {
+  display: flex;
+  min-inline-size: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}

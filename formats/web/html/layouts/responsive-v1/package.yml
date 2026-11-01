@@ -1,0 +1,14 @@
+schema_version: 1
+id: html.responsive-layout-v1
+version: 1.0.0
+kind: layout
+offline: true
+network_dependencies: []
+entrypoint: styles.css
+catalog: index.yml
+supports:
+  - narrow-portrait
+  - tablet
+  - desktop
+  - wide-landscape
+  - print-a4
