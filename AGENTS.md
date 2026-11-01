@@ -1,15 +1,16 @@
 # Agent 协作约定
 
-本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的工作流能力、工具、技能、模板、Harness 和检查协议，不承载具体小组的项目事实或对外表达资产。
+本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的工作流能力，以及工作流可消费的模板、工具、运行资源、技能和检查协议；不承载具体小组的项目事实或对外表达资产。
 
-根 `AGENTS.md` 是本仓库自身的总 Harness：它约束维护本基础设施仓库的 Agent。`workflows/` 中的新入口和 `harness/` 中保留的既有入口，是提供给消费端仓库使用的工作流 Harness；不要把它们与根规则混为一谈。
+根 `AGENTS.md` 是本仓库自身的总 Harness，约束维护本基础设施仓库的 Agent。消费端可调用的完整工作流及其 Agent 执行入口统一放在 `workflows/`；入口承担该工作流的 Harness 职责。可复用模板、工具、运行资源、领域 Schema、技能和检查协议统一放在 `infrastructure/<领域>/`。一个目录层级只表示领域归属，不暗示必须把工作流再拆成子工作流。
 
 ## 当前状态
 
-- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、网页 HTML 制作工作流（`expression.html-production`）、网页 HTML 页面模板（`html.project-report-v1`）、网页 HTML 语义组件包（`html.semantic-components-v1`）、HTML 模板与组件安全物料化工具（`html.materialize`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
+- 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、网页 HTML 制作工作流（`expression.html-production`）、网页 HTML 页面模板（`html.project-report-v1`）、网页 HTML 语义组件包（`html.semantic-components-v1`）、HTML 响应式布局包（`html.responsive-layout-v1`）、HTML 页面运行时包（`html.runtime-kit-v1`）、HTML 模板与组件安全物料化工具（`html.materialize`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
 - `manifest.yml` 是能力发现的唯一入口；
+- 各独立工作流位于 `workflows/`；HTML 制作工作流位于 `workflows/html/production/`，页面模板、组件、样式、运行时和 HTML 专用工具位于 `infrastructure/html/`；资产仓建仓与初始化流程位于 `workflows/group-asset-repository-create-and-initialize/`、`workflows/group-asset-repository-onboarding/`，其模板和铺设工具位于 `infrastructure/group-asset-repository/`；
 - `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
-- 实际能力以当前 `capabilities` 为准；任务循环、状态工具、HTML 网页制作工作流、项目汇报页面模板、语义组件包、响应式布局包、`html.materialize`、`html.viewport-check` 和 `html.pdf-export` 属于 `implemented / experimental`；公式渲染、完整无障碍检查和自动化浏览器预览仍受本机运行时条件限制或为 `planned / not implemented`；
+- 实际能力以当前 `capabilities` 为准；任务循环、状态工具、HTML 网页制作工作流、项目汇报页面模板、语义组件包、响应式布局包、`html.runtime-kit-v1`、`html.materialize`、`html.viewport-check` 和 `html.pdf-export` 属于 `implemented / experimental`；运行时包的公式渲染、显示模式、全屏和浏览器保存 PDF 入口已实现，但真实浏览器视觉检查、确定性 PDF 导出和完整无障碍检查仍受本机运行时条件限制或为 `not-run / planned`；
 - 不得因为目录存在，就把计划能力描述为已经可用。
 
 ## 开发边界

@@ -18,27 +18,38 @@ class GroupAssetWorkflowPromptLocationTest(unittest.TestCase):
         self.assertIsNotNone(match, "Manifest 必须注册创建并初始化工作流")
         capability = match.group(1)
         self.assertIn("kind: workflow", capability)
-        self.assertIn("path: workflows/group-asset-repository", capability)
-        self.assertIn("entrypoint: workflows/group-asset-repository/ENTRYPOINT.md", capability)
-        self.assertTrue((ROOT / "workflows/group-asset-repository/ENTRYPOINT.md").is_file())
-        self.assertTrue((ROOT / "workflows/group-asset-repository/WORKFLOW.md").is_file())
-        self.assertTrue((ROOT / "workflows/group-asset-repository/CREATE_AND_INITIALIZE.md").is_file())
-        self.assertFalse((ROOT / "harness/group-asset-repository/CREATE_AND_INITIALIZE.md").exists())
+        workflow_path = "workflows/group-asset-repository-create-and-initialize"
+        self.assertIn(f"path: {workflow_path}", capability)
+        self.assertIn(f"entrypoint: {workflow_path}/ENTRYPOINT.md", capability)
+        self.assertTrue((ROOT / workflow_path / "ENTRYPOINT.md").is_file())
+        self.assertTrue((ROOT / workflow_path / "WORKFLOW.md").is_file())
+        self.assertTrue((ROOT / workflow_path / "CREATE_AND_INITIALIZE.md").is_file())
+
+        onboarding = re.search(
+            r"(?ms)^  - id: consumer\.group-asset-onboarding\n(.*?)(?=^  - id: |\Z)",
+            MANIFEST,
+        )
+        self.assertIsNotNone(onboarding, "Manifest 必须注册独立的小组上下文初始化工作流")
+        self.assertIn("path: workflows/group-asset-repository-onboarding", onboarding.group(1))
+        self.assertTrue((ROOT / "workflows/group-asset-repository-onboarding/ENTRYPOINT.md").is_file())
+
+        self.assertTrue((ROOT / "infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py").is_file())
+        self.assertTrue((ROOT / "infrastructure/group-asset-repository/templates/group-asset-repository-v1/AGENTS.md").is_file())
 
     def test_docs_link_to_the_workflow_directory(self):
         required_references = {
-            "README.md": "workflows/group-asset-repository/CREATE_AND_INITIALIZE.md",
-            "docs/architecture.md": "workflows/group-asset-repository/CREATE_AND_INITIALIZE.md",
-            "docs/capability-and-harness-model.md": "workflows/group-asset-repository/ENTRYPOINT.md",
-            "docs/group-asset-repository-bootstrap.md": "workflows/group-asset-repository/CREATE_AND_INITIALIZE.md",
-            "docs/group-asset-repository-create-and-initialize.md": "workflows/group-asset-repository/CREATE_AND_INITIALIZE.md",
-            "workflows/README.md": "group-asset-repository/CREATE_AND_INITIALIZE.md",
+            "README.md": "workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md",
+            "docs/architecture.md": "workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md",
+            "docs/capability-and-harness-model.md": "workflows/group-asset-repository-create-and-initialize/ENTRYPOINT.md",
+            "docs/group-asset-repository-bootstrap.md": "workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md",
+            "docs/group-asset-repository-create-and-initialize.md": "workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md",
+            "workflows/README.md": "group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md",
         }
         for relative, expected in required_references.items():
             text = (ROOT / relative).read_text(encoding="utf-8")
             with self.subTest(document=relative):
                 self.assertIn(expected, text)
-                self.assertNotIn("harness/group-asset-repository/CREATE_AND_INITIALIZE.md", text)
+                self.assertNotIn("workflows/group-asset-repository/CREATE_AND_INITIALIZE.md", text)
 
 
 if __name__ == "__main__":

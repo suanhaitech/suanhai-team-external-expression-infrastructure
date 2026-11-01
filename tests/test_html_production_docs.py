@@ -8,21 +8,19 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW = ROOT / "workflows/html-production"
-COMPONENTS = ROOT / "formats/web/html/components/core-v1"
+WORKFLOW = ROOT / "workflows/html/production"
+COMPONENTS = ROOT / "infrastructure/html/components/core-v1"
 
 
 class HtmlProductionDocumentationTest(unittest.TestCase):
-    def test_presentation_forms_are_parallel_to_html_internal_assets(self):
-        formats = (ROOT / "formats/README.md").read_text(encoding="utf-8")
-        web = (ROOT / "formats/web/README.md").read_text(encoding="utf-8")
-        html = (ROOT / "formats/web/html/README.md").read_text(encoding="utf-8")
-        self.assertIn("网页、文档、演示文稿和打印物在这里并列", formats)
-        self.assertIn("与文档、演示文稿等并列的呈现形式", web)
-        self.assertIn("HTML 不是模板的上层", html)
-        self.assertTrue((ROOT / "formats/document/README.md").is_file())
-        self.assertTrue((ROOT / "formats/slides/README.md").is_file())
-        self.assertTrue((ROOT / "formats/print/README.md").is_file())
+    def test_workflows_and_infrastructure_are_parallel_sections(self):
+        html = (ROOT / "infrastructure/html/README.md").read_text(encoding="utf-8")
+        workflow = (ROOT / "workflows/html/production/WORKFLOW.md").read_text(encoding="utf-8")
+        self.assertIn("主流程入口", html)
+        self.assertIn("infrastructure/html/", html)
+        self.assertIn("infrastructure/", workflow)
+        self.assertTrue((ROOT / "workflows/html/production/ENTRYPOINT.md").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/page-templates/project-report-v1/index.html").is_file())
 
     def test_workflow_has_protocol_entrypoint_and_forwardable_prompt(self):
         workflow = (WORKFLOW / "WORKFLOW.md").read_text(encoding="utf-8")
@@ -41,26 +39,31 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
     def test_manifest_registers_workflow_and_component_package(self):
         manifest = (ROOT / "manifest.yml").read_text(encoding="utf-8")
         self.assertIn("id: expression.html-production", manifest)
-        self.assertIn("entrypoint: workflows/html-production/ENTRYPOINT.md", manifest)
+        self.assertIn("entrypoint: workflows/html/production/ENTRYPOINT.md", manifest)
         self.assertIn("id: html.semantic-components-v1", manifest)
-        self.assertIn("entrypoint: formats/web/html/components/core-v1/README.md", manifest)
-        self.assertIn("path: formats/web/html/page-templates/project-report-v1", manifest)
-        self.assertIn("entrypoint: formats/web/html/page-templates/project-report-v1/index.html", manifest)
+        self.assertIn("entrypoint: infrastructure/html/components/core-v1/README.md", manifest)
+        self.assertIn("path: infrastructure/html/page-templates/project-report-v1", manifest)
+        self.assertIn("entrypoint: infrastructure/html/page-templates/project-report-v1/index.html", manifest)
         self.assertIn("id: html.materialize", manifest)
-        self.assertIn("entrypoint: tools/html-materialize/materialize_html.py", manifest)
+        self.assertIn("entrypoint: infrastructure/html/tools/materialize/materialize_html.py", manifest)
         self.assertIn("id: html.responsive-layout-v1", manifest)
-        self.assertIn("entrypoint: formats/web/html/layouts/responsive-v1/styles.css", manifest)
+        self.assertIn("entrypoint: infrastructure/html/styles/responsive-v1/styles.css", manifest)
+        self.assertIn("id: html.runtime-kit-v1", manifest)
+        self.assertIn("entrypoint: infrastructure/html/runtime-kits/runtime-kit-v1/runtime.js", manifest)
+        runtime = (ROOT / "infrastructure/html/runtime-kits/runtime-kit-v1/README.md").read_text(encoding="utf-8")
+        self.assertIn("全屏模式", runtime)
+        self.assertIn("保存 PDF", runtime)
         self.assertIn("id: html.viewport-check", manifest)
-        self.assertIn("entrypoint: tools/html-viewport-check/viewport_check.py", manifest)
+        self.assertIn("entrypoint: infrastructure/html/tools/viewport-check/viewport_check.py", manifest)
         self.assertIn("id: html.pdf-export", manifest)
-        self.assertIn("entrypoint: tools/html-pdf-export/export_pdf.py", manifest)
+        self.assertIn("entrypoint: infrastructure/html/tools/pdf-export/export_pdf.py", manifest)
         workflow = (WORKFLOW / "WORKFLOW.md").read_text(encoding="utf-8")
         self.assertIn("html.viewport-check", workflow)
         self.assertIn("html.pdf-export", workflow)
 
     def test_materialize_tool_and_report_schema_are_declared(self):
-        tool = (ROOT / "tools/html-materialize/README.md").read_text(encoding="utf-8")
-        schema = json.loads((ROOT / "schemas/html/report.schema.json").read_text(encoding="utf-8"))
+        tool = (ROOT / "infrastructure/html/tools/materialize/README.md").read_text(encoding="utf-8")
+        schema = json.loads((ROOT / "infrastructure/html/schemas/report.schema.json").read_text(encoding="utf-8"))
         self.assertIn("--expect-plan-sha256", tool)
         self.assertIn("materialization.json", tool)
         self.assertEqual(schema["properties"]["materialization"]["properties"]["tool"]["const"], "html.materialize")

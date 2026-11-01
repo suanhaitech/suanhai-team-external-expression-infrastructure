@@ -80,8 +80,8 @@ git add -- <path>
 先预览并向负责人报告准确计划；本提示词已经授权限定范围内的本地接入，因此无需第二次人工确认：
 
 ~~~
-Windows PowerShell: py -3 "<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
-Linux/macOS: python3 "<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+Windows PowerShell: py -3 "<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+Linux/macOS: python3 "<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
 ~~~
 
 工具校验父仓 `.gitmodules` 的 HTTPS URL、index gitlink、submodule HEAD、工作区状态和固定 Manifest 工具登记；默认只读。Agent 展示返回的完整 `planned_harness`、`planned_diff`、`plan_sha256`、目标文件状态和固定 SHA 后，立即用本次 dry-run 返回的摘要执行 `--apply --expect-plan-sha256 <plan_sha256>`。摘要是防止预览后文件变化的并发保护，不是额外的人为审批；任何计划不一致仍拒绝写入。工具只增补父仓根 `AGENTS.md`，不触碰其他项目文件，不修改 submodule、不暂存、不提交或推送。

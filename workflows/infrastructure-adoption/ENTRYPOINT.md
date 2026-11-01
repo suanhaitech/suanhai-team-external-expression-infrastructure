@@ -56,10 +56,10 @@ git add -- "<path>"
 
 ```powershell
 # Windows PowerShell
-py -3 "./<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+py -3 "./<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
 
 # Linux/macOS
-python3 "./<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+python3 "./<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
 ```
 
 向负责人展示工具返回的 `planned_harness` 完整文本、`planned_diff`、`plan_sha256`、目标文件状态、固定 SHA 和预期变更。以本提示词已授予的本地修改权限继续执行相同命令，添加 `--apply --expect-plan-sha256 <本次预览的 plan_sha256>`；工具会重新计算计划摘要；如果文件、submodule 路径或固定 SHA 与审阅时不一致，就拒绝写入。该工具只增补父仓根 `AGENTS.md`，不触碰其他项目文件，不修改 submodule、不暂存、不提交或推送。
@@ -81,7 +81,7 @@ python3 "./<实际路径>/tools/infrastructure-adoption-harness/install_harness.
 仅当父仓提交已包含 gitlink 后，才运行完整预检：
 
 ```powershell
-python <实际路径>/tools/submodule-preflight/submodule_preflight.py --root . --path <实际路径>
+python <实际路径>/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py --root . --path <实际路径>
 ```
 
 只有明确网络不可用时才可增加 `--skip-remote` 并注明远端未知；不得掩盖本地状态错误。新 clone 中已有 gitlink 但未初始化时，可按父仓规则运行 `git submodule update --init --recursive -- <path>` 恢复固定版本；这不是升级。

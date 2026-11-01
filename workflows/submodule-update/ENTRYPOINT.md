@@ -19,7 +19,7 @@
 运行当前固定 submodule 中声明的 `consumer.submodule-preflight` 工具。默认命令为：
 
 ```powershell
-python vendor/suanhai-team-external-expression-infrastructure/tools/submodule-preflight/submodule_preflight.py `
+python vendor/suanhai-team-external-expression-infrastructure/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py `
   --root . `
   --path vendor/suanhai-team-external-expression-infrastructure
 ```

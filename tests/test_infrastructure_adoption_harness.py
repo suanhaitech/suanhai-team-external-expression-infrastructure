@@ -13,11 +13,11 @@ import tempfile
 import unittest
 
 
-SOURCE_SCRIPT = Path(__file__).resolve().parents[1] / "tools/infrastructure-adoption-harness/install_harness.py"
+SOURCE_SCRIPT = Path(__file__).resolve().parents[1] / "infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py"
 REPOSITORY = "suanhai-team-external-expression-infrastructure"
 EXPECTED_URL = f"https://github.com/suanhaitech/{REPOSITORY}.git"
 TOOL_ID = "consumer.infrastructure-adoption-harness"
-TOOL_PATH = "tools/infrastructure-adoption-harness"
+TOOL_PATH = "infrastructure/repository-management/tools/infrastructure-adoption-harness"
 ENTRYPOINT = f"{TOOL_PATH}/install_harness.py"
 SUBMODULE_PATH = "custom location/infra module"
 
@@ -36,7 +36,7 @@ class InfrastructureAdoptionHarnessTest(unittest.TestCase):
         self._write_tool_manifest(self.infra_source)
         (self.infra_source / ENTRYPOINT).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(SOURCE_SCRIPT, self.infra_source / ENTRYPOINT)
-        preflight_entrypoint = self.infra_source / "tools/submodule-preflight/submodule_preflight.py"
+        preflight_entrypoint = self.infra_source / "infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py"
         preflight_entrypoint.parent.mkdir(parents=True, exist_ok=True)
         preflight_entrypoint.write_text("# test fixture\n", encoding="utf-8")
         for relative in (
@@ -47,7 +47,7 @@ class InfrastructureAdoptionHarnessTest(unittest.TestCase):
             document = self.infra_source / relative
             document.parent.mkdir(parents=True, exist_ok=True)
             document.write_text("protocol fixture\n", encoding="utf-8")
-        self._git(self.infra_source, "add", "manifest.yml", ENTRYPOINT, "tools", "docs")
+        self._git(self.infra_source, "add", "manifest.yml", "infrastructure", "docs")
         self._git(self.infra_source, "commit", "-m", "add installer fixture")
 
         self._init_repo(self.consumer, "consumer fixture")
@@ -114,8 +114,8 @@ capabilities:
     purpose: test fixture
   - id: consumer.submodule-preflight
     kind: tool
-    path: tools/submodule-preflight
-    entrypoint: tools/submodule-preflight/submodule_preflight.py
+    path: infrastructure/repository-management/tools/submodule-preflight
+    entrypoint: infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py
     purpose: test fixture
 """
         target = root / "manifest.yml"
@@ -321,14 +321,14 @@ capabilities:
         manifest = self.submodule / "manifest.yml"
         original = manifest.read_text(encoding="utf-8")
         manifest.write_text(original.replace(
-            "    entrypoint: tools/submodule-preflight/submodule_preflight.py",
-            "    entrypoint: tools/submodule-preflight/missing.py",
+            "    entrypoint: infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py",
+            "    entrypoint: infrastructure/repository-management/tools/submodule-preflight/missing.py",
         ), encoding="utf-8")
         _, result = self.run_tool("--dry-run", expected_code=1)
         self.assertIn("consumer.submodule-preflight 的 entrypoint 不符合接口约定", result.stderr)
 
     def test_missing_long_term_preflight_entrypoint_is_rejected(self):
-        (self.submodule / "tools/submodule-preflight/submodule_preflight.py").unlink()
+        (self.submodule / "infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py").unlink()
         _, result = self.run_tool("--dry-run", expected_code=1)
         self.assertIn("入口路径不存在或类型错误", result.stderr)
 

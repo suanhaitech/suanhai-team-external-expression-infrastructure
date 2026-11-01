@@ -66,10 +66,10 @@
 
    ```powershell
    # Windows PowerShell
-   py -3 "<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+   py -3 "<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
 
    # Linux/macOS
-   python3 "<实际路径>/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
+   python3 "<实际路径>/infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py" --root . --submodule-path "<实际路径>" --dry-run
    ```
 
    向我展示 JSON 中的 `planned_harness` 完整内容、`planned_diff`、`plan_sha256`、`agents_action`、固定 SHA 和将修改的文件。以本提示词授予的本地修改权限，立即以相同参数运行并添加 `--apply --expect-plan-sha256 <本次预览的 plan_sha256>`，不用等待第二次确认。工具会重新计算计划摘要；若原文件、路径或 gitlink 在审阅后发生变化就拒绝写入。工具只会在本仓根创建或增补 `AGENTS.md`，不覆盖已有规则，不修改其他项目文件，不暂存、提交、推送或改动 submodule。

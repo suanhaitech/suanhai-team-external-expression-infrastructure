@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "harness/task-loop/scripts/task_loop.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "infrastructure/task-loop/tools/task-record/task_loop.py"
 
 
 class TaskLoopTest(unittest.TestCase):

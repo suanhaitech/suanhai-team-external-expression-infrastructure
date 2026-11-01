@@ -12,8 +12,8 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOL = ROOT / "tools/html-viewport-check/viewport_check.py"
-LAYOUT = ROOT / "formats/web/html/layouts/responsive-v1"
+TOOL = ROOT / "infrastructure/html/tools/viewport-check/viewport_check.py"
+LAYOUT = ROOT / "infrastructure/html/styles/responsive-v1"
 
 
 class HtmlViewportCheckTest(unittest.TestCase):

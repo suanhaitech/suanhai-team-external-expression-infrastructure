@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import unittest
 
-_MODULE_PATH = Path(__file__).resolve().parents[1] / "tools/html-pdf-export/export_pdf.py"
+_MODULE_PATH = Path(__file__).resolve().parents[1] / "infrastructure/html/tools/pdf-export/export_pdf.py"
 _SPEC = importlib.util.spec_from_file_location("html_pdf_export", _MODULE_PATH)
 assert _SPEC and _SPEC.loader
 _MODULE = importlib.util.module_from_spec(_SPEC)

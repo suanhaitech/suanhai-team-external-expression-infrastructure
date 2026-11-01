@@ -6,7 +6,7 @@
 
 ## 一、组长的 Agent 代办入口
 
-组长可将位于 `workflows/` 的[创建并初始化提示词](../workflows/group-asset-repository/CREATE_AND_INITIALIZE.md)全文发送给 Agent，在必要时补充小组名称、仓库短名和本机父目录。Agent 先检查 `gh` 登录和本机工具环境；组织建仓权限以 GitHub Template Generate API 的实际结果为准。成功后递归克隆、核验 gitlink，并按新仓根规则调用初始化 Harness。仓库默认为 private；初始化记录先留在本地给组长审阅，不自动提交或推送。
+组长可将位于 `workflows/` 的[创建并初始化提示词](../workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md)全文发送给 Agent，在必要时补充小组名称、仓库短名和本机父目录。Agent 先检查 `gh` 登录和本机工具环境；组织建仓权限以 GitHub Template Generate API 的实际结果为准。成功后递归克隆、核验 gitlink，并按新仓根规则调用初始化工作流。仓库默认为 private；初始化记录先留在本地给组长审阅，不自动提交或推送。
 
 详细的授权边界、失败处理和新机器测试步骤见[小组资产仓代建与初始化流程](group-asset-repository-create-and-initialize.md)。Agent 无法访问目标目录、缺少工具或没有组织建仓权限时，应停止报告；组长可以改用下面的手工自助路径。
 
@@ -80,7 +80,7 @@ git submodule update --init --recursive -- vendor/suanhai-team-external-expressi
 
 “进行项目初始化”也是可接受的自然用语。Agent 应先判断本次是小组首启，还是在已初始化的小组中新增/完善一个项目；不能默认小组只有一个项目，也不能把整个小组身份覆盖为某个项目。
 
-Agent 先核对固定依赖，再从 Manifest 找到 `consumer.group-asset-onboarding` 的入口。完整流程保存在 `harness/group-asset-repository/ENTRYPOINT.md`，这里不维护另一套访谈规则。
+Agent 先核对固定依赖，再从 Manifest 找到 `consumer.group-asset-onboarding` 的入口。完整流程保存在 `workflows/group-asset-repository-onboarding/ENTRYPOINT.md`，这里不维护另一套访谈规则。
 
 ## 三、新机器端到端测试手册
 
@@ -155,8 +155,8 @@ git -C vendor/suanhai-team-external-expression-infrastructure status --porcelain
 维护者在全新空 Git 父仓中添加公开基础设施 submodule，选择包含本能力的已验收完整 commit，显式 checkout 该 commit 并暂存 `.gitmodules` 与 submodule 路径。父仓 index 的 gitlink 必须与 submodule HEAD 一致。然后从固定 submodule 运行铺设工具：
 
 ```powershell
-py -3 vendor/suanhai-team-external-expression-infrastructure/tools/group-asset-bootstrap/materialize_template.py --root . --dry-run
-py -3 vendor/suanhai-team-external-expression-infrastructure/tools/group-asset-bootstrap/materialize_template.py --root . --apply
+py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py --root . --dry-run
+py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py --root . --apply
 ```
 
 Linux/macOS 将解释器替换为 `python3`。工具默认只预览，`--apply` 只创建缺失文件，已有相同文件保持不变、不同内容整体拒绝；不添加/升级 submodule，不写小组事实，不提交/推送。普通写入异常会尝试清理本次文件和空目录，清理失败报告残留；断电、强制终止和并发修改不具备事务保证。

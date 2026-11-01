@@ -15,8 +15,8 @@ from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT_RELATIVE = Path("tools/group-asset-bootstrap/materialize_template.py")
-TEMPLATE_RELATIVE = Path("templates/group-asset-repository-v1")
+SCRIPT_RELATIVE = Path("infrastructure/group-asset-repository/tools/bootstrap/materialize_template.py")
+TEMPLATE_RELATIVE = Path("infrastructure/group-asset-repository/templates/group-asset-repository-v1")
 SUBMODULE_RELATIVE = Path("vendor/suanhai-team-external-expression-infrastructure")
 PUBLIC_URL = "https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure.git"
 SECTION = "submodule.vendor/suanhai-team-external-expression-infrastructure"
@@ -39,7 +39,12 @@ def environment() -> dict[str, str]:
 
 def git(root: Path, *arguments: str) -> str:
     result = subprocess.run(
-        ["git", "-C", str(root), *arguments],
+        # 新目录层级会让模板路径超过 Windows 默认 MAX_PATH；Git 自身支持
+        # longpaths，测试显式启用它，避免把操作系统策略误报成模板逻辑失败。
+        [
+            "git", "-c", "core.longpaths=true", "-c", "core.autocrlf=false",
+            "-C", str(root), *arguments,
+        ],
         capture_output=True, text=True, encoding="utf-8", env=environment(),
     )
     if result.returncode:
@@ -67,7 +72,9 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # 把未提交实现复制成隔离的 Git 快照；真实开发仓不会产生测试提交。
-        cls.source_temp = tempfile.TemporaryDirectory(prefix="group-bootstrap-source-")
+        # Windows Git 的默认路径上限会叠加模板深层路径；缩短临时前缀，
+        # 让测试验证铺设逻辑本身，而不是被测试夹具路径长度干扰。
+        cls.source_temp = tempfile.TemporaryDirectory(prefix="gbs-")
         cls.addClassCleanup(cls.source_temp.cleanup)
         cls.source = Path(cls.source_temp.name) / "infrastructure"
         initialize_repository(cls.source)
@@ -77,8 +84,8 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
         # Task-loop 作为消费端实际调用的共享工具，随临时基础设施快照一同固定。
         # 忽略解释器缓存，避免测试仓库带入机器生成物。
         shutil.copytree(
-            REPO_ROOT / "harness/task-loop",
-            cls.source / "harness/task-loop",
+            REPO_ROOT / "infrastructure/task-loop/tools/task-record",
+            cls.source / "infrastructure/task-loop/tools/task-record",
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
         )
         shutil.copy2(REPO_ROOT / "manifest.yml", cls.source / "manifest.yml")
@@ -91,17 +98,21 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
         cls.locked_commit = git(cls.source, "rev-parse", "HEAD")
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="group-bootstrap-consumer-")
+        self.temp = tempfile.TemporaryDirectory(prefix="gbc-")
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
         self.root = self.base / "consumer"
         initialize_repository(self.root)
         git(self.root, "submodule", "add", str(self.source), SUBMODULE_RELATIVE.as_posix())
+        self.infrastructure = self.root / SUBMODULE_RELATIVE
+        # 临时 submodule 的内部 clone 不一定继承父仓的行尾配置；显式固定后
+        # 重新检出，避免 CRLF 文件被全局 autocrlf 设置误报为脏工作树。
+        git(self.infrastructure, "config", "core.autocrlf", "false")
+        git(self.infrastructure, "reset", "--hard")
         # 测试数据来自本地，提交的 .gitmodules 仍采用生产协议的公开 HTTPS URL。
         git(self.root, "config", "--file", ".gitmodules", f"{SECTION}.url", PUBLIC_URL)
         git(self.root, "add", ".gitmodules", SUBMODULE_RELATIVE.as_posix())
         git(self.root, "commit", "-m", "test consumer pinned infrastructure")
-        self.infrastructure = self.root / SUBMODULE_RELATIVE
         self.script = self.infrastructure / SCRIPT_RELATIVE
 
     def cli(self, *arguments: str, ok: bool = True, root: Path | None = None) -> dict:
@@ -235,7 +246,7 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
             "> 仅用于验证模板任务流程，不代表任何真实小组或项目事实。\n",
             encoding="utf-8",
         )
-        task_tool = self.infrastructure / "harness/task-loop/scripts/task_loop.py"
+        task_tool = self.infrastructure / "infrastructure/task-loop/tools/task-record/task_loop.py"
 
         def task_cli(*arguments: str) -> dict:
             result = subprocess.run(
@@ -295,7 +306,7 @@ class GroupAssetBootstrapIntegrationTest(unittest.TestCase):
 
 class GroupAssetBootstrapFilesystemTest(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="group-bootstrap-boundaries-")
+        self.temp = tempfile.TemporaryDirectory(prefix="gbb-")
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
         self.root = self.base / "consumer"
