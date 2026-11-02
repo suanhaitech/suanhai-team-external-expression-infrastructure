@@ -13,8 +13,8 @@
 1. 先判断用户要创建的是新小组资产仓，还是继续使用已有仓库。已有仓库不重复创建，改走适用的接入或初始化流程。
 2. 对新仓创建，遵循提示词核对组织、仓库名、可见性、本地路径、账号及工具环境；缺少必要参数时集中询问。
 3. 仅通过公开模板生成 API 创建仓库，并递归克隆。发生名称冲突、权限不足、目录冲突或环境失败时停止并报告，不换名、改可见性或覆盖目标。
-4. 从模板父仓 gitlink 恢复并核对固定基础设施版本。不得执行 `git submodule update --remote` 或自行选择新版本。
-5. 在新仓根目录读取 `README.md` 和 `AGENTS.md`，确认 Manifest 与 onboarding 入口后，调用 `consumer.group-asset-onboarding` 逐步完成上下文初始化。
+4. 从模板父仓 gitlink 恢复并核对固定基础设施版本。首次初始化 submodule 后运行一次只读 `consumer.submodule-preflight`，检查本地状态和远端稳定 `main`；若远端 SHA 不同，报告为候选变化并暂停，等待用户选择暂缓后继续固定版本，或结束本流程并另行授权受控更新。不得执行 `git submodule update --remote` 或自行选择新版本。
+5. 将这次预检快照和固定 SHA 传给 `consumer.group-asset-onboarding` 并复用至本流程结束，不重复查询；新的独立顶层调用再重新预检。读取新仓根 `README.md` 和 `AGENTS.md`，确认 Manifest 与 onboarding 入口后，逐步完成上下文初始化。
 6. 初始化候选和待确认事项留在消费端工作区供组长审阅；是否提交或推送由负责人另行决定。
 
 ## 停止条件

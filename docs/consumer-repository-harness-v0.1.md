@@ -84,7 +84,7 @@ consumer-repository/
 11. task 中登记的直接来源
 ```
 
-根规则接入后，先运行 Manifest 声明的只读 submodule 预检；不得因为远端有更新而自动切换版本。仅远端网络不可用时，可报告远端未知并通过 `--skip-remote` 复核本地固定版本，本地检查通过后继续；gitlink 漂移、submodule 脏工作区或缺失等错误不能忽略。具体命令和升级、回退路线见 [版本协议](submodule-consumer-versioning.md)。
+每次准备调用一个独立的顶层共享能力前，运行 Manifest 声明的只读 submodule 预检；一次顶层工作流内通过 `uses` 调用的依赖能力沿用该次得到的完整 SHA，不重复查询。新任务、另一个独立顶层能力或新会话中的恢复都重新预检。不得因为远端 `main` 指针不同而自动切换版本：本地检查通过时，报告固定 gitlink SHA 和远端 SHA，说明该差异不证明候选是快进、包含新能力或已验收。若用户本轮已明确要求更新，进入受控更新流程并展示计划、等待确认；否则暂停该顶层调用，等用户选择暂缓并继续固定版本，或进入受控更新流程。远端查询失败时标记为未知，本地检查通过可继续使用固定 SHA，但不得声称与远端同步；gitlink 漂移、submodule 脏工作区或缺失等本地错误不能忽略。具体命令和升级、回退路线见 [版本协议](submodule-consumer-versioning.md)。
 
 新空仓尚无首次父仓提交时，按 [新仓建立流程](group-asset-repository-bootstrap.md) 使用模板铺设工具的 dry-run 核对 index gitlink 与 submodule HEAD，然后完成初始化；不为通过日常预检而自动提交。旧仓不存在 `initialization.md` 时遵循自己的初始化映射，不补造历史确认记录。
 
@@ -191,7 +191,7 @@ Agent 先用 `context/group/identity.md`、`sources.md` 和 `expression-boundary
 
 ## 10. 版本和升级
 
-消费端 submodule gitlink 是实际使用版本的唯一事实来源。启动时只读预检版本关系，远端更新只作提示。升级时按 [消费端 submodule 版本协议](submodule-consumer-versioning.md) 从消费端 `develop` 创建短期分支，更新到明确 commit，运行 Manifest 校验和冒烟测试，用真实任务试用，记录兼容性问题，再决定是否合并消费端的 `develop` 或 `main`。已有用户授权在其范围内继续有效。
+消费端 submodule gitlink 是实际使用版本的唯一事实来源。每次独立顶层能力调用前只读比较版本关系；远端 `main` 指针不同只提示并交由用户选择暂缓或进入受控更新。更新时按 [消费端 submodule 版本协议](submodule-consumer-versioning.md) 从消费端 `develop` 创建短期分支，更新到明确 commit，运行 Manifest 校验和冒烟测试，用真实任务试用，记录兼容性问题，再决定是否合并消费端的 `develop` 或 `main`。已有用户授权在其范围内继续有效。
 
 共享基础设施变更也必须经过短期分支、Manifest 校验和消费端验证。消费端不能自动跟随 submodule 浮动分支。
 

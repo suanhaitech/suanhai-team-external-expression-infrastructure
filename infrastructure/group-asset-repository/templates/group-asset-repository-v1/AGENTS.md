@@ -41,17 +41,24 @@ Agent 工作目录为本仓库根目录。先读取根 `README.md` 与本文件�
 - 用户仅要求调查：只读上下文、任务和共享能力，不创建业务任务或作品。
 - 用户要求检查或更新 submodule：路由到 Manifest 中显式声明的 `consumer.submodule-update`，遵守其确认、短期分支、验证和回退规则；没有该能力时只按版本协议报告，不自行补造工作流。
 
-## Submodule 预检与版本
+## 每次独立共享能力调用前的预检
 
-每次启动时，Manifest 声明 `consumer.submodule-preflight` 的情况下，读取入口并从本仓库根目录执行只读预检：
+每次准备调用一个独立的顶层共享能力时，先从当前固定 Manifest 确认 `consumer.submodule-preflight` 已声明并读取其入口，再从本仓库根目录执行只读预检。读取 Manifest 和预检工具入口是发现/启动检查，不视为调用业务能力；预检工具自身也不递归触发预检。
 
 ```powershell
 py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py --root . --path vendor/suanhai-team-external-expression-infrastructure
 ```
 
-新空仓尚无父仓首次提交时，预检工具不能读取不存在的父仓 HEAD；按建立流程运行 `consumer.group-asset-bootstrap` 的 dry-run，核对 index gitlink 与 submodule HEAD。可以先完成初始化访谈，不为通过预检擅自提交。首次提交后的日常启动使用上面的预检。
+新空仓尚无父仓首次提交时，预检工具不能读取不存在的父仓 HEAD；按建立流程运行 `consumer.group-asset-bootstrap` 的 dry-run，核对 index gitlink 与 submodule HEAD。可以先完成初始化访谈，不为通过预检擅自提交。首次提交后，每个独立的顶层能力调用各自执行一次上面的预检。
 
-预检核对父仓固定 gitlink、submodule HEAD、工作区和远端稳定分支快照。远端存在更新只需报告，不执行 fetch、checkout、`submodule update --remote` 或静默升级。远端网络不可用时，保留失败结果，并用同一命令追加 `--skip-remote` 检查本地；本地固定版本一致且工作区干净时可继续使用该版本，明确报告远端状态未知。不能把其他本地错误当成网络问题忽略。升级与回退沿用版本协议和当前用户授权。
+一个顶层工作流开始后固定使用预检得到的完整 SHA；它通过 `uses` 调用的工具、模板、样式、技能或检查均沿用该 SHA，不重复查询。同一会话中开始另一个独立任务/报告、调用另一个顶层能力，或在新会话恢复任务时，重新预检；仅继续当前尚未中断的工作流时复用快照。预检工具输出应保留在本次任务记录或 Agent 的工作上下文中，至少记录 `observed_at`、父仓 gitlink SHA、submodule HEAD 和远端 `main` SHA/状态。
+
+- `status=locked`：本地状态一致，远端 `main` 与固定 gitlink 相同；锁定并使用该完整 SHA。
+- `status=update-available` 且本地检查通过：向用户报告当前 gitlink SHA 与远端 `main` SHA，并说明 SHA 不同只表示远端指针发生变化，不能据此断言候选是快进提交、包含新能力或已验收。若用户本轮已明确要求更新，按其要求进入 `consumer.submodule-update` 并展示计划、等待更新确认；否则暂停该顶层能力，请用户选择暂缓更新、继续当前固定 SHA，或立即进入该受控更新流程。
+- 用户选择立即更新：先由更新工作流展示候选、差异、验证和回退计划并取得确认；它复用触发更新的这次预检快照，避免递归预检。只有用户已授权提交、更新后的 gitlink 已进入父仓 `HEAD`、父仓工作区干净且完整预检通过后，才能从新固定 SHA 重新开始原能力；提交尚未获授权时保留现场并暂停原能力。
+- 远端查询失败：明确报告远端状态未知；若所有本地检查通过，可继续使用当前固定 SHA，但不得声称与远端同步。若本地任一检查失败（gitlink 与 HEAD 不一致、父仓路径或 submodule 脏、固定对象或能力入口缺失等），停止相关能力调用并保留现场。
+
+远端快照使用只读 `ls-remote`，不执行 fetch、checkout、`git submodule update --remote` 或静默升级。版本更新和回退沿用版本协议与当前用户授权；远端变化或用户选择不能导致正在进行的工作流中途切换 SHA。
 
 上面的预检命令在 Windows 使用 `py -3`；Linux/macOS 将解释器替换为 `python3`。首次恢复固定依赖可以为下载该固定 commit 访问远端，但不等于升级或远端追随。
 

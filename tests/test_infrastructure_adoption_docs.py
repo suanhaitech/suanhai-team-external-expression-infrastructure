@@ -18,6 +18,15 @@ ENTRYPOINT = (ROOT / "workflows/infrastructure-adoption/ENTRYPOINT.md").read_tex
 WORKFLOW = (ROOT / "workflows/infrastructure-adoption/WORKFLOW.md").read_text(encoding="utf-8")
 PROMPT = (ROOT / "workflows/infrastructure-adoption/ADOPT_EXISTING_REPOSITORY.md").read_text(encoding="utf-8")
 INSTALLER = (ROOT / "infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py").read_text(encoding="utf-8")
+TEMPLATE_HARNESS = (ROOT / "infrastructure/group-asset-repository/templates/group-asset-repository-v1/AGENTS.md").read_text(encoding="utf-8")
+BOOTSTRAP = (ROOT / "docs/consumer-repository-bootstrap.md").read_text(encoding="utf-8")
+HARNESS_PROTOCOL = (ROOT / "docs/consumer-repository-harness-v0.1.md").read_text(encoding="utf-8")
+VERSIONING = (ROOT / "docs/submodule-consumer-versioning.md").read_text(encoding="utf-8")
+SUBMODULE_UPDATE = (ROOT / "workflows/submodule-update/ENTRYPOINT.md").read_text(encoding="utf-8")
+SUBMODULE_UPDATE_WORKFLOW = (ROOT / "workflows/submodule-update/WORKFLOW.md").read_text(encoding="utf-8")
+ONBOARDING = (ROOT / "workflows/group-asset-repository-onboarding/ENTRYPOINT.md").read_text(encoding="utf-8")
+TASK_LOOP = (ROOT / "workflows/task-loop/ENTRYPOINT.md").read_text(encoding="utf-8")
+HTML_PRODUCTION = (ROOT / "workflows/html/production/ENTRYPOINT.md").read_text(encoding="utf-8")
 
 
 class InfrastructureAdoptionDocsTest(unittest.TestCase):
@@ -57,9 +66,10 @@ class InfrastructureAdoptionDocsTest(unittest.TestCase):
             self.assertIn("AGENTS.md", text)
             self.assertIn("保留", text)
         self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", INSTALLER)
-        self.assertIn("标记冲突、残缺或重复时拒绝写入", WORKFLOW)
-        self.assertIn("标记重复、残缺、顺序错误或内容不同", ENTRYPOINT)
-        self.assertIn("标记重复、残缺、顺序错误或内容不同", PROMPT)
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", INSTALLER)
+        self.assertIn("完整 v1 标记段与旧版生成内容完全一致", WORKFLOW)
+        self.assertIn("手工修改、标记重复、版本混用", ENTRYPOINT)
+        self.assertIn("手工修改过的旧段、版本混用", PROMPT)
         for text in (ENTRYPOINT, WORKFLOW, PROMPT):
             self.assertIn("consumer.infrastructure-adoption-harness", text)
             self.assertIn("--dry-run", text)
@@ -108,6 +118,24 @@ class InfrastructureAdoptionDocsTest(unittest.TestCase):
         self.assertIn("git submodule update --init --recursive -- <实际路径>", PROMPT)
         self.assertIn("工作流来源 SHA 同时用作新 submodule 的固定 SHA", PROMPT)
         self.assertIn("保留原 SHA", PROMPT)
+
+    def test_each_top_level_shared_call_preflights_and_reuses_one_sha_per_workflow(self):
+        for text in (TEMPLATE_HARNESS, BOOTSTRAP, HARNESS_PROTOCOL, VERSIONING):
+            self.assertIn("独立", text)
+            self.assertIn("预检", text)
+            self.assertIn("固定 SHA", text)
+        self.assertIn("每次准备调用一个独立的顶层共享能力时", TEMPLATE_HARNESS)
+        self.assertIn("一次顶层工作流内通过 `uses` 调用的依赖能力沿用", HARNESS_PROTOCOL)
+        self.assertIn("暂停该顶层能力，请用户选择", TEMPLATE_HARNESS)
+        self.assertIn("不证明候选是快进、包含新能力或已验收", VERSIONING)
+        self.assertIn("复用该预检快照", SUBMODULE_UPDATE)
+        self.assertIn("作为一次独立的顶层能力调用", ONBOARDING)
+        self.assertIn("更新流程复用该预检快照", WORKFLOW)
+        self.assertIn("只有用户已授权提交", VERSIONING)
+        self.assertIn("若用户未授权提交", SUBMODULE_UPDATE)
+        self.assertIn("若提交未获授权", SUBMODULE_UPDATE_WORKFLOW)
+        self.assertIn("作为独立顶层共享能力调用时", TASK_LOOP)
+        self.assertIn("不在节点间重复查询", HTML_PRODUCTION)
 
 
 if __name__ == "__main__":

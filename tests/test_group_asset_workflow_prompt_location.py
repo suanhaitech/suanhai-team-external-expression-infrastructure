@@ -7,6 +7,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = (ROOT / "manifest.yml").read_text(encoding="utf-8")
+CREATE_PROMPT = (ROOT / "workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md").read_text(encoding="utf-8")
+CREATE_ENTRYPOINT = (ROOT / "workflows/group-asset-repository-create-and-initialize/ENTRYPOINT.md").read_text(encoding="utf-8")
 
 
 class GroupAssetWorkflowPromptLocationTest(unittest.TestCase):
@@ -50,6 +52,13 @@ class GroupAssetWorkflowPromptLocationTest(unittest.TestCase):
             with self.subTest(document=relative):
                 self.assertIn(expected, text)
                 self.assertNotIn("workflows/group-asset-repository/CREATE_AND_INITIALIZE.md", text)
+
+    def test_create_flow_reuses_first_submodule_preflight_snapshot(self):
+        self.assertIn("新仓建立后的首个共享能力快照", CREATE_PROMPT)
+        self.assertIn("把阶段 4 的预检快照和锁定 SHA 交给 onboarding 入口复用", CREATE_PROMPT)
+        self.assertIn("远端 `main` 与模板 gitlink 的 SHA 不同", CREATE_PROMPT)
+        self.assertIn("本地检查通过可在固定版本上继续", CREATE_PROMPT)
+        self.assertIn("将这次预检快照和固定 SHA 传给", CREATE_ENTRYPOINT)
 
 
 if __name__ == "__main__":

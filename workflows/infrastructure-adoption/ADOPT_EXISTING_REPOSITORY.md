@@ -74,7 +74,7 @@
 
    向我展示 JSON 中的 `planned_harness` 完整内容、`planned_diff`、`plan_sha256`、`agents_action`、固定 SHA 和将修改的文件。以本提示词授予的本地修改权限，立即以相同参数运行并添加 `--apply --expect-plan-sha256 <本次预览的 plan_sha256>`，不用等待第二次确认。工具会重新计算计划摘要；若原文件、路径或 gitlink 在审阅后发生变化就拒绝写入。工具只会在本仓根创建或增补 `AGENTS.md`，不覆盖已有规则，不修改其他项目文件，不暂存、提交、推送或改动 submodule。
 
-   若标记已成对存在且内容一致，工具报告 `unchanged`；若标记重复、残缺、顺序错误或内容不同，工具会拒绝修改。不得绕过工具手工合并。Agent 客户端不读取根 `AGENTS.md` 时如实报告；只有负责人同意且客户端存在明确指令入口时，才添加最小指针，不复制完整 Harness。
+   若 v2 标记已成对存在且内容一致，工具报告 `unchanged`；若存在与旧版生成内容逐字一致的完整 v1 段，工具会把迁移计划标为 `upgrade`，仅替换标记范围并保留其余字节。任何手工修改过的旧段、版本混用、标记重复、残缺、顺序错误或其他内容冲突都会拒绝修改。不得绕过工具手工合并。Agent 客户端不读取根 `AGENTS.md` 时如实报告；只有负责人同意且客户端存在明确指令入口时，才添加最小指针，不复制完整 Harness。
 
 6. 读取固定 submodule 内的 `manifest.yml`、`docs/consumer-repository-bootstrap.md`、`docs/submodule-consumer-versioning.md` 和接入工作流入口。检查所有能力入口与 `uses` 引用；只按 Manifest 路由。
 
@@ -91,4 +91,4 @@
 
 9. 收口报告父仓路径和分支、URL、固定 SHA、变更文件、Manifest 和检查结果、尚待处理事项及未执行的外部动作。不要把本地接线成功说成项目事实验收或发布授权。
 
-完成后，只要 submodule 已初始化且 Agent 客户端会读取本仓根 `AGENTS.md`，我就可以直接在本仓提出任务，由本仓 Harness 按固定 Manifest 路由共享能力；新 clone 时按父仓 gitlink 恢复固定版本。以后发现远端新版本只作为候选，升级走 `consumer.submodule-update`，不再运行初次接入提示词。
+完成后，只要 submodule 已初始化且 Agent 客户端会读取本仓根 `AGENTS.md`，我就可以直接在本仓提出任务，由本仓 Harness 按固定 Manifest 路由共享能力。每个独立的顶层能力调用前都会预检远端稳定 `main`；一次工作流内的依赖复用固定 SHA，新的独立调用和新会话续作重新检查。发现远端 SHA 不同只作为候选信号，由负责人选择暂缓并继续固定版本，或进入 `consumer.submodule-update`；不自动升级，也不再运行初次接入提示词。

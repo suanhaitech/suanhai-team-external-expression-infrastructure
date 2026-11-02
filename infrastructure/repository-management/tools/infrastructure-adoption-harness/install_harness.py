@@ -26,8 +26,10 @@ REQUIRED_CAPABILITIES = {
 }
 TOOL_PATH = "infrastructure/repository-management/tools/infrastructure-adoption-harness"
 ENTRYPOINT = f"{TOOL_PATH}/install_harness.py"
-BEGIN = "<!-- BEGIN suanhai-infrastructure-consumer-harness:v1 -->"
-END = "<!-- END suanhai-infrastructure-consumer-harness:v1 -->"
+BEGIN_V1 = "<!-- BEGIN suanhai-infrastructure-consumer-harness:v1 -->"
+END_V1 = "<!-- END suanhai-infrastructure-consumer-harness:v1 -->"
+BEGIN = "<!-- BEGIN suanhai-infrastructure-consumer-harness:v2 -->"
+END = "<!-- END suanhai-infrastructure-consumer-harness:v2 -->"
 GIT_SHA = re.compile(r"\A[0-9a-f]{40}\Z")
 
 
@@ -250,8 +252,9 @@ def assert_submodule(root: Path, relative: str) -> tuple[Path, str]:
     return infrastructure, gitlink
 
 
-def render_harness(relative: str) -> str:
-    harness = f"""{BEGIN}
+def render_harness_v1(relative: str) -> str:
+    """返回旧版安装器生成的精确文本，仅用于识别可安全迁移的段落。"""
+    harness = f"""{BEGIN_V1}
 ## 共享 Suanhai 对外表达基础设施
 
 本仓库通过 §{relative}§ 固定使用 Suanhai 团队对外表达基础设施。每次新会话从本仓根目录开始，先遵守本仓规则并读取根 §README.md§、§AGENTS.md§；再读取该路径下的 §manifest.yml§、§docs/consumer-repository-bootstrap.md§、§docs/consumer-repository-harness-v0.1.md§、§docs/submodule-consumer-versioning.md§ 和本次任务所需能力入口。
@@ -267,6 +270,31 @@ def render_harness(relative: str) -> str:
 沿用本仓库自己的上下文、任务、产物、CI 和责任边界，不要求迁移成公共模板结构；只有任务适合且用户提出或同意时才调用共享工作流、工具或模板，不自动创建公共模板目录。首次使用共享能力前，若父仓 HEAD 已记录 gitlink，运行 Manifest 声明的 §consumer.submodule-preflight§ 并使用实际路径；同一会话中仓库状态未变化时不必重复远端查询。gitlink 尚未提交时按本地 index 协议检查，不把完整预检失败当作通过。记录本任务实际使用的能力 ID 和固定 submodule commit。项目事实、来源、任务、产物和评审留在父仓；默认不修改 submodule。发现 gitlink 漂移、脏 submodule、缺失对象或入口缺失时停止。版本更新必须使用 Manifest 中实际存在的 §consumer.submodule-update§ 工作流，固定完整 commit，不自动跟随远端。
 
 新 clone 如果父仓已有 gitlink、但 submodule 尚未初始化，在路径无冲突且无本地修改时按本仓规则运行 §git submodule update --init --recursive -- {relative}§ 恢复固定版本；这不是升级。能力发现不等于权限、专业事实确认或发布授权。遵循本仓规则和用户授权执行有副作用的动作。
+{END_V1}"""
+    return harness.replace("§", chr(96))
+
+
+def render_harness(relative: str) -> str:
+    harness = f"""{BEGIN}
+## 共享 Suanhai 对外表达基础设施
+
+本仓库通过 §{relative}§ 固定使用 Suanhai 团队对外表达基础设施。每次新会话从本仓根目录开始，先遵守本仓规则并读取根 §README.md§、§AGENTS.md§；再读取该路径下的 §manifest.yml§、§docs/consumer-repository-bootstrap.md§、§docs/consumer-repository-harness-v0.1.md§、§docs/submodule-consumer-versioning.md§ 和本次任务所需能力入口。
+
+按本仓自己的目录和规则定位任务、上下文、来源、产物与评审记录，只读取当前请求相关的材料。既有仓库不要求迁移成公共模板结构；若本仓没有清楚说明这些对象放在哪里，先向负责人确认，不新建目录或移动文件来猜测约定。
+
+用户提出新的对外表达任务时，若固定 Manifest 显式列出 §expression.task-loop§，读取其工作流入口；并仅在同时列出 §expression.task-record§ 时用该工具登记和推进任务。先将请求整理为任务草案，和用户澄清目标、受众、范围、来源、输出与完成条件；用户确认方向后再进入制作。用户给出任务编号时先用已声明的记录能力读取当前状态并续作，不重复建任务。若上述能力未列出，使用本仓已有任务协议；没有适用协议时先向负责人说明缺口，不伪称共享任务能力可用。
+
+用户要求初始化小组或项目上下文时，若固定 Manifest 显式列出 §consumer.group-asset-onboarding§，读取并按该工作流推进；保留本仓现有结构和事实，不把初始化请求扩展成创建任务、作品或发布授权。
+
+完成任务对齐后，结合本仓任务和上下文判断适合调用的共享能力。只有固定版本 Manifest 的 §capabilities§ 中显式列出的能力才可调用，并按 §uses§ 读取其入口和依赖；匹配能力时按能力 ID 路由，不匹配时继续遵循本仓既有流程。目录存在、占位说明或远端分支前进都不代表能力可用。
+
+沿用本仓库自己的上下文、任务、产物、CI 和责任边界，不要求迁移成公共模板结构；只有任务适合且用户提出或同意时才调用共享工作流、工具或模板，不自动创建公共模板目录。每次准备调用一个独立的顶层共享能力前，若父仓 HEAD 已记录 gitlink，先运行 Manifest 声明的 §consumer.submodule-preflight§ 并使用实际路径；确认本地状态后再读取和调用该能力。gitlink 尚未提交时按本地 index 协议检查，不把完整预检失败当作通过。记录本任务实际使用的能力 ID 和固定 submodule commit。
+
+一次顶层工作流从开始到结束固定使用预检得到的完整 SHA；它通过 §uses§ 调用的依赖能力沿用同一 SHA，不重复查询。新的独立顶层能力调用（包括同一会话里的另一个任务或报告）重新预检；仅继续当前尚未中断的工作流时复用快照。发现父仓 gitlink 与 submodule HEAD 不一致、父仓 submodule 路径或 submodule 工作区有改动、固定对象缺失或本地能力入口缺失时，停止相关调用。
+
+若预检显示 §status=update-available§ 且本地检查通过，向用户同时报告当前 gitlink SHA 与远端 §main§ SHA，并说明这只是远端指针不同，不证明候选是快进提交、包含新能力或已验收。若用户本轮已明确要求更新，按其要求进入 §consumer.submodule-update§ 并展示计划、等待更新确认；否则暂停该顶层能力，请用户选择暂缓更新、继续使用当前固定 SHA，或立即进入该受控更新流程。更新工作流复用触发本次更新的预检快照，避免递归预检。只有用户已授权提交、更新后的 gitlink 已进入父仓 §HEAD§、父仓工作区干净且完整预检通过后，才能从新固定 SHA 重新开始原顶层能力；提交尚未获授权时保留现场并暂停原能力，等待授权提交和后续预检。若远端查询失败，明确标记为未知；本地检查通过时可继续使用当前固定 SHA，但不得声称已与远端同步。任何本地检查失败都必须停止。远端变化和用户选择都不能让正在进行的工作流中途切换版本。
+
+新 clone 如果父仓已有 gitlink、但 submodule 尚未初始化，在路径无冲突且无本地修改时按本仓规则运行 §git submodule update --init --recursive -- {relative}§ 恢复固定版本；这不是升级。能力发现不等于权限、专业事实确认或发布授权。遵循本仓规则和用户授权执行有副作用的动作。
 {END}"""
     return harness.replace("§", chr(96))
 
@@ -278,20 +306,25 @@ def plan_install(agents_file: Path, relative: str) -> tuple[bytes | None, bytes,
         raise HarnessInstallError("消费端根 AGENTS.md 已存在但不是普通文件")
 
     original = agents_file.read_bytes() if agents_file.exists() else None
-    if original is None:
-        source = ""
-        newline = "\n"
-    else:
+    if original is not None:
         try:
-            source = original.decode("utf-8")
+            original.decode("utf-8")
         except UnicodeDecodeError as error:
             raise HarnessInstallError("现有 AGENTS.md 不是 UTF-8；未写入任何内容") from error
-        newline = "\r\n" if b"\r\n" in original else "\r" if b"\r" in original and b"\n" not in original else "\n"
-        source = source.replace("\r\n", "\n").replace("\r", "\n")
+    newline = "\r\n" if original and b"\r\n" in original else "\r" if original and b"\r" in original and b"\n" not in original else "\n"
 
     expected = render_harness(relative)
-    begin_count, end_count = source.count(BEGIN), source.count(END)
-    if begin_count == 0 and end_count == 0:
+    original_bytes = original or b""
+    marker_pairs = (
+        (BEGIN_V1.encode("ascii"), END_V1.encode("ascii"), render_harness_v1(relative)),
+        (BEGIN.encode("ascii"), END.encode("ascii"), expected),
+    )
+    present_versions = [
+        (begin, end, legacy)
+        for begin, end, legacy in marker_pairs
+        if begin in original_bytes or end in original_bytes
+    ]
+    if not present_versions:
         if original is None or not original:
             separator = b""
         elif original.endswith((b"\n", b"\r")):
@@ -302,21 +335,32 @@ def plan_install(agents_file: Path, relative: str) -> tuple[bytes | None, bytes,
         updated = (original or b"") + separator + addition
         action = "create" if original is None else "append"
     else:
-        if begin_count != 1 or end_count != 1:
+        if len(present_versions) != 1:
+            raise HarnessInstallError("Harness 标记版本混用或重复；未改动 AGENTS.md")
+        begin_marker, end_marker, old_harness = present_versions[0]
+        if original_bytes.count(begin_marker) != 1 or original_bytes.count(end_marker) != 1:
             raise HarnessInstallError("Harness 标记重复或不成对；未改动 AGENTS.md")
-        start, end_marker = source.index(BEGIN), source.index(END)
-        if end_marker < start:
+        start = original_bytes.index(begin_marker)
+        end_start = original_bytes.index(end_marker)
+        if end_start < start:
             raise HarnessInstallError("Harness 结束标记位于开始标记之前；未改动 AGENTS.md")
-        end = end_marker + len(END)
-        if end < len(source) and source[end] == "\n":
-            end += 1
-        existing = source[start:end].rstrip("\n")
-        if newline != "\n":
-            existing = existing.replace("\r\n", "\n").replace("\r", "\n")
-        if existing != expected:
+        end = end_start + len(end_marker)
+        existing = original_bytes[start:end].replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        if existing != old_harness.encode("utf-8"):
             raise HarnessInstallError("Harness 标记内存在不同内容；工具不会自动合并或覆盖")
-        unchanged = original or b""
-        return original, unchanged, "unchanged", expected, ""
+        if begin_marker == BEGIN.encode("ascii"):
+            return original, original_bytes, "unchanged", expected, ""
+
+        replacement = expected.replace("\n", newline).encode("utf-8")
+        updated = original_bytes[:start] + replacement + original_bytes[end:]
+        old_display = existing.decode("utf-8").splitlines(keepends=True)
+        new_display = expected.splitlines(keepends=True)
+        diff = (
+            "--- AGENTS.md\n+++ AGENTS.md (planned)\n@@ replace v1 Harness with v2 @@\n"
+            + "".join(f"-{line}" if line.endswith("\n") else f"-{line}\n" for line in old_display)
+            + "".join(f"+{line}" if line.endswith("\n") else f"+{line}\n" for line in new_display)
+        )
+        return original, updated, "upgrade", expected, diff
 
     encoded = updated
     fromfile = "AGENTS.md" if original is not None else "/dev/null"

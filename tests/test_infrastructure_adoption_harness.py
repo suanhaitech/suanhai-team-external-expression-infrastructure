@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,8 @@ import unittest
 
 
 SOURCE_SCRIPT = Path(__file__).resolve().parents[1] / "infrastructure/repository-management/tools/infrastructure-adoption-harness/install_harness.py"
+RENDER_HARNESS_V1 = runpy.run_path(str(SOURCE_SCRIPT))["render_harness_v1"]
+RENDER_HARNESS_V2 = runpy.run_path(str(SOURCE_SCRIPT))["render_harness"]
 REPOSITORY = "suanhai-team-external-expression-infrastructure"
 EXPECTED_URL = f"https://github.com/suanhaitech/{REPOSITORY}.git"
 TOOL_ID = "consumer.infrastructure-adoption-harness"
@@ -150,7 +153,7 @@ capabilities:
         self.assertEqual(payload["agents_action"], "append")
         self.assertIn("+## 共享 Suanhai 对外表达基础设施", payload["planned_diff"])
         self.assertNotIn("Keep these rules.", payload["planned_diff"])
-        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", payload["planned_harness"])
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", payload["planned_harness"])
         self.assertRegex(payload["plan_sha256"], r"^[0-9a-f]{64}$")
         self.assertEqual(agents.read_bytes(), before)
         self.assertEqual(self._git(self.consumer, "rev-parse", "HEAD").stdout.strip(), self.parent_head)
@@ -164,7 +167,7 @@ capabilities:
         self.assertEqual(payload["agents_action"], "create")
         self.assertIn("/dev/null", payload["planned_diff"])
         self.assertIn("+++ AGENTS.md (planned)", payload["planned_diff"])
-        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", payload["planned_diff"])
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", payload["planned_diff"])
         self.assertFalse(agents.exists())
 
     def test_append_preserves_existing_mixed_line_endings_byte_for_byte(self):
@@ -182,8 +185,8 @@ capabilities:
         result = agents.read_text(encoding="utf-8")
         self.assertTrue(payload["written"])
         self.assertTrue(result.startswith("# Existing rules\n\nKeep these rules.\n"))
-        self.assertEqual(result.count("BEGIN suanhai-infrastructure-consumer-harness:v1"), 1)
-        self.assertEqual(result.count("END suanhai-infrastructure-consumer-harness:v1"), 1)
+        self.assertEqual(result.count("BEGIN suanhai-infrastructure-consumer-harness:v2"), 1)
+        self.assertEqual(result.count("END suanhai-infrastructure-consumer-harness:v2"), 1)
         self.assertEqual(self._git(self.consumer, "rev-parse", "HEAD").stdout.strip(), self.parent_head)
         self.assertEqual(self._git(self.submodule, "status", "--porcelain").stdout.strip(), "")
         changed = self._git(self.consumer, "status", "--porcelain").stdout.splitlines()
@@ -199,6 +202,51 @@ capabilities:
         self.assertEqual(unchanged["planned_diff"], "")
         self.run_tool("--apply", "--expect-plan-sha256", unchanged["plan_sha256"])
 
+    def test_exact_v1_harness_migrates_and_preserves_bytes_outside_markers(self):
+        agents = self.consumer / "AGENTS.md"
+        prefix = b"# Existing CRLF\r\nsecond line uses LF\n"
+        suffix = b"\r\n# Existing tail without final newline"
+        old_block = RENDER_HARNESS_V1(SUBMODULE_PATH).replace("\n", "\r\n").encode("utf-8")
+        original = prefix + old_block + suffix
+        agents.write_bytes(original)
+
+        preview, _ = self.run_tool("--dry-run")
+        self.assertEqual(preview["agents_action"], "upgrade")
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", preview["planned_diff"])
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", preview["planned_diff"])
+        self.assertEqual(agents.read_bytes(), original)
+
+        self.run_tool("--apply", "--expect-plan-sha256", preview["plan_sha256"])
+        expected_block = preview["planned_harness"].replace("\n", "\r\n").encode("utf-8")
+        self.assertEqual(agents.read_bytes(), prefix + expected_block + suffix)
+        self.assertNotIn(b"suanhai-infrastructure-consumer-harness:v1", agents.read_bytes())
+        self.assertEqual(agents.read_bytes().count(b"BEGIN suanhai-infrastructure-consumer-harness:v2"), 1)
+
+        unchanged, _ = self.run_tool("--dry-run")
+        self.assertEqual(unchanged["agents_action"], "unchanged")
+        self.assertFalse(unchanged["would_write"])
+
+    def test_modified_v1_harness_is_rejected_without_writing(self):
+        agents = self.consumer / "AGENTS.md"
+        legacy = RENDER_HARNESS_V1(SUBMODULE_PATH).replace("\n", "\r\n").encode("utf-8")
+        conflicting = b"# Existing\r\n" + legacy.replace("沿用本仓库".encode("utf-8"), "用户自定义本仓库".encode("utf-8"), 1)
+        agents.write_bytes(conflicting)
+
+        _, result = self.run_tool("--dry-run", expected_code=1)
+        self.assertIn("Harness 标记内存在不同内容", result.stderr)
+        self.assertEqual(agents.read_bytes(), conflicting)
+
+    def test_mixed_v1_and_v2_harness_markers_are_rejected(self):
+        agents = self.consumer / "AGENTS.md"
+        legacy = RENDER_HARNESS_V1(SUBMODULE_PATH)
+        current = RENDER_HARNESS_V2(SUBMODULE_PATH)
+        mixed = (legacy + "\n" + current + "\n").encode("utf-8")
+        agents.write_bytes(mixed)
+
+        _, result = self.run_tool("--dry-run", expected_code=1)
+        self.assertIn("Harness 标记版本混用或重复", result.stderr)
+        self.assertEqual(agents.read_bytes(), mixed)
+
     def test_existing_fixed_submodule_can_install_missing_consumer_harness(self):
         """既有 gitlink 已正确固定时，只补根 Harness，不要求升级 submodule。"""
         agents = self.consumer / "AGENTS.md"
@@ -209,7 +257,7 @@ capabilities:
         self.assertTrue(agents.read_bytes().startswith(original))
         self.assertEqual(self._git(self.consumer, "rev-parse", "HEAD").stdout.strip(), self.parent_head)
         self.assertEqual(self._git(self.submodule, "rev-parse", "HEAD").stdout.strip(), self.submodule_head)
-        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", agents.read_text(encoding="utf-8"))
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", agents.read_text(encoding="utf-8"))
 
     def test_fresh_consumer_adds_fixed_submodule_then_installs_persistent_harness(self):
         """端到端覆盖模板外新仓：添加 gitlink，再把共享规则安装进根 AGENTS.md。"""
@@ -234,7 +282,7 @@ capabilities:
         self.assertEqual(preview["agents_action"], "create")
         applied, _ = self.run_tool_at(fresh, "--apply", "--expect-plan-sha256", preview["plan_sha256"])
         self.assertTrue(applied["written"])
-        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v1", (fresh / "AGENTS.md").read_text(encoding="utf-8"))
+        self.assertIn("BEGIN suanhai-infrastructure-consumer-harness:v2", (fresh / "AGENTS.md").read_text(encoding="utf-8"))
         self.assertEqual(self._git(fresh / SUBMODULE_PATH, "rev-parse", "HEAD").stdout.strip(), expected_sha)
         self.assertEqual(self._git(fresh / SUBMODULE_PATH, "status", "--porcelain").stdout.strip(), "")
         status = self._git(fresh, "status", "--porcelain").stdout.splitlines()
@@ -253,7 +301,7 @@ capabilities:
 
     def test_duplicate_or_conflicting_markers_are_rejected(self):
         agents = self.consumer / "AGENTS.md"
-        conflicting = "# Existing\n\n<!-- BEGIN suanhai-infrastructure-consumer-harness:v1 -->\nwrong\n<!-- END suanhai-infrastructure-consumer-harness:v1 -->\n"
+        conflicting = "# Existing\n\n<!-- BEGIN suanhai-infrastructure-consumer-harness:v2 -->\nwrong\n<!-- END suanhai-infrastructure-consumer-harness:v2 -->\n"
         agents.write_text(conflicting, encoding="utf-8")
         before = agents.read_bytes()
         _, result = self.run_tool("--dry-run", expected_code=1)
@@ -270,13 +318,13 @@ capabilities:
     def test_apply_requires_dry_run_hash(self):
         _, result = self.run_tool("--apply", expected_code=1)
         self.assertIn("必须携带 dry-run 返回", result.stderr)
-        self.assertNotIn("BEGIN suanhai-infrastructure-consumer-harness:v1", (self.consumer / "AGENTS.md").read_text(encoding="utf-8"))
+        self.assertNotIn("BEGIN suanhai-infrastructure-consumer-harness:v2", (self.consumer / "AGENTS.md").read_text(encoding="utf-8"))
 
     def test_dirty_submodule_is_rejected(self):
         (self.submodule / "untracked.txt").write_text("local change", encoding="utf-8")
         _, result = self.run_tool("--dry-run", expected_code=1)
         self.assertIn("工作区不干净", result.stderr)
-        self.assertFalse((self.consumer / "AGENTS.md").read_text(encoding="utf-8").count("BEGIN suanhai-infrastructure-consumer-harness:v1"))
+        self.assertFalse((self.consumer / "AGENTS.md").read_text(encoding="utf-8").count("BEGIN suanhai-infrastructure-consumer-harness:v2"))
 
     def test_wrong_url_is_rejected(self):
         modules = self.consumer / ".gitmodules"

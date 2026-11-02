@@ -98,7 +98,9 @@ clone 完成后，必须把 Agent 的工作目录切换为 `$consumerRoot`。如
 
 执行消费端 submodule 预检：
     py -3 "$infra/infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py" --root . --path $submodulePath
-预检中除 `remote_matches_expected: warn` 之外任何失败都要停止，不绕过版本、URL 或工作区检查。稳定 `origin/main` 应包含 `$expectedInfrastructureCommit`；如果远端快照暂时不可比较，只记录为远端状态未知，不把它写成能力缺失或自动升级信号。不能把浮动分支名写成版本锁。
+预检中任何本地检查失败都要停止，不绕过版本、URL 或工作区检查。若 `remote_matches_expected: warn`，报告当前 gitlink SHA 与远端 `main` SHA；SHA 不同只表示指针变化，不证明候选是快进、包含新能力或已验收。测试者可以暂缓并继续使用当前固定 SHA，或先进入受控更新流程；本提示词本身不把远端指针直接写入 gitlink。远端快照不可比较时记为未知；本地检查通过可继续固定版本，但不得声称与远端一致。
+
+本提示词启动的端到端测试视为一个顶层测试工作流，使用此次预检得到的完整 SHA 完成其中的任务循环、HTML 制作和工具验证；这些都是本测试流程的内部步骤，不逐项重复远端查询。测试期间若另起独立任务或其他顶层能力，再重新预检。
 
 ## 2. 创建合成来源和测试任务
 

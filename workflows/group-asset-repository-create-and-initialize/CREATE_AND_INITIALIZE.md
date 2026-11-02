@@ -79,11 +79,11 @@ Agent 子进程的 PATH 和网络权限可能与普通 PowerShell、Terminal 或
 - Manifest 中存在 `consumer.group-asset-onboarding`，其入口文件存在；
 - Agent 工具环境可运行 Manifest 声明的 submodule preflight，且本地固定依赖检查通过。
 
-预检先按新仓 `AGENTS.md` 的命令执行。若远端检查明确只是网络不可用，可按规则用 `--skip-remote` 做本地核验，并把远端状态报告为未知。Python 不可用、gitlink 不一致、submodule 脏、来源 URL 错误或本地检查其他失败时，停止初始化写入，保留新仓并报告。不能把手工查文件冒充脚本预检通过。
+这是新仓建立后的首个共享能力快照，供本次“创建并初始化”顶层流程及其调用的 onboarding 能力复用；不在同一条流程中重复查询。若远端 `main` 与模板 gitlink 的 SHA 不同，报告两个 SHA，并说明差异不证明候选是快进、包含新能力或已验收。由于本提示词未授权修改 gitlink，暂停初始化并让组长选择：暂缓更新、按当前固定 SHA 继续，或结束本流程后另行授权 `consumer.submodule-update`。远端检查失败时明确标为未知；本地检查通过可在固定版本上继续，但不得声称与远端同步。Python 不可用、gitlink 不一致、submodule 脏、来源 URL 错误或本地检查其他失败时，停止初始化写入，保留新仓并报告。不能把手工查文件冒充脚本预检通过。
 
 ## 阶段 5：把工作交给新仓初始化 Harness
 
-克隆完成后，明确把后续工作根目录切换为新仓路径。若客户端支持更换 workspace，就切换；否则将新仓绝对路径作为唯一操作根，显式读取该仓根 `README.md`、`AGENTS.md`，然后读取固定 submodule 的 `manifest.yml` 与 `consumer.group-asset-onboarding` 入口。若客户端沙箱不允许访问或写入新仓，停止并报告确切限制，不声称已完成切换或初始化。
+克隆完成后，明确把后续工作根目录切换为新仓路径。若客户端支持更换 workspace，就切换；否则将新仓绝对路径作为唯一操作根，显式读取该仓根 `README.md`、`AGENTS.md`，然后读取固定 submodule 的 `manifest.yml` 与 `consumer.group-asset-onboarding` 入口。把阶段 4 的预检快照和锁定 SHA 交给 onboarding 入口复用，直到本次创建并初始化流程结束；后续独立调用再重新预检。若客户端沙箱不允许访问或写入新仓，停止并报告确切限制，不声称已完成切换或初始化。
 
 遵守仓内初始化入口，分轮询问并写入：
 

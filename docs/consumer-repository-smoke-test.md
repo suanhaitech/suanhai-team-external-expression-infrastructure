@@ -131,6 +131,9 @@ git -C vendor/suanhai-team-external-expression-infrastructure rev-parse HEAD
 通过条件：
 
 - Agent 读取初始化 Harness 和 submodule 版本协议，执行预检；首次提交前按铺设工具的 index/gitlink 校验处理，不因缺父仓 HEAD 误报失败；
+- Agent 在每个独立顶层共享能力调用前预检一次；同一工作流的依赖能力复用该 SHA，随后在同一会话开始另一个独立能力时重新预检；
+- 远端 `main` 与 gitlink 不同时，Agent 同时报告两个 SHA，并说明差异不证明候选是快进、新能力或已验收；Agent 提供暂缓并继续固定 SHA、或进入受控更新的选择，不自动切换；
+- 更新流程复用触发它的预检快照；只有更新已获提交授权、gitlink 已进入父仓 `HEAD`、工作区干净且更新后预检通过，Agent 才从新 SHA 重启原能力；未获提交授权时保留现场并暂停，不能把未提交的 index 状态当作更新完成，也不能在当前工作流中途换版本；
 - Agent 能区分当前使用者与共享小组身份，不从 Git 作者信息推断身份；
 - 空项目索引被识别为允许的初始状态，不强迫生成项目；
 - Agent 不把 `_template/` 当作已登记项目；
