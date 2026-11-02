@@ -54,7 +54,9 @@ git submodule update --init --recursive -- vendor/suanhai-team-external-expressi
 
 完整首启和新机器测试流程见基础设施 `docs/group-asset-repository-bootstrap.md`。模板结构更新与基础设施版本升级分别评审；父仓 gitlink 是实际基础设施版本的唯一事实来源。
 
-如果需要检查或更新基础设施 submodule，在本仓根目录向 Agent 说明“检查基础设施版本”或“更新基础设施 submodule”。Agent 应从 Manifest 路由到 `consumer.submodule-update`，先运行只读预检，展示明确目标 commit 和影响，再按用户确认在短期分支中更新父仓 gitlink。不会因为远端出现新提交而自动升级。
+每次开始一个独立的顶层共享能力调用前，Agent 都会只读预检本地 gitlink、submodule 工作区和远端稳定 `main`；同一工作流内的依赖能力沿用该 SHA，另一个独立调用或新会话恢复时重新检查。若远端 SHA 不同，Agent 会报告当前固定版本与远端候选，并让你选择暂缓、继续使用固定版本，或进入 `consumer.submodule-update`。远端指针不同不等于候选已验收；更新需先展示计划并经确认，不会自动升级。
+
+如果只想检查或主动更新基础设施 submodule，也可以在本仓根目录向 Agent 说明“检查基础设施版本”或“更新基础设施 submodule”。Agent 应从 Manifest 路由到 `consumer.submodule-update`，展示明确目标 commit 和影响，再按用户确认在短期分支中更新父仓 gitlink。
 
 ## 制作 HTML 页面
 

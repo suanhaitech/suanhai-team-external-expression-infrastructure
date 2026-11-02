@@ -161,4 +161,4 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/grou
 
 Linux/macOS 将解释器替换为 `python3`。工具默认只预览，`--apply` 只创建缺失文件，已有相同文件保持不变、不同内容整体拒绝；不添加/升级 submodule，不写小组事实，不提交/推送。普通写入异常会尝试清理本次文件和空目录，清理失败报告残留；断电、强制终止和并发修改不具备事务保证。
 
-尚无父仓首次提交时，铺设工具可核对 index gitlink 与 submodule HEAD；日常版本预检不能读取不存在的父仓 HEAD，不为通过它擅自提交。GitHub 从独立模板创建的小组仓已有初始提交，采用正常首启流程即可。
+尚无父仓首次提交时，铺设工具可核对 index gitlink 与 submodule HEAD；完整版本预检不能读取不存在的父仓 HEAD，不为通过它擅自提交。GitHub 从独立模板创建的小组仓已有初始提交，采用正常首启流程即可。日常使用中，每个独立顶层共享能力调用前重新预检；同一工作流的依赖能力复用该次固定 SHA，新的独立调用或新会话恢复时再次检查。

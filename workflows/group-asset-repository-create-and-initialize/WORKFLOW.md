@@ -26,7 +26,7 @@
 
 - 由公开模板生成的独立小组资产仓；
 - 本地递归克隆，`origin` 指向新仓；
-- `.gitmodules`、父仓 gitlink、submodule HEAD 和 Manifest 入口核验记录；
+- `.gitmodules`、父仓 gitlink、submodule HEAD、远端稳定 `main` 快照和 Manifest 入口核验记录；
 - 留在新仓工作区、供负责人审阅的初始化候选与待确认项。
 
 ## 阶段与边界
@@ -34,8 +34,8 @@
 1. 收集并核对建仓参数和 Agent 工具环境；
 2. 使用 GitHub Template Generate API 创建目标仓；
 3. 使用 `git clone --recurse-submodules` 克隆新仓；
-4. 核验固定 submodule 与初始化入口；
-5. 从新仓根规则调用 `consumer.group-asset-onboarding`，逐项收集、标注并记录小组上下文。
+4. 初始化后运行一次只读 submodule 预检，确认本地状态，并把当前 SHA 作为本次顶层流程的版本快照；远端 `main` SHA 不同只视为候选变化，报告两者并等待用户选择暂缓并继续固定版，或结束流程、另行授权受控更新；
+5. 复用阶段 4 的预检快照，从新仓根规则调用 `consumer.group-asset-onboarding`，逐项收集、标注并记录小组上下文；不在同一创建与初始化流程内重复查询。
 
 建仓是持久的远程副作用。流程不得覆盖已有仓库或目录、修改组织权限、改动基础设施版本、提交或推送初始化材料，也不得把候选信息写成负责人已确认。具体授权、异常处理和端到端测试步骤以启动提示词及[代建流程说明](../../docs/group-asset-repository-create-and-initialize.md)为准。
 

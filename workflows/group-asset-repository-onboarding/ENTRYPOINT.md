@@ -12,7 +12,7 @@
 
 1. 确认当前目录是小组资产仓根目录。先读取根 README、AGENTS，按根规则检查 `.gitmodules` 和父仓固定 gitlink，再处理基础设施可用性。不能在 submodule 还未初始化时声称已读取 Manifest。
 2. 普通 clone 漏掉 submodule 时，只读请求仅诊断；用户已要求初始化时，可按根规则运行 `git submodule update --init --recursive -- vendor/suanhai-team-external-expression-infrastructure`，恢复父仓已记录的版本，再读取 Manifest。该恢复可能下载固定对象，但不是升级；不执行 `submodule add` 或 `update --remote`，不覆盖既有修改。配置或 gitlink 缺失、冲突、已有工作区脏改或 HEAD 漂移时保留现场并报告。
-3. 依赖可用后读取 Manifest、Bootstrap、消费端 Harness、版本协议与本入口。只按当前 Manifest 的 `consumer.group-asset-onboarding` 路由，不根据目录名称推断能力；该入口不因模板样式不同改变。执行 `git status --short --branch`、`git submodule status --recursive` 和 Manifest 声明的只读预检，核对父仓 gitlink 与 submodule HEAD 一致。远端有更新只报告，网络不可用时通过 `--skip-remote` 核对本地后明确远端未知；其他本地错误不能忽略。
+3. 依赖可用后读取 Manifest、Bootstrap、消费端 Harness、版本协议与本入口。只按当前 Manifest 的 `consumer.group-asset-onboarding` 路由，不根据目录名称推断能力；该入口不因模板样式不同改变。作为一次独立的顶层能力调用，开始访谈前按消费端总 Harness 执行一遍只读预检，并把得到的完整 SHA 锁定到本轮访谈。若预检由刚才的根 Harness 直接触发，复用该快照，不重复查询。`status=update-available` 且本地检查通过时，报告固定 SHA 和远端 `main` SHA，说明两者不同不等于候选已验收。若用户本轮已明确要求更新，进入受控更新并展示计划、等待确认；否则暂停本工作流并让用户选择暂缓后继续固定版本，或进入受控更新。远端查询失败则标记为未知，本地检查通过时可继续固定版本。任何本地状态错误都停止。初始化访谈内调用的其他依赖能力沿用同一 SHA；新的独立顶层调用再重新预检。
 4. 从 GitHub 模板生成的新仓已经包含上下文空表，不重复运行铺设工具。标准文件缺失或有冲突时先说明具体差异，不覆盖已有上下文。维护者从空 Git 仓发布模板或执行工具回归时，才使用 [建立流程中的备用铺设路径](../../docs/group-asset-repository-bootstrap.md#三维护者备用路径从空仓铺设)；尚无父仓首次提交的特殊情况由铺设工具核对 index gitlink 与 submodule HEAD，不擅自提交。
 5. 读取 `context/initialization.md` 和实际小组、项目上下文。已完成的初始化不因换机器、成员或 Agent 重新填写；未完成时从未解决事项继续。一次只讨论少量影响方向的问题，复述已有答案，不把整张表一次性交给用户填写。
 

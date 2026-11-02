@@ -62,7 +62,7 @@ GitHub template generation 会创建持久远程仓库。提示词必须先核�
    该仓库名在编写本测试说明时尚未存在；执行时仍由 Agent 按模板流程检查冲突。若名称已存在，不自动改名或覆盖，先停止并报告。
 
 3. 观察 Agent 是否用 GitHub Template Generate 创建仓，使用 `git clone --recurse-submodules`，没有要求组长手工运行 API 或 Git 命令，也没有先克隆基础设施仓。
-4. 核对生成仓 URL 和 visibility；父仓 submodule 条目为 `160000`，`.gitmodules` URL/path 正确，submodule HEAD 完全等于 gitlink；Manifest 和 onboarding 入口可读，按消费端规则运行的本地预检通过。
+4. 核对生成仓 URL 和 visibility；父仓 submodule 条目为 `160000`，`.gitmodules` URL/path 正确，submodule HEAD 完全等于 gitlink；Manifest 和 onboarding 入口可读，并记录本次流程的预检 SHA。若远端 `main` 与 gitlink 不同，Agent 报告两者并说明差异不证明候选已验收，等待组长选择暂缓并继续固定版本，或结束流程后另行授权更新。
 5. 确认 Agent 读取的是新仓根规则，分轮写入被标为“合成候选”的信息和待确认项；项目索引保持空；没有建立任务、作品或发布授权，没有 commit/push。
 6. 在新会话中只说“继续初始化小组资产仓”，确认 Agent 从共享文件恢复候选状态、未知项和下一步，不依赖第一次会话记录。
 7. 核对新仓 `git status` 和 submodule：预期只有初始化上下文本地改动，submodule 干净且版本不变。不要将测试内容推送；记录客户端、操作系统、Agent 命令环境的依赖可用性、完整 gitlink SHA、行为与偏差。
