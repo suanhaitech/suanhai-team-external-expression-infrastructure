@@ -97,7 +97,7 @@ class HtmlRuntimeKitContractTest(unittest.TestCase):
 
     def test_print_styles_hide_toolbar_and_template_exposes_runtime_slots(self):
         css = (KIT / "runtime.css").read_text(encoding="utf-8")
-        report_css = (REPO_ROOT / "infrastructure/html/page-templates/project-report-v1/report.css").read_text(encoding="utf-8")
+        report_css = (REPO_ROOT / "infrastructure/html/templates/presets/project-report-v1/report.css").read_text(encoding="utf-8")
         self.assertRegex(css, r"@media\s+print[\s\S]*?\[data-runtime-toolbar\][\s\S]*?display:\s*none")
         self.assertIn(".runtime-toolbar__mode-buttons", css)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", css)
@@ -106,7 +106,7 @@ class HtmlRuntimeKitContractTest(unittest.TestCase):
         self.assertNotIn(".report-grid", css)
         self.assertIn('html[data-layout-mode="narrow"] .report-grid > *', report_css)
         self.assertIn('grid-column: 1 / -1', report_css)
-        template = (REPO_ROOT / "infrastructure/html/page-templates/project-report-v1/index.html").read_text(encoding="utf-8")
+        template = (REPO_ROOT / "infrastructure/html/templates/presets/project-report-v1/index.html").read_text(encoding="utf-8")
         for marker in (
             "<!-- SUANHAI_RUNTIME_STYLESHEETS -->",
             "<!-- SUANHAI_RUNTIME_TOOLBAR -->",

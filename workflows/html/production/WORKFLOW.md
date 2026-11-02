@@ -54,6 +54,13 @@ Agent 为候选来源建立 `sources.yml`，记录路径或 URL、版本/日期�
 
 Agent 从当前 Manifest 选择已实现的页面模板和组件包，读取其入口文档与元数据。选择依据是任务的受众、用途和内容结构，不根据模板名称猜测能力。
 
+- 读者需要连续向下阅读、浏览多个章节，或主要作为网页文档查阅时，选择 `html.project-report-v1` 这个长页组合预设；
+- 需要按讲解节奏逐页呈现、在现场演示中切换，或要求导出为逐页打印材料时，选择 `html.presentation-deck-v1` 这个演示稿组合预设；
+- 如果当前 Manifest 已登记单页模板，先选择 `html.container.presentation-deck-v1`，再按页面顺序选择封面、目录、章节过渡、内容、结尾和附录页面；页面变体必须声明与容器的兼容关系，不能仅凭目录名称猜测。使用 `html.materialize --container-id ... --page-id ...`，每个 `--page-id` 的顺序就是展示顺序；页面可以重复。当前单页组合不接收 `--component-id`，因为页面尚未声明通用组件插槽。
+- 演示稿使用页面底部的页码选择、上一页和下一页切换，不以顶部导航切页；每页聚焦一个判断或问题，页脚保留来源和数据口径，较长证据或细节移到后页、备注或附录；
+- 完整预设可以通过 `--component-id` 把语义片段放入模板插槽；当前单页组合的页面没有通用语义组件插槽，因此不要对组合模式传 `--component-id`。组合页面后核对顺序、页码、标题和来源页脚；页面比例是首选尺寸，长内容不得裁剪，要求一页一纸时先拆页再检查导出结果；
+- 演示稿的翻页、手动比例、备注和逐页打印由模板自带，不依赖 `html.runtime-kit-v1`。该运行时仅在页面还需要公式渲染、全屏、显示模式或浏览器打印按钮时选用。
+
 组件和运行时选择应记录在 `report.yml` 中。先选择 Manifest 中的组件包，再从其 `index.yml` 选择稳定的语义组件 ID；需要公式、页面显示模式、全屏或浏览器保存 PDF 入口时选择 `html.runtime-kit-v1`。物料化工具会把选中的片段插入页面的组件插槽，并同时复制完整组件包和运行时包，后续可按契约继续调整。组件是语义信息对象，不是任意视觉卡片；每个组件应能关联来源状态、响应式行为和无障碍要求。
 
 当 Manifest 注册 `html.materialize` 时，应调用 `infrastructure/html/tools/materialize/materialize_html.py` 物料化已选模板、响应式布局包、运行时包和组件，不要逐文件手工复制。需要响应式布局时传入 `--layout-id html.responsive-layout-v1`，需要运行时能力时传入 `--runtime-kit-id html.runtime-kit-v1`。先 dry-run，核对目标目录、能力版本和基础设施 commit，再把预览返回的 `plan_sha256` 与 `task_record_version` 一并传给 `--apply`。工具要求任务已进入 `working`，并从已经对齐的 `brief.output` 推导任务修订路径。遇到缺少能力、路径不匹配、gitlink 不一致或目标冲突时停止，不绕开工具直接复制。
@@ -106,5 +113,5 @@ Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路�
 
 - `expression.task-loop`
 - `expression.task-record`
-- `html.project-report-v1` 或当前 Manifest 中适合任务的页面模板；
+- `html.project-report-v1`、`html.presentation-deck-v1` 或当前 Manifest 中已登记的容器/单页模板；
 - 当前 Manifest 中已实现的 HTML 组件、响应式布局、运行时包、物料化、视口检查和 PDF 导出能力。

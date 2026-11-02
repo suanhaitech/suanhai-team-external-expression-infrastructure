@@ -41,7 +41,7 @@ Manifest 只列出已经实现并可被消费端使用的能力。工作流用 `
 
 消费端 Harness 把两类入口连接成任务路线，但不把项目事实复制到共享仓库，也不把计划目录提升成能力。消费端必须在根 `AGENTS.md` 显式接入 [Bootstrap 协议](consumer-repository-bootstrap.md)，否则 submodule 中的文档不会自动改变 Agent 行为。完整协议和冒烟测试见 [消费端对外表达 Harness v0.1](consumer-repository-harness-v0.1.md) 和 [消费端 Agent 冒烟测试](consumer-repository-smoke-test.md)。
 
-新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。共享能力分为两个主要领域：`workflows/` 放各自可独立触发的工作流，`infrastructure/<领域>/` 放工作流可复用的模板、工具、运行资源、Schema、技能和检查协议。HTML 页面资产位于 `infrastructure/html/`；小组资产仓库模板源位于 `infrastructure/group-asset-repository/templates/`。
+新组通过公开的 GitHub 模板仓 `suanhaitech/suanhai-team-group-asset-template` 创建独立资产仓，再递归克隆。发布的模板仓已配置基础设施 submodule 和固定 gitlink；成员不需要先克隆基础设施或手工铺设文件。具体操作见 [新机器初始化流程](group-asset-repository-bootstrap.md)。共享能力分为两个主要领域：`workflows/` 放各自可独立触发的工作流，`infrastructure/<领域>/` 放工作流可复用的模板、工具、运行资源、Schema、技能和检查协议。HTML 页面资产位于 `infrastructure/html/templates/`，其中 `containers/` 保存阅读容器，`single-page/` 保存可组合单页，`presets/` 保存完整组合预设；小组资产仓库模板源位于 `infrastructure/group-asset-repository/templates/`。
 
 如果组长希望 Agent 代办建仓和本地克隆，使用 `workflows/` 下自包含的[创建与初始化提示词](../workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md)。它是一次性工作流启动入口，不是消费端长期 Harness；在 submodule 尚不存在时即可单独分享。建仓、递归克隆和固定依赖核验后，Agent 再读取新仓根规则并调用消费端初始化工作流。创建目标仓、初始化本地上下文、负责人确认和远程推送是不同边界，不能把前一步授权延伸成后续全部授权。
 

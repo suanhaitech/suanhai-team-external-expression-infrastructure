@@ -12,6 +12,8 @@
 
 Agent 应把这段请求解释为“启动工作流”，而不是用户已经授权提交、推送或发布。
 
+选择页面资产时，连续阅读型长页优先考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；只有在还需要公式、显示模式、全屏或浏览器打印入口时，才额外物料化 `html.runtime-kit-v1`。
+
 ## 读取顺序
 
 1. 消费端根 `AGENTS.md`；

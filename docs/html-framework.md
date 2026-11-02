@@ -23,7 +23,7 @@ infrastructure/html/
 ```text
 workflows/html/production/             主工作流与启动入口
 infrastructure/html/
-├── page-templates/                    完整页面结构与模板专属样式
+├── templates/                          容器、单页模板和完整组合预设
 ├── components/                        语义组件包及其契约、示例和必要样式
 ├── styles/                            跨页面复用的基础与响应式样式包
 ├── runtime-kits/                      随页面复制的公式与交互运行时
@@ -39,19 +39,21 @@ infrastructure/html/
 ```
 
 - **内容**：项目事实、文字、数据、图片、来源和授权状态，由消费端提供并核对。
-- **页面模板**：页面骨架、内容插槽和模板专属视觉组合。当前实现 `html.project-report-v1`。
+- **页面模板**：页面容器、可组合的单页结构和完整组合预设。`html.project-report-v1` 与兼容预设 `html.presentation-deck-v1` 位于 `templates/presets/`；`html.container.presentation-deck-v1` 与七个 `html.single-page.*` 能力位于 `templates/containers/` 和 `templates/single-page/`。调用物料化器时，`--page-id` 的出现顺序就是页面顺序。
 - **组件**：可复用的信息结构或交互，例如阶段状态、指标、来源、全屏控件。组件可以携带自身必需的 CSS/JavaScript，保持可安装包完整。
 - **样式**：设计令牌、基础排版、跨页面布局、屏幕适配和打印规则。组件内部的局部样式仍由组件包管理；模板专属样式仍由模板包管理。
 - **运行时**：页面在浏览器中执行的能力及其本地依赖。当前候选包包含 KaTeX 公式渲染、显示模式、全屏和浏览器打印入口。
 - **工具**：在制作过程中执行可重复动作，如物料化、视口检查和确定性 PDF 导出；工具不是页面自身带有的按钮。
 
-概念上的职责分层不要求每种文件都拆成单独目录。消费端要获得可离线复用的结果，工具会按 Manifest 选择完整版本包并把资源复制到作品目录。页面不依赖读者本机的 submodule 路径。
+概念上的职责分层不要求每种文件都拆成单独目录。`templates/containers/` 定义整体阅读方式，`templates/single-page/` 保存可组合的单页模板，`templates/presets/` 保留完整组合预设。消费端要获得可离线复用的结果，工具会按 Manifest 选择版本包并把资源复制到作品目录。页面不依赖读者本机的 submodule 路径。
 
 ## 当前实现清单
 
 ### 页面与组件
 
-`html.project-report-v1` 是项目概览、阶段进展和对外汇报页面模板。模板自身的 `styles.css` 和 `report.css` 负责该页面的具体视觉表现。
+`html.project-report-v1` 是适合连续阅读的项目概览、阶段进展和对外汇报长页模板。`html.presentation-deck-v1` 是适合现场讲解和阶段沟通的多页演示稿模板：逐页聚焦一个判断或问题，页脚标记来源与数据口径，底部提供页码选择、上一页/下一页和进度，支持键盘翻页、讲者备注、自动或手动页面比例以及逐页打印。两种模板有不同的阅读节奏，主工作流依据受众、用途和交付方式选择，不把单页报告里的顶部章节导航复用成演示稿的切页机制。
+
+逐页演示也可选 `html.container.presentation-deck-v1`，并通过多个 `--page-id` 组合封面、目录、过渡、正文、结尾和附录；同一页面变体可以重复。组合模式复制各页面 CSS、替换容器页列表插槽，并在报告记录中保存有序页面 ID、角色、变体和来源。单页目前没有统一语义组件插槽，因此组合模式不接受 `--component-id`；完整预设调用继续兼容原有组件装配路径。
 
 `html.semantic-components-v1` 当前实际登记六个语义组件：
 
@@ -80,7 +82,7 @@ infrastructure/html/
 | --- | --- | --- |
 | 需求与任务对齐 | `expression.task-loop`、`expression.task-record` | 确认目标、受众、范围、来源和完成标准 |
 | 来源与内容准备 | 消费端上下文、来源记录 | 建立可追溯内容结构；未确认内容保持待确认 |
-| 选择页面资产 | `html.project-report-v1`、`html.semantic-components-v1`、可选布局和运行时 | 记录选用的资产及版本 |
+| 选择页面资产 | `html.project-report-v1`、`html.presentation-deck-v1` 或已登记的单页模板、`html.semantic-components-v1`、可选布局和运行时 | 按阅读方式选择容器，按表达职责选择单页模板或完整预设，并记录资产版本 |
 | 组装页面 | `html.materialize` | 先预览计划，再按同一摘要生成自包含版本 |
 | 预览和适配 | `html.viewport-check`、用户反馈 | 记录静态/浏览器检查状态；反馈形成新版本 |
 | 导出与评审 | 可选 `html.pdf-export`、负责人评审 | PDF 参数、事实与表达意见及授权分别留痕 |

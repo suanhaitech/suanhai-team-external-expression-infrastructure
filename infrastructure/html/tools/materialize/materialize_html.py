@@ -7,6 +7,8 @@ import argparse
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
+from html import escape as html_escape
+from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -32,6 +34,39 @@ COMPONENTS_MARKER = "<!-- SUANHAI_COMPONENTS -->"
 RUNTIME_STYLES_MARKER = "<!-- SUANHAI_RUNTIME_STYLESHEETS -->"
 RUNTIME_SCRIPTS_MARKER = "<!-- SUANHAI_RUNTIME_SCRIPTS -->"
 RUNTIME_TOOLBAR_MARKER = "<!-- SUANHAI_RUNTIME_TOOLBAR -->"
+DECK_PAGES_MARKER = "<!-- SUANHAI_DECK_PAGES -->"
+PAGE_STYLESHEETS_MARKER = "<!-- SUANHAI_PAGE_STYLESHEETS -->"
+PAGE_NUMBER_MARKER = "<!-- SUANHAI_PAGE_NUMBER -->"
+
+
+class PageFragmentParser(HTMLParser):
+    """校验单页模板是一个可嵌入的 section，而不是另一份完整文档。"""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.stack: list[str] = []
+        self.roots: list[tuple[str, dict[str, str | None]]] = []
+        self.forbidden = {"html", "head", "body", "script", "iframe", "object", "embed"}
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self.forbidden:
+            raise MaterializeError(f"单页模板不允许包含 <{tag}> 元素")
+        parsed = dict(attrs)
+        if not self.stack:
+            self.roots.append((tag, parsed))
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.stack:
+            index = len(self.stack) - 1 - self.stack[::-1].index(tag)
+            del self.stack[index:]
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self.forbidden:
+            raise MaterializeError(f"单页模板不允许包含 <{tag}> 元素")
+        if not self.stack:
+            self.roots.append((tag, dict(attrs)))
 
 
 class MaterializeError(Exception):
@@ -152,7 +187,7 @@ def scalar_metadata(path: Path) -> dict[str, str]:
         raise MaterializeError(f"无法读取资产元数据 {path.name}：{error}") from error
     values: dict[str, str] = {}
     for line in lines:
-        match = re.fullmatch(r"(id|version|entrypoint):\s*([^#]+?)\s*", line)
+        match = re.fullmatch(r"(id|version|entrypoint|family):\s*([^#]+?)\s*", line)
         if match:
             key, value = match.groups()
             if key in values:
@@ -161,6 +196,176 @@ def scalar_metadata(path: Path) -> dict[str, str]:
     if not {"id", "version", "entrypoint"}.issubset(values):
         raise MaterializeError(f"{path.name} 必须定义顶层 id、version 和 entrypoint")
     return values
+
+
+def single_page_metadata(path: Path) -> dict[str, Any]:
+    """读取单页模板受限 YAML 元数据，并校验组合器所需的显式契约。"""
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except (OSError, UnicodeError) as error:
+        raise MaterializeError(f"无法读取单页模板元数据：{error}") from error
+
+    values: dict[str, Any] = {}
+    lists: dict[str, list[str]] = {}
+    active_list: str | None = None
+    for line in lines:
+        if line.startswith("  - ") and active_list:
+            lists[active_list].append(line[4:].strip())
+            continue
+        active_list = None
+        match = re.fullmatch(r"([a-z_]+):\s*([^#]+?)\s*", line)
+        if match:
+            key, value = match.groups()
+            if key in values or key in lists:
+                raise MaterializeError(f"单页模板元数据字段重复：{key}")
+            values[key] = [] if value.strip() == "[]" else value.strip()
+            continue
+        match = re.fullmatch(r"([a-z_]+):\s*", line)
+        if match:
+            active_list = match.group(1)
+            lists[active_list] = []
+
+    values.update(lists)
+    required = {
+        "id", "kind", "version", "role", "variant", "label", "entrypoint",
+        "stylesheet", "title_slot", "page_number_slot", "offline", "network_dependencies",
+        "container_slots",
+        "slots", "compatible_container_families",
+    }
+    if required - values.keys():
+        raise MaterializeError(f"单页模板元数据缺少字段：{', '.join(sorted(required - values.keys()))}")
+    if values["kind"] != "single-page-template" or values["offline"] != "true":
+        raise MaterializeError("单页模板必须声明 kind: single-page-template 与 offline: true")
+    if values["network_dependencies"] or values["page_number_slot"] != "page-number":
+        raise MaterializeError("单页模板必须离线运行，并声明 page-number 容器插槽")
+    if not all(isinstance(values[key], str) and values[key] for key in ("id", "version", "role", "variant", "label", "title_slot")):
+        raise MaterializeError("单页模板标识、版本、角色、变体、名称和标题插槽不能为空")
+    for field in ("entrypoint", "stylesheet"):
+        safe_relative(values[field], f"单页模板 {field}")
+    if not values["slots"] or values["title_slot"] not in values["slots"]:
+        raise MaterializeError("单页模板 title_slot 必须引用已声明的内容插槽")
+    if values["page_number_slot"] not in values["container_slots"]:
+        raise MaterializeError("单页模板 page_number_slot 必须出现在 container_slots 中")
+    return values
+
+
+def validate_single_page_fragment(markup: str, metadata: dict[str, Any], stylesheet: bytes) -> tuple[str, list[str]]:
+    """检查片段根节点、插槽、页码以及离线约束后返回可组装片段。"""
+    if re.search(r"https?://|url\(\s*['\"]?https?://", markup + stylesheet.decode("utf-8", errors="replace"), re.I):
+        raise MaterializeError(f"单页模板包含远程资源：{metadata['id']}")
+    parser = PageFragmentParser()
+    try:
+        parser.feed(markup)
+    except MaterializeError:
+        raise
+    except Exception as error:
+        raise MaterializeError(f"单页模板 HTML 无法解析：{metadata['id']}：{error}") from error
+    if len(parser.roots) != 1 or parser.roots[0][0] != "section":
+        raise MaterializeError(f"单页模板必须只有一个 section 根节点：{metadata['id']}")
+    root_attrs = parser.roots[0][1]
+    if root_attrs.get("data-single-page-role") != metadata["role"]:
+        raise MaterializeError(f"单页模板根节点角色与元数据不一致：{metadata['id']}")
+    declared = set(metadata["slots"])
+    used = set(re.findall(r'data-slot="([^\"]+)"', markup))
+    if declared != used:
+        raise MaterializeError(f"单页模板插槽与元数据不一致：{metadata['id']}")
+    if metadata["title_slot"] not in used or markup.count(PAGE_NUMBER_MARKER) != 1:
+        raise MaterializeError(f"单页模板必须有标题插槽和唯一页码插槽：{metadata['id']}")
+    return markup, sorted(used)
+
+
+def prefix_fragment_ids(markup: str, prefix: str) -> str:
+    """为每个实例重写 HTML ID 与常见 ID 引用，允许重复组合同一页面变体。"""
+    mapping = {value: f"{prefix}-{value}" for value in re.findall(r'\bid="([^"]+)"', markup)}
+    for old, new in mapping.items():
+        markup = re.sub(rf'(\bid=")({re.escape(old)})(")', rf'\g<1>{new}\g<3>', markup)
+    for attribute in ("aria-labelledby", "aria-describedby", "aria-controls", "for"):
+        pattern = re.compile(rf'({attribute}=")([^"]+)(")')
+        markup = pattern.sub(
+            lambda match: match.group(1) + " ".join(mapping.get(item, item) for item in match.group(2).split()) + match.group(3),
+            markup,
+        )
+    return re.sub(r'href="#([^"]+)"', lambda match: f'href="#{mapping.get(match.group(1), match.group(1))}"', markup)
+
+
+def compose_deck_pages(
+    template_files: list[tuple[PurePosixPath, bytes]],
+    pages: list[dict[str, Any]],
+) -> list[tuple[PurePosixPath, bytes]]:
+    """替换容器示例页，并在一次装配中生成独立 ID、页码和动态导航标题。"""
+    entrypoint = next((index for index, (path, _) in enumerate(template_files) if path.as_posix() == "index.html"), None)
+    if entrypoint is None:
+        raise MaterializeError("演示稿容器必须在根目录提供 index.html")
+    html = template_files[entrypoint][1].decode("utf-8")
+    if html.count(PAGE_STYLESHEETS_MARKER) != 1 or html.count(DECK_PAGES_MARKER) != 1:
+        raise MaterializeError("演示稿容器必须恰有一个页面样式插槽和一个页面列表插槽")
+
+    fragments: list[str] = []
+    stylesheets: list[str] = []
+    linked_stylesheets: set[str] = set()
+    for index, page in enumerate(pages, start=1):
+        metadata = page["metadata"]
+        markup = prefix_fragment_ids(page["markup"], f"slide-{index:02d}")
+        markup = markup.replace(PAGE_NUMBER_MARKER, '<span class="deck-page-number">' + f"{index:02d}" + "</span>")
+        page_class = "deck-page"
+        if metadata["role"] == "cover":
+            page_class += " deck-page--cover"
+        elif metadata["role"] == "closing":
+            page_class += " deck-page--closing"
+        title_slot = html_escape(metadata["title_slot"], quote=True)
+        label = html_escape(metadata["label"], quote=True)
+        fragments.append(
+            f'<div class="{page_class}" id="slide-{index:02d}" data-deck-page '
+            f'data-page-title="{label}" data-page-title-slot="{title_slot}" '
+            f'data-page-role="{html_escape(metadata["role"], quote=True)}" '
+            f'role="group" aria-roledescription="幻灯片" aria-label="{index:02d}：{label}">\n'
+            f"{markup}\n</div>"
+        )
+        stylesheet_path = page["stylesheet_destination"]
+        if stylesheet_path not in linked_stylesheets:
+            stylesheets.append(f'    <link rel="stylesheet" href="{stylesheet_path}" />')
+            linked_stylesheets.add(stylesheet_path)
+
+    stage_pattern = re.compile(r'(<main\b[^>]*data-deck-stage[^>]*>)(.*?)(</main>)', re.S)
+    matches = stage_pattern.findall(html)
+    if len(matches) != 1 or DECK_PAGES_MARKER not in matches[0][1]:
+        raise MaterializeError("演示稿容器必须在唯一舞台容器内提供页面列表插槽")
+    html = stage_pattern.sub(
+        lambda match: match.group(1) + "\n" + "\n\n".join(fragments) + "\n" + match.group(3),
+        html,
+    )
+    html = html.replace(PAGE_STYLESHEETS_MARKER, "\n".join(stylesheets))
+    html = html.replace(DECK_PAGES_MARKER, "")
+    template_files[entrypoint] = (template_files[entrypoint][0], html.encode("utf-8"))
+    return template_files
+
+
+def single_page_asset(
+    infrastructure: Path,
+    capability: dict[str, str],
+    container_family: str,
+) -> tuple[dict[str, Any], str, bytes]:
+    """解析并验证 Manifest 登记的单页资产，避免 Agent 按目录名猜能力。"""
+    source_root, _ = capability_asset(infrastructure, capability, role="page")
+    metadata_path = source_root / "template.yml"
+    metadata = single_page_metadata(metadata_path)
+    if metadata["id"] != capability["id"]:
+        raise MaterializeError(f"Manifest ID 与单页模板元数据不一致：{capability['id']}")
+    if container_family not in metadata["compatible_container_families"]:
+        raise MaterializeError(f"单页模板 {capability['id']} 不兼容容器族 {container_family}")
+    entrypoint = source_root.joinpath(*safe_relative(metadata["entrypoint"], "单页模板 entrypoint").parts)
+    stylesheet = source_root.joinpath(*safe_relative(metadata["stylesheet"], "单页模板 stylesheet").parts)
+    assert_inside(infrastructure, entrypoint, "单页模板 entrypoint")
+    assert_inside(infrastructure, stylesheet, "单页模板 stylesheet")
+    if not entrypoint.is_file() or not stylesheet.is_file():
+        raise MaterializeError(f"单页模板缺少入口或样式表：{capability['id']}")
+    try:
+        markup = entrypoint.read_text(encoding="utf-8")
+        css = stylesheet.read_bytes()
+    except (OSError, UnicodeError) as error:
+        raise MaterializeError(f"无法读取单页模板内容：{capability['id']}：{error}") from error
+    validate_single_page_fragment(markup, metadata, css)
+    return metadata, markup, css
 
 
 def component_catalog(index_path: Path, expected_package: str) -> dict[str, dict[str, str]]:
@@ -254,8 +459,17 @@ def capability_asset(
     if capability["kind"] != "template":
         raise MaterializeError(f"只有 Manifest 中的 template 能力可物料化：{capability['id']}")
     relative = safe_relative(capability["path"], "Manifest path")
-    if role == "template" and not relative.as_posix().startswith("infrastructure/html/page-templates/"):
-        raise MaterializeError(f"页面模板必须位于 infrastructure/html/page-templates/：{capability['id']}")
+    preset_root = ("infrastructure", "html", "templates", "presets")
+    container_root = ("infrastructure", "html", "templates", "containers")
+    page_root = ("infrastructure", "html", "templates", "single-page")
+    if role == "template" and (relative.parts[:4] != preset_root or len(relative.parts) == 4):
+        raise MaterializeError(
+            f"当前 html.materialize 只支持 presets/ 下的完整组合预设；其他 HTML 模板需由组合工具装配：{capability['id']}"
+        )
+    if role == "container" and (relative.parts[:4] != container_root or len(relative.parts) == 4):
+        raise MaterializeError(f"HTML 页面容器必须位于 infrastructure/html/templates/containers/：{capability['id']}")
+    if role == "page" and (relative.parts[:4] != page_root or len(relative.parts) == 4):
+        raise MaterializeError(f"HTML 单页模板必须位于 infrastructure/html/templates/single-page/：{capability['id']}")
     if role == "component" and not relative.as_posix().startswith("infrastructure/html/components/"):
         raise MaterializeError(f"HTML 组件包必须位于 infrastructure/html/components/：{capability['id']}")
     if role == "layout" and not relative.as_posix().startswith("infrastructure/html/styles/"):
@@ -265,7 +479,7 @@ def capability_asset(
 
     source_root = infrastructure.joinpath(*relative.parts)
     assert_inside(infrastructure, source_root, "Manifest path")
-    metadata_path = source_root / ("template.yml" if role == "template" else "package.yml")
+    metadata_path = source_root / ("template.yml" if role in {"template", "container", "page"} else "package.yml")
     if is_link(metadata_path) or not metadata_path.is_file():
         raise MaterializeError(f"能力元数据不存在或不是普通文件：{metadata_path}")
     metadata = scalar_metadata(metadata_path)
@@ -531,6 +745,7 @@ def report_metadata(
     runtime_kits: list[dict[str, Any]],
     semantic_components: list[dict[str, Any]],
     source_ids: list[str],
+    pages: list[dict[str, Any]] | None = None,
 ) -> bytes:
     lines = [
         "schema_version: 1",
@@ -542,10 +757,19 @@ def report_metadata(
         f"audience: {yaml_quote(task['audience'])}",
         f"purpose: {yaml_quote(task['purpose'])}",
         "status: draft",
+        "pages:",
         "components:",
     ]
-    for component in components:
-        lines.append(f"  - {yaml_quote(component['id'])}")
+    if pages:
+        insert_at = lines.index("components:")
+        lines[insert_at:insert_at] = [f"  - {yaml_quote(page['id'])}" for page in pages]
+    else:
+        lines[lines.index("pages:")] = "pages: []"
+    if components:
+        for component in components:
+            lines.append(f"  - {yaml_quote(component['id'])}")
+    else:
+        lines[-1] = "components: []"
     lines.append("layouts:")
     if layouts:
         for layout in layouts:
@@ -559,8 +783,11 @@ def report_metadata(
     else:
         lines[-1] = "runtime_kits: []"
     lines.append("semantic_components:")
-    for component in semantic_components:
-        lines.append(f"  - {yaml_quote(component['id'])}")
+    if semantic_components:
+        for component in semantic_components:
+            lines.append(f"  - {yaml_quote(component['id'])}")
+    else:
+        lines[-1] = "semantic_components: []"
     lines.append("source_ids:")
     if source_ids:
         for source_id in source_ids:
@@ -655,6 +882,8 @@ def inject_semantic_components(
         html = template_files[entrypoint][1].decode("utf-8")
     except UnicodeDecodeError as error:
         raise MaterializeError("模板 index.html 必须是 UTF-8") from error
+    if not snippets and COMPONENTS_MARKER not in html:
+        return template_files
     if html.count(COMPONENTS_MARKER) != 1:
         raise MaterializeError(f"模板 index.html 必须恰有一个语义组件插槽：{COMPONENTS_MARKER}")
     content = "\n".join(item.decode("utf-8") for item in snippets)
@@ -760,7 +989,7 @@ def apply_files(root: Path, writes: list[tuple[Path, bytes]]) -> None:
 def build_plan(
     infrastructure: Path,
     manifest: dict[str, dict[str, str]],
-    template_id: str,
+    template_id: str | None,
     component_package_id: str,
     component_ids: list[str],
     layout_id: str | None,
@@ -772,40 +1001,139 @@ def build_plan(
     infrastructure_commit: str,
     task_context: dict[str, Any],
     source_ids: list[str],
+    container_id: str | None = None,
+    page_ids: list[str] | None = None,
 ) -> tuple[dict[PurePosixPath, bytes], dict[str, Any]]:
-    if template_id not in manifest:
-        raise MaterializeError(f"Manifest 没有登记页面模板：{template_id}")
+    page_ids = page_ids or []
+    if (template_id is None) == (container_id is None):
+        raise MaterializeError("必须且只能选择 --template-id 或 --container-id")
+    if container_id is None and page_ids:
+        raise MaterializeError("--page-id 只能与 --container-id 一起使用")
+    if container_id is not None and not page_ids:
+        raise MaterializeError("组合模式至少需要一个 --page-id")
     # 旧版本把 --component-id 用作组件包 ID；保留这个调用形态，避免已接入
     # 的消费端突然失效。新调用应使用 --component-package-id 配包，再用一个或
     # 多个 --component-id 选择语义片段。
     legacy_package_selection = component_ids == [component_package_id]
     if len(source_ids) != len(set(source_ids)) or any(not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", item) for item in source_ids):
         raise MaterializeError("--source-id 必须唯一且符合稳定来源 ID 格式")
-    template_capability = manifest[template_id]
-    template_root, template_metadata = capability_asset(infrastructure, template_capability, role="template")
+    composition_mode = container_id is not None
+    selected_template_id = container_id or template_id
+    assert selected_template_id is not None
+    template_capability = manifest.get(selected_template_id)
+    if template_capability is None:
+        raise MaterializeError(f"Manifest 没有登记页面模板或容器：{selected_template_id}")
+    template_root, template_metadata = capability_asset(
+        infrastructure, template_capability, role="container" if composition_mode else "template"
+    )
     template_contents = package_files(template_root)
-    package_capability = manifest.get(component_package_id)
-    if package_capability is None:
-        raise MaterializeError(f"Manifest 没有登记组件包：{component_package_id}")
-    component_root, package_metadata = capability_asset(infrastructure, package_capability, role="component")
-    package_metadata_path = component_root / "package.yml"
-    package_lines = package_metadata_path.read_text(encoding="utf-8-sig").splitlines()
-    catalog_relative = next((line.removeprefix("catalog: ").strip() for line in package_lines if line.startswith("catalog: ")), None)
-    if not catalog_relative:
-        raise MaterializeError(f"组件包未声明 catalog：{component_package_id}")
-    catalog_path = component_root.joinpath(*safe_relative(catalog_relative, "组件包 catalog").parts)
-    assert_inside(component_root, catalog_path, "组件包 catalog")
-    catalog = component_catalog(catalog_path, component_package_id)
-    if legacy_package_selection:
-        component_ids = list(catalog)
-    if not component_ids:
-        raise MaterializeError("至少通过 --component-id 选择一个组件目录中的语义组件")
+
+    selected_pages: list[dict[str, Any]] = []
+    page_specs: list[dict[str, Any]] = []
+    copied: dict[PurePosixPath, bytes] = {}
+    if composition_mode:
+        if component_ids:
+            raise MaterializeError("单页模板组合暂不接受 --component-id；请在内容结构阶段规划页面组件")
+        for order, page_id in enumerate(page_ids, start=1):
+            capability = manifest.get(page_id)
+            if capability is None:
+                raise MaterializeError(f"Manifest 没有登记单页模板：{page_id}")
+            container_family = template_metadata.get("family")
+            if not container_family:
+                raise MaterializeError(f"页面容器元数据缺少 family：{selected_template_id}")
+            metadata, markup, stylesheet = single_page_asset(infrastructure, capability, container_family)
+            style_directory = PurePosixPath("assets") / component_slug(page_id)
+            stylesheet_destination = style_directory / "styles.css"
+            if stylesheet_destination in copied and copied[stylesheet_destination] != stylesheet:
+                raise MaterializeError(f"重复单页 ID 的样式内容不一致：{page_id}")
+            copied[stylesheet_destination] = stylesheet
+            page_record = {
+                "order": order,
+                "id": page_id,
+                "version": metadata["version"],
+                "role": metadata["role"],
+                "variant": metadata["variant"],
+                "label": metadata["label"],
+                "source": capability["path"],
+                "entrypoint": capability["entrypoint"],
+                "stylesheet": metadata["stylesheet"],
+                "destination": f"index.html#slide-{order:02d}",
+                "stylesheet_destination": stylesheet_destination.as_posix(),
+            }
+            selected_pages.append(page_record)
+            page_specs.append({
+                "metadata": metadata,
+                "markup": markup,
+                "stylesheet_destination": stylesheet_destination.as_posix(),
+            })
+        template_contents = compose_deck_pages(template_contents, page_specs)
 
     selected_components: list[dict[str, Any]] = []
     selected_layouts: list[dict[str, Any]] = []
     selected_runtime_kits: list[dict[str, Any]] = []
     snippets: list[bytes] = []
-    copied: dict[PurePosixPath, bytes] = {}
+    selected_packages: list[dict[str, Any]] = []
+
+    if not composition_mode:
+        package_capability = manifest.get(component_package_id)
+        if package_capability is None:
+            raise MaterializeError(f"Manifest 没有登记组件包：{component_package_id}")
+        component_root, package_metadata = capability_asset(infrastructure, package_capability, role="component")
+        package_metadata_path = component_root / "package.yml"
+        package_lines = package_metadata_path.read_text(encoding="utf-8-sig").splitlines()
+        catalog_relative = next((line.removeprefix("catalog: ").strip() for line in package_lines if line.startswith("catalog: ")), None)
+        if not catalog_relative:
+            raise MaterializeError(f"组件包未声明 catalog：{component_package_id}")
+        catalog_path = component_root.joinpath(*safe_relative(catalog_relative, "组件包 catalog").parts)
+        assert_inside(component_root, catalog_path, "组件包 catalog")
+        catalog = component_catalog(catalog_path, component_package_id)
+        if legacy_package_selection:
+            component_ids = list(catalog)
+        if not component_ids:
+            raise MaterializeError("至少通过 --component-id 选择一个组件目录中的语义组件")
+
+        if len(component_ids) != len(set(component_ids)):
+            raise MaterializeError("--component-id 不允许重复")
+        component_package_files = package_files(component_root)
+        if not any(path.as_posix() == "styles.css" for path, _ in component_package_files):
+            raise MaterializeError(f"组件包必须提供 styles.css：{component_package_id}")
+        package_target = PurePosixPath("assets") / component_slug(component_package_id)
+        for relative, content in component_package_files:
+            output_path = package_target / relative
+            if output_path in copied:
+                raise MaterializeError(f"组件包内部输出路径冲突：{output_path.as_posix()}")
+            copied[output_path] = content
+
+        for component_id in component_ids:
+            entry = catalog.get(component_id)
+            if entry is None:
+                raise MaterializeError(f"组件包 {component_package_id} 没有登记语义组件：{component_id}")
+            definition_rel = safe_relative(entry["definition"], "组件定义路径")
+            definition_path = component_root.joinpath(*definition_rel.parts)
+            assert_inside(component_root, definition_path, "组件定义路径")
+            definition = component_definition(definition_path, component_id, entry["template"])
+            template_rel = safe_relative(entry["template"], "组件模板路径")
+            snippet_path = component_root.joinpath(*template_rel.parts)
+            assert_inside(component_root, snippet_path, "组件模板路径")
+            if not snippet_path.is_file():
+                raise MaterializeError(f"语义组件 HTML 模板不存在：{component_id}")
+            snippets.append(snippet_path.read_bytes())
+            selected_components.append({
+                "id": component_id,
+                "version": definition["version"],
+                "category": entry["category"],
+                "package": component_package_id,
+                "source": package_capability["path"],
+                "definition": entry["definition"],
+                "template": entry["template"],
+            })
+        selected_packages.append({
+            "id": component_package_id,
+            "version": package_metadata["version"],
+            "source": package_capability["path"],
+            "entrypoint": package_capability["entrypoint"],
+            "destination": package_target.as_posix(),
+        })
 
     if layout_id:
         layout_capability = manifest.get(layout_id)
@@ -848,48 +1176,6 @@ def build_plan(
         }
         selected_runtime_kits.append(selected_runtime_kit)
 
-    if len(component_ids) != len(set(component_ids)):
-        raise MaterializeError("--component-id 不允许重复")
-    if any(path.as_posix() == "styles.css" for path, _ in package_files(component_root)) is False:
-        raise MaterializeError(f"组件包必须提供 styles.css：{component_package_id}")
-    package_target = PurePosixPath("assets") / component_slug(component_package_id)
-    for relative, content in package_files(component_root):
-        output_path = package_target / relative
-        if output_path in copied:
-            raise MaterializeError(f"组件包内部输出路径冲突：{output_path.as_posix()}")
-        copied[output_path] = content
-
-    for component_id in component_ids:
-        entry = catalog.get(component_id)
-        if entry is None:
-            raise MaterializeError(f"组件包 {component_package_id} 没有登记语义组件：{component_id}")
-        definition_rel = safe_relative(entry["definition"], "组件定义路径")
-        definition_path = component_root.joinpath(*definition_rel.parts)
-        assert_inside(component_root, definition_path, "组件定义路径")
-        definition = component_definition(definition_path, component_id, entry["template"])
-        template_rel = safe_relative(entry["template"], "组件模板路径")
-        snippet_path = component_root.joinpath(*template_rel.parts)
-        assert_inside(component_root, snippet_path, "组件模板路径")
-        if not snippet_path.is_file():
-            raise MaterializeError(f"语义组件 HTML 模板不存在：{component_id}")
-        snippets.append(snippet_path.read_bytes())
-        selected_components.append({
-            "id": component_id,
-            "version": definition["version"],
-            "category": entry["category"],
-            "package": component_package_id,
-            "source": package_capability["path"],
-            "definition": entry["definition"],
-            "template": entry["template"],
-        })
-
-    selected_packages = [{
-        "id": component_package_id,
-        "version": package_metadata["version"],
-        "source": package_capability["path"],
-        "entrypoint": package_capability["entrypoint"],
-        "destination": package_target.as_posix(),
-    }]
     template_contents = inject_component_stylesheets(template_contents, selected_packages + selected_layouts)
     template_contents = inject_runtime_kit(template_contents, selected_runtime_kit)
     template_contents = inject_semantic_components(template_contents, snippets)
@@ -913,7 +1199,7 @@ def build_plan(
             "commit": infrastructure_commit,
         },
         "template": {
-            "id": template_id,
+            "id": selected_template_id,
             "version": template_metadata["version"],
             "source": template_capability["path"],
             "entrypoint": template_capability["entrypoint"],
@@ -923,6 +1209,7 @@ def build_plan(
         "layouts": selected_layouts,
         "runtime_kits": selected_runtime_kits,
         "semantic_components": selected_components,
+        "pages": selected_pages,
         "files": [],
     }
     copied[PurePosixPath("report.yml")] = report_metadata(
@@ -936,6 +1223,7 @@ def build_plan(
         materialization["runtime_kits"],
         materialization["semantic_components"],
         source_ids,
+        selected_pages,
     )
     # 报告元数据也属于物料化结果；记录文件自身不纳入清单，避免自引用哈希循环。
     materialization["files"] = [
@@ -968,8 +1256,11 @@ def main() -> int:
     parser.add_argument("--root", default=".", help="消费端 Git 仓库根目录")
     parser.add_argument("--submodule-path", help="基础设施 submodule 的消费端相对路径；默认从当前脚本位置推导")
     parser.add_argument("--task-id", required=True, help="已登记的 EXPR 任务编号")
-    parser.add_argument("--template-id", required=True, help="Manifest 中登记的页面模板能力 ID")
-    parser.add_argument("--component-package-id", default="html.semantic-components-v1", help="Manifest 中登记的 HTML 组件包能力 ID")
+    template_group = parser.add_mutually_exclusive_group(required=True)
+    template_group.add_argument("--template-id", help="Manifest 中登记的完整页面预设能力 ID")
+    template_group.add_argument("--container-id", help="Manifest 中登记的页面容器能力 ID；与 --page-id 配合")
+    parser.add_argument("--page-id", action="append", default=[], help="按展示顺序选择单页模板能力 ID，可重复指定")
+    parser.add_argument("--component-package-id", help="Manifest 中登记的 HTML 组件包能力 ID")
     parser.add_argument("--component-id", action="append", default=[], help="组件包 index.yml 中登记的语义组件 ID，可重复指定")
     parser.add_argument("--layout-id", help="Manifest 中登记的 HTML 响应式布局包能力 ID")
     parser.add_argument("--runtime-kit-id", help="Manifest 中登记的 HTML 页面运行时包能力 ID")
@@ -991,20 +1282,9 @@ def main() -> int:
         manifest = parse_manifest(infrastructure / "manifest.yml")
         relative_destination = destination.relative_to(root)
         package, materialization = build_plan(
-            infrastructure,
-            manifest,
-            args.template_id,
-            args.component_package_id,
-            args.component_id,
-            args.layout_id,
-            args.runtime_kit_id,
-            args.task_id,
-            version,
-            task["revision"],
-            task["version"],
-            commit,
-            task,
-            args.source_id,
+            infrastructure, manifest, args.template_id, args.component_package_id or "html.semantic-components-v1", args.component_id,
+            args.layout_id, args.runtime_kit_id, args.task_id, version, task["revision"],
+            task["version"], commit, task, args.source_id, args.container_id, args.page_id,
         )
         digest = plan_sha256(destination, package, root)
         if args.apply and not args.expect_plan_sha256:
@@ -1030,10 +1310,9 @@ def main() -> int:
                 )):
                     raise MaterializeError("任务在 dry-run 后发生变化；没有写入，请重新读取任务并生成计划")
                 latest_package, _ = build_plan(
-                    infrastructure, manifest, args.template_id, args.component_package_id, args.component_id, args.layout_id,
-                    args.runtime_kit_id,
-                    args.task_id, version, latest_task["revision"], latest_task["version"], commit,
-                    latest_task, args.source_id,
+                    infrastructure, manifest, args.template_id, args.component_package_id or "html.semantic-components-v1", args.component_id,
+                    args.layout_id, args.runtime_kit_id, args.task_id, version, latest_task["revision"],
+                    latest_task["version"], commit, latest_task, args.source_id, args.container_id, args.page_id,
                 )
                 latest_digest = plan_sha256(destination, latest_package, root)
                 if latest_digest != digest:
@@ -1058,6 +1337,7 @@ def main() -> int:
             "layouts": materialization["layouts"],
             "runtime_kits": materialization["runtime_kits"],
             "semantic_components": materialization["semantic_components"],
+            "pages": materialization["pages"],
             "written": [path.relative_to(root).as_posix() for path, _ in writes] if args.apply else [],
             "would_write": [path.relative_to(root).as_posix() for path, _ in writes],
             "unchanged": [f"{relative_destination.as_posix()}/{path}" for path in unchanged],

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN" data-deck-ratio="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="可离线浏览、响应式适配并逐页打印的 HTML 演示稿模板" />
+    <title data-slot="page-title">[项目名称]｜阶段沟通</title>
+    <!-- SUANHAI_RUNTIME_STYLESHEETS -->
+    <!-- SUANHAI_COMPONENT_STYLESHEETS -->
+    <!-- SUANHAI_PAGE_STYLESHEETS -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="deck.css" />
+  </head>
+  <body class="deck-page-root">
+    <div class="deck-shell">
+      <header class="deck-header">
+        <p class="deck-brand" data-slot="brand">[小组或项目名称]</p>
+        <p class="deck-context" data-slot="header-context">[沟通场景] · [更新日期]</p>
+      </header>
+
+      <div class="deck-tools" data-deck-tools hidden>
+        <label class="deck-ratio-control" for="deck-ratio">
+          <span>页面比例</span>
+          <select id="deck-ratio" data-deck-ratio-select>
+            <option value="auto">自动适配</option>
+            <option value="wide">16:9 横屏</option>
+            <option value="classic">4:3 标准</option>
+            <option value="portrait">9:16 竖屏</option>
+          </select>
+        </label>
+        <!-- SUANHAI_RUNTIME_TOOLBAR -->
+      </div>
+
+      <main class="deck-stage" data-deck-stage role="region" aria-label="演示文稿">
+        <section
+          class="deck-page deck-page--cover"
+          id="slide-01"
+          data-deck-page
+          data-page-title="封面"
+          data-speaker-note="[口头补充本次沟通背景和希望达成的结果。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="封面"
+        >
+          <div class="deck-cover-layout">
+            <div class="deck-cover-copy">
+              <p class="deck-eyebrow" data-slot="cover-kicker">[项目阶段] / [沟通主题]</p>
+              <h1 data-slot="cover-title">[项目名称]</h1>
+              <p class="deck-cover-lede" data-slot="cover-lede">[用一句话说明这次沟通最希望读者带走的结论。]</p>
+              <p class="deck-cover-meta" data-slot="cover-meta">[汇报人或小组] · [日期]</p>
+            </div>
+
+            <figure class="deck-route-figure" aria-labelledby="cover-route-title">
+              <figcaption id="cover-route-title">本次沟通路径</figcaption>
+              <ol class="deck-route-list">
+                <li><span>01</span><strong>现状</strong><small>读者需要知道什么</small></li>
+                <li><span>02</span><strong>方法</strong><small>我们如何推进</small></li>
+                <li><span>03</span><strong>证据</strong><small>哪些内容已有依据</small></li>
+                <li><span>04</span><strong>下一步</strong><small>需要共同确认什么</small></li>
+              </ol>
+            </figure>
+          </div>
+          <footer class="deck-page-footer">
+            <span data-slot="cover-source">[封面来源或材料版本]</span>
+            <span class="deck-page-number">01</span>
+          </footer>
+        </section>
+
+        <section
+          class="deck-page"
+          id="slide-02"
+          data-deck-page
+          data-page-title="核心判断"
+          data-speaker-note="[补充判断成立的条件，或解释本页没有展开的背景。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="核心判断"
+        >
+          <header class="deck-slide-heading">
+            <p class="deck-eyebrow">01 / 核心判断</p>
+            <h2 data-slot="thesis-title">[先给出读者最需要理解的一句话]</h2>
+            <p data-slot="thesis-context">[用不超过两句话说明这项判断对应的问题或决策。]</p>
+          </header>
+          <div class="deck-thesis-layout">
+            <div class="deck-thesis-callout">
+              <span class="deck-label">当前结论</span>
+              <p data-slot="thesis-statement">[结论内容；未确认的判断请明确标注待核验。]</p>
+              <span class="deck-source-note" data-slot="thesis-source">[来源：文件/版本/页码；数据截至：YYYY-MM-DD]</span>
+            </div>
+            <div class="deck-thesis-support">
+              <h3>判断依据</h3>
+              <ol>
+                <li><span>01</span><p data-slot="thesis-proof-1">[第一条可核对的依据]</p></li>
+                <li><span>02</span><p data-slot="thesis-proof-2">[第二条可核对的依据]</p></li>
+                <li><span>03</span><p data-slot="thesis-proof-3">[仍待核验的关键事项]</p></li>
+              </ol>
+            </div>
+          </div>
+          <div class="deck-component-slot">
+            <!-- SUANHAI_COMPONENTS -->
+          </div>
+          <footer class="deck-page-footer">
+            <span data-slot="thesis-footer">[来源与口径说明]</span>
+            <span class="deck-page-number">02</span>
+          </footer>
+        </section>
+
+        <section
+          class="deck-page"
+          id="slide-03"
+          data-deck-page
+          data-page-title="当前进展"
+          data-speaker-note="[按实际需要补充各主线的负责人、阻塞和交付口径。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="当前进展"
+        >
+          <header class="deck-slide-heading">
+            <p class="deck-eyebrow">02 / 当前进展</p>
+            <h2 data-slot="progress-title">[用结论式标题概括当前阶段]</h2>
+            <p data-slot="progress-intro">[先交代状态更新时间，再解释读者需要关注的变化。]</p>
+          </header>
+          <div class="deck-workstreams" data-slot="workstreams">
+            <article class="deck-workstream">
+              <div class="deck-workstream-top"><span>主线 01</span><span class="deck-status">[状态]</span></div>
+              <h3>[工作主线名称]</h3>
+              <p>[已完成的可核对结果或当前阻塞]</p>
+              <small>[负责人/来源/更新时间]</small>
+            </article>
+            <article class="deck-workstream deck-workstream--coral">
+              <div class="deck-workstream-top"><span>主线 02</span><span class="deck-status">[状态]</span></div>
+              <h3>[工作主线名称]</h3>
+              <p>[已完成的可核对结果或当前阻塞]</p>
+              <small>[负责人/来源/更新时间]</small>
+            </article>
+            <article class="deck-workstream deck-workstream--gold">
+              <div class="deck-workstream-top"><span>主线 03</span><span class="deck-status">[状态]</span></div>
+              <h3>[工作主线名称]</h3>
+              <p>[已完成的可核对结果或当前阻塞]</p>
+              <small>[负责人/来源/更新时间]</small>
+            </article>
+          </div>
+          <footer class="deck-page-footer">
+            <span data-slot="progress-source">[来源与数据日期；不同口径需分别标注]</span>
+            <span class="deck-page-number">03</span>
+          </footer>
+        </section>
+
+        <section
+          class="deck-page"
+          id="slide-04"
+          data-deck-page
+          data-page-title="方法与路径"
+          data-speaker-note="[需要时，在这里补充方法选择的原因和未覆盖的备选路径。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="方法与路径"
+        >
+          <header class="deck-slide-heading">
+            <p class="deck-eyebrow">03 / 方法与路径</p>
+            <h2 data-slot="method-title">[把工作方法讲成一条可追踪的路径]</h2>
+            <p data-slot="method-intro">[说明方法适用范围，以及它如何连接到上一页的进展。]</p>
+          </header>
+          <ol class="deck-method-flow" data-slot="method-flow">
+            <li>
+              <span class="deck-method-index">01</span>
+              <h3>[输入或问题]</h3>
+              <p>[输入来源和边界]</p>
+            </li>
+            <li>
+              <span class="deck-method-index">02</span>
+              <h3>[方法或处理]</h3>
+              <p>[关键假设和步骤]</p>
+            </li>
+            <li>
+              <span class="deck-method-index">03</span>
+              <h3>[验证或比较]</h3>
+              <p>[验证条件和判据]</p>
+            </li>
+            <li>
+              <span class="deck-method-index">04</span>
+              <h3>[结果或决策]</h3>
+              <p>[产出及其适用范围]</p>
+            </li>
+          </ol>
+          <div class="deck-method-caption" data-slot="method-caption">[图示说明：注明方法版本、环境或关键限制。]</div>
+          <footer class="deck-page-footer">
+            <span data-slot="method-source">[来源：方法文档/版本/章节]</span>
+            <span class="deck-page-number">04</span>
+          </footer>
+        </section>
+
+        <section
+          class="deck-page"
+          id="slide-05"
+          data-deck-page
+          data-page-title="证据与边界"
+          data-speaker-note="[补充获准随页面交付的验证条件、异常情况和结论限制。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="证据与边界"
+        >
+          <header class="deck-slide-heading">
+            <p class="deck-eyebrow">04 / 证据与边界</p>
+            <h2 data-slot="evidence-title">[明确哪些结论有证据，哪些仍有限制]</h2>
+            <p data-slot="evidence-intro">[不要把“尚未验证”写成“已完成”，也不要省略数据口径。]</p>
+          </header>
+          <div class="deck-evidence-layout">
+            <div class="deck-table-wrap">
+              <table class="deck-evidence-table">
+                <thead>
+                  <tr><th>表达内容</th><th>证据来源</th><th>状态与口径</th></tr>
+                </thead>
+                <tbody data-slot="evidence-rows">
+                  <tr><td>[结论或数据]</td><td>[文件/版本/页码]</td><td>[已确认/待核验；统计口径]</td></tr>
+                  <tr><td>[限制或例外]</td><td>[记录位置]</td><td>[适用范围或未覆盖条件]</td></tr>
+                  <tr><td>[待补充事项]</td><td>[缺少的来源]</td><td>[责任人与复核时间]</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <aside class="deck-boundary-note">
+              <span class="deck-label">表达边界</span>
+              <p data-slot="evidence-boundary">[列出本次不作出的判断，或仍需负责人确认的内容。]</p>
+              <small data-slot="evidence-date">[资料核对截至：YYYY-MM-DD]</small>
+            </aside>
+          </div>
+          <footer class="deck-page-footer">
+            <span data-slot="evidence-source">[来源清单位置与授权范围]</span>
+            <span class="deck-page-number">05</span>
+          </footer>
+        </section>
+
+        <section
+          class="deck-page deck-page--closing"
+          id="slide-06"
+          data-deck-page
+          data-page-title="下一步"
+          data-speaker-note="[结尾聚焦需要共同确认的动作，不重复前文全部信息。]"
+          role="group"
+          aria-roledescription="幻灯片"
+          aria-label="下一步"
+        >
+          <header class="deck-slide-heading">
+            <p class="deck-eyebrow">05 / 下一步</p>
+            <h2 data-slot="next-title">[把本次沟通收束为明确的后续行动]</h2>
+            <p data-slot="next-intro">[说明需要读者确认、提供或决定的事项。]</p>
+          </header>
+          <ol class="deck-next-steps" data-slot="next-steps">
+            <li><span>01</span><div><h3>[行动]</h3><p>[负责人 · 截止时间 · 完成标准]</p></div></li>
+            <li><span>02</span><div><h3>[行动]</h3><p>[负责人 · 截止时间 · 完成标准]</p></div></li>
+            <li><span>03</span><div><h3>[行动]</h3><p>[负责人 · 截止时间 · 完成标准]</p></div></li>
+          </ol>
+          <p class="deck-closing-line" data-slot="closing-line">[需要合作方或客户带走的最后一句话]</p>
+          <footer class="deck-page-footer">
+            <span data-slot="next-source">[页面材料版本与联系人]</span>
+            <span class="deck-page-number">06</span>
+          </footer>
+        </section>
+      </main>
+
+      <aside class="deck-notes-panel" id="deck-notes-panel" data-deck-notes-panel hidden>
+        <h2>当前页讲者备注</h2>
+        <p data-deck-notes-content></p>
+      </aside>
+
+      <nav class="deck-controls" data-deck-controls aria-label="演示文稿翻页" hidden>
+        <button class="deck-control-button" type="button" data-page-prev disabled>
+          <span aria-hidden="true">←</span><span>上一页</span>
+        </button>
+        <div class="deck-page-picker">
+          <label class="deck-visually-hidden" for="deck-page-select">跳转到指定页</label>
+          <select id="deck-page-select" data-page-select></select>
+          <output data-page-position aria-live="polite" aria-atomic="true">01 / 06</output>
+        </div>
+        <button class="deck-control-button deck-control-button--notes" type="button" data-notes-toggle aria-expanded="false" aria-controls="deck-notes-panel">
+          <span>备注</span>
+        </button>
+        <button class="deck-control-button" type="button" data-page-next>
+          <span>下一页</span><span aria-hidden="true">→</span>
+        </button>
+        <div class="deck-progress" data-page-progress role="progressbar" aria-label="演示进度" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1">
+          <span data-page-progress-value></span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- SUANHAI_RUNTIME_SCRIPTS -->
+    <script src="deck.js"></script>
+  </body>
+</html>

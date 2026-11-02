@@ -1,0 +1,20 @@
+id: html.single-page.closing.action-v1
+kind: single-page-template
+version: 1.0.0
+role: closing
+variant: action
+label: 结论与下一步
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: conclusion
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - conclusion
+  - actions
+  - closing-note
+compatible_container_families:
+  - paged-deck

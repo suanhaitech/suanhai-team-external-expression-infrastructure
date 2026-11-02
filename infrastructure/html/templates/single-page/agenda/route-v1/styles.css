@@ -1,0 +1,117 @@
+.sp-agenda-route,
+.sp-agenda-route * {
+  box-sizing: border-box;
+}
+
+.sp-agenda-route {
+  min-height: 34rem;
+  padding: clamp(1.5rem, 5vw, 4.5rem);
+  background: #ffffff;
+  color: #202b36;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.55;
+}
+
+.sp-agenda-route__heading {
+  max-width: 48rem;
+  margin-bottom: 2.5rem;
+}
+
+.sp-agenda-route__eyebrow {
+  margin: 0 0 0.75rem;
+  color: #176b87;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sp-agenda-route h2 {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1.15;
+}
+
+.sp-agenda-route__heading > p:last-child {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: #586776;
+}
+
+.sp-agenda-route__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-agenda-route__list li {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) minmax(5rem, auto);
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid #d5dde5;
+  padding: 1.125rem 0;
+}
+
+.sp-agenda-route__number {
+  color: #bf6244;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-agenda-route__list h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sp-agenda-route__list p {
+  margin: 0.25rem 0 0;
+  color: #586776;
+  font-size: 0.9375rem;
+}
+
+.sp-agenda-route__kind {
+  justify-self: end;
+  color: #176b87;
+  font-size: 0.8125rem;
+}
+
+.sp-agenda-route__note {
+  margin: 1.5rem 0 0;
+  color: #586776;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 620px) {
+  .sp-agenda-route {
+    min-height: 0;
+  }
+
+  .sp-agenda-route__list li {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .sp-agenda-route__kind {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .sp-agenda-route h2 {
+    font-size: 2rem;
+  }
+}
+
+@container (max-width: 620px) {
+  .sp-agenda-route { min-height: 0; }
+  .sp-agenda-route__list li { grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.75rem; }
+  .sp-agenda-route__kind { grid-column: 2; justify-self: start; }
+  .sp-agenda-route h2 { font-size: 2rem; }
+}
+
+@media print {
+  .sp-agenda-route {
+    min-height: 0;
+    break-inside: avoid;
+  }
+}

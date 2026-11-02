@@ -48,6 +48,21 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
 
 任务编号示例必须替换为真实任务编号。工具默认 `reports/`；自建仓可使用 task brief 中已对齐的输出根，但该根必须是任务工具默认允许目录或 `.suanhai/expression.json` 显式声明的目录。
 
+逐页讲解有两种兼容路径：旧任务继续使用 `--template-id html.presentation-deck-v1`；新任务可以使用容器和有序单页模板组合：
+
+```powershell
+py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html/tools/materialize/materialize_html.py `
+  --root . `
+  --task-id EXPR-20261031-1234abcd `
+  --container-id html.container.presentation-deck-v1 `
+  --page-id html.single-page.cover.editorial-v1 `
+  --page-id html.single-page.agenda.route-v1 `
+  --page-id html.single-page.content.evidence-v1 `
+  --page-id html.single-page.closing.action-v1
+```
+
+重复 `--page-id` 的出现顺序就是展示顺序；同一个页面变体可以安全重复使用。组合器会复制每个页面的 `styles.css`、替换容器示例页、生成唯一页码和 ID；`report.yml` 与 `materialization.json` 都记录有序页面 ID，后者还保留角色、变体、版本和来源。组合模式目前不接受 `--component-id`，因为单页包尚未声明通用语义组件插槽；需要语义组件时使用完整预设路径，或先扩展单页契约并补充评审。
+
 ## 输出
 
 工具把页面模板文件复制到 `brief.output` 对应的 `vNNN` 版本目录，将响应式布局包复制到 `assets/<布局ID转目录名>/`，将运行时包复制到 `assets/<运行时ID转目录名>/`，将组件包复制到 `assets/<组件包ID转目录名>/`，并把 `--component-id` 选择的语义 HTML 片段插入模板声明的组件插槽，同时在模板声明的样式、运行时脚本和工具栏插槽中加入相对资源引用。选择 `html.runtime-kit-v1` 时，页面获得 `data-math` 公式渲染、自动/窄屏/平板/桌面显示模式、全屏和浏览器保存 PDF 入口；运行时包不访问 CDN。`report.yml` 初始化任务元数据、模板/布局/运行时/组件选择和待确认授权状态；`materialization.json` 记录任务/修订、基础设施 commit、模板、布局、运行时、组件版本以及复制文件的 SHA-256。项目事实、来源清单和最终授权状态仍由 Agent 按工作流填充；工具只交付结构起点。

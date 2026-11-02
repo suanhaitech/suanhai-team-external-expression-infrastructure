@@ -12,6 +12,11 @@
     "title": {"type": "string", "minLength": 1},
     "template": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
     "template_version": {"type": "string", "minLength": 1},
+    "pages": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "uniqueItems": false
+    },
     "infrastructure_commit": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"},
     "audience": {"type": "string", "minLength": 1},
     "purpose": {"type": "string", "minLength": 1},
@@ -19,7 +24,7 @@
     "components": {
       "type": "array",
       "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
-      "minItems": 1,
+      "minItems": 0,
       "uniqueItems": true
     },
     "layouts": {

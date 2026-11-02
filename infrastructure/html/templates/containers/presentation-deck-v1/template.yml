@@ -1,0 +1,12 @@
+id: html.container.presentation-deck-v1
+version: 1.0.0
+entrypoint: index.html
+offline: true
+network_dependencies: []
+family: paged-deck
+intended_use:
+  - 按页讲解的项目阶段汇报
+  - 可切换页面比例的 HTML 演示稿
+outputs:
+  - 由消费端选择的有序单页组合
+  - 底部页码导航、键盘翻页、讲者备注和逐页打印

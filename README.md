@@ -2,7 +2,7 @@
 
 这是 `suanhaitech` 组织下的共享工程仓库，为 Suanhai 团队的科研小组和项目小组提供可复用的对外表达能力。
 
-当前提供可发现的任务循环、任务状态工具、HTML 项目汇报页面模板、语义组件包、响应式布局包和离线页面运行时包，以及按 Manifest 能力 ID 将它们安全复制到消费端任务目录的物料化工具。运行时包随页面复制 KaTeX、字体和工具栏脚本，提供公式渲染、显示模式切换、全屏和浏览器保存 PDF 入口。仓库还提供小组资产仓库模板，以及多条消费端工作流：HTML 网页制作、小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。工作流集中在 `workflows/`，全部可复用模板、工具和领域资源集中在 `infrastructure/<领域>/`；文档、演示文稿和打印形式尚未实现。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。多视口检查和确定性 PDF 导出已提供，但依赖消费端本机浏览器运行时；完整自动化无障碍检查仍未实现。
+当前提供可发现的任务循环、任务状态工具、长页 HTML 项目汇报和多页 HTML 演示稿模板、语义组件包、响应式布局包和离线页面运行时包，以及按 Manifest 能力 ID 将它们安全复制到消费端任务目录的物料化工具。演示稿模板提供底部翻页、键盘导航、比例选择、讲者备注和逐页打印；可选运行时包随页面复制 KaTeX、字体和工具栏脚本，提供公式渲染、显示模式切换、全屏和浏览器保存 PDF 入口。仓库还提供小组资产仓库模板，以及多条消费端工作流：HTML 网页制作、小组初始化、从公共模板建仓并初始化、既有仓库首次接入基础设施、已接入 submodule 的受控更新。工作流集中在 `workflows/`，全部可复用模板、工具和领域资源集中在 `infrastructure/<领域>/`；office 文档和演示文稿等非 HTML 形式尚未实现。小组模板支持零到多个项目上下文；初始化工具只铺设空白骨架并拒绝覆盖，Agent 需通过访谈与负责人核对上下文。多视口检查和确定性 PDF 导出已提供，但依赖消费端本机浏览器运行时；完整自动化无障碍检查仍未实现。
 
 本仓库另外提供可直接转发的一次性启动提示词：一类用于从 GitHub 公共模板建仓、递归克隆并初始化；另一类用于将基础设施首次接入既有仓库并安装消费端 Harness。前者适合新仓，后者适合保留既有结构的仓库；两者完成后，日常能力路由均依靠消费端根规则和固定 submodule Manifest。
 
@@ -30,9 +30,11 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `expression.task-loop` | workflow | 由消费端 Agent 执行的任务协作循环，使用任务记录工具 |
 | `expression.task-record` | tool | Python 标准库工具，管理任务文件、状态及产出摘要 |
 | `html.project-report-v1` | template | 网页形式下，离线项目概览、阶段进展和对外汇报 HTML/CSS 页面模板 |
+| `html.presentation-deck-v1` | template | 网页形式下，离线多页演示稿模板，带底部翻页、比例选择、讲者备注和逐页打印 |
+| `html.container.presentation-deck-v1` | template | 逐页演示稿容器；可按顺序组合 `html.single-page.*` 页面 |
 | `html.semantic-components-v1` | template | 离线设计令牌、基础排版布局和六类语义 HTML 组件契约 |
 | `html.runtime-kit-v1` | template | 网页形式下，离线 KaTeX 公式、显示模式切换、全屏和浏览器保存 PDF 运行时包 |
-| `html.materialize` | tool | 从固定 Manifest 安全复制页面模板和组件，并把选定语义片段装配到已对齐任务目录，记录来源 commit 与文件哈希 |
+| `html.materialize` | tool | 复制完整页面预设，或按容器和有序单页能力组合页面；记录来源 commit 与文件哈希 |
 | `html.responsive-layout-v1` | template | 网页内部可复用的响应式布局、长宽比、方向、打印和安全溢出 CSS 规则 |
 | `html.viewport-check` | tool | 检查本地资源、viewport 元标签和多视口水平溢出，可选生成截图 |
 | `html.pdf-export` | tool | 使用本机 Chrome、Edge 或 Chromium 将自包含 HTML 导出为 PDF，并记录环境和哈希 |
@@ -59,6 +61,9 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [HTML 网页制作工作流入口](workflows/html/production/ENTRYPOINT.md)
 - [HTML 网页制作工作流协议](workflows/html/production/WORKFLOW.md)
 - [HTML 可复用基础设施框架](docs/html-framework.md)
+- [HTML 模板资产层级](infrastructure/html/templates/README.md)
+- [多页 HTML 演示稿设计与样例提炼](docs/html-presentation-deck-design.md)
+- [多页 HTML 演示稿模板](infrastructure/html/templates/presets/presentation-deck-v1/README.md)
 - [HTML 语义组件核心包 v1](infrastructure/html/components/core-v1/README.md)
 - [HTML 模板与组件物料化工具](infrastructure/html/tools/materialize/README.md)
 - [HTML 响应式布局包](infrastructure/html/styles/responsive-v1/README.md)

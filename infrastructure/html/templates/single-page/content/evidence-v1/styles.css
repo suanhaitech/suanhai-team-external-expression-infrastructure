@@ -1,0 +1,133 @@
+.sp-content-evidence,
+.sp-content-evidence * {
+  box-sizing: border-box;
+}
+
+.sp-content-evidence {
+  min-height: 34rem;
+  padding: clamp(1.5rem, 5vw, 4.5rem);
+  background: #f7f8f5;
+  color: #202b36;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.55;
+}
+
+.sp-content-evidence__heading {
+  max-width: 52rem;
+  margin-bottom: 2.25rem;
+}
+
+.sp-content-evidence__eyebrow {
+  margin: 0 0 0.75rem;
+  color: #176b87;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sp-content-evidence h2 {
+  max-width: 20ch;
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.sp-content-evidence__heading > p:last-child {
+  max-width: 46rem;
+  margin: 1rem 0 0;
+  color: #586776;
+}
+
+.sp-content-evidence__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.3fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.sp-content-evidence__table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.sp-content-evidence table {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.sp-content-evidence th,
+.sp-content-evidence td {
+  border-bottom: 1px solid #d5dde5;
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.sp-content-evidence th {
+  color: #586776;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sp-content-evidence td {
+  min-width: 10rem;
+  font-size: 0.9375rem;
+}
+
+.sp-content-evidence__status {
+  color: #286747;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sp-content-evidence__status--pending {
+  color: #875916;
+}
+
+.sp-content-evidence__boundary {
+  border-left: 3px solid #bf6244;
+  padding: 0.25rem 0 0.25rem 1rem;
+}
+
+.sp-content-evidence__boundary span {
+  color: #a14f37;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sp-content-evidence__boundary p {
+  margin: 0.75rem 0;
+}
+
+.sp-content-evidence__boundary small {
+  color: #586776;
+}
+
+@media (max-width: 820px) {
+  .sp-content-evidence {
+    min-height: 0;
+  }
+
+  .sp-content-evidence__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sp-content-evidence h2 {
+    font-size: 2.125rem;
+  }
+}
+
+@container (max-width: 820px) {
+  .sp-content-evidence { min-height: 0; }
+  .sp-content-evidence__body { grid-template-columns: minmax(0, 1fr); }
+  .sp-content-evidence h2 { font-size: 2.125rem; }
+}
+
+@media print {
+  .sp-content-evidence {
+    min-height: 0;
+    break-inside: avoid;
+  }
+}

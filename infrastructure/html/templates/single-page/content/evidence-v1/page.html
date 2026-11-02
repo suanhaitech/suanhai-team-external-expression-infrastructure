@@ -1,0 +1,24 @@
+<section class="sp-content-evidence" data-single-page-role="content" data-single-page-variant="evidence" aria-labelledby="sp-evidence-title">
+  <header class="sp-content-evidence__heading">
+    <p class="sp-content-evidence__eyebrow" data-slot="eyebrow">[证据主题 / 状态]</p>
+    <h2 id="sp-evidence-title" data-slot="title">[先说判断，再让读者看到依据]</h2>
+    <p data-slot="summary">[用一至两句话解释判断的范围和读者应如何理解证据。]</p>
+  </header>
+  <div class="sp-content-evidence__body">
+    <div class="sp-content-evidence__table-wrap">
+      <table>
+        <thead><tr><th>判断或数据</th><th>依据</th><th>状态 / 口径</th></tr></thead>
+        <tbody data-slot="evidence-rows">
+          <tr><td>[结论或指标]</td><td>[来源文件、版本或页码]</td><td><span class="sp-content-evidence__status">已确认</span><br />[统计口径]</td></tr>
+          <tr><td>[限制或例外]</td><td>[记录位置]</td><td><span class="sp-content-evidence__status sp-content-evidence__status--pending">待核验</span><br />[适用范围]</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="sp-content-evidence__boundary">
+      <span>表达边界</span>
+      <p data-slot="boundary">[列出当前证据不能支持的判断，或需要负责人确认的内容。]</p>
+      <small data-slot="source">[资料核对日期 · 来源授权范围]</small>
+    </aside>
+  </div>
+  <footer class="sp-content-evidence__footer"><span><!-- SUANHAI_PAGE_NUMBER --></span></footer>
+</section>

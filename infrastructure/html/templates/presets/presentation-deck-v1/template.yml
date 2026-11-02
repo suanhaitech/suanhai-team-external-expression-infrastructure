@@ -1,0 +1,12 @@
+id: html.presentation-deck-v1
+version: 1.0.0
+entrypoint: index.html
+offline: true
+network_dependencies: []
+intended_use:
+  - 多页项目阶段汇报
+  - 方案与方法说明
+  - 研讨会和演示稿
+outputs:
+  - 带底部页码导航的自包含 HTML 演示稿
+  - 本地页面样式与翻页脚本

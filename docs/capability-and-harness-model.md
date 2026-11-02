@@ -110,9 +110,9 @@ schemas/                  根仓库协议 Schema（当前仅保留 Manifest Sche
 | `expression.task-loop` | Workflow Capability | `workflows/task-loop/ENTRYPOINT.md` | `expression.task-record` |
 | `expression.task-record` | Tool Capability | `infrastructure/task-loop/tools/task-record/task_loop.py` | Python 标准库 |
 | `expression.html-production` | Workflow Capability | `workflows/html/production/ENTRYPOINT.md` | `expression.task-loop`, `expression.task-record`, HTML 页面模板、语义组件包和按需运行时包 |
-| `html.materialize` | Tool Capability | `infrastructure/html/tools/materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的页面模板/布局/运行时/组件包、已对齐任务 |
+| `html.materialize` | Tool Capability | `infrastructure/html/tools/materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的完整预设或容器与有序单页 ID、可选布局/运行时/组件包、已对齐任务 |
 | `consumer.submodule-preflight` | Tool Capability | `infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py` | Git CLI |
-| `html.project-report-v1` | Template Capability | `infrastructure/html/page-templates/project-report-v1/index.html` | 消费端已对齐任务和来源 |
+| `html.project-report-v1` | Template Capability | `infrastructure/html/templates/presets/project-report-v1/index.html` | 消费端已对齐任务和来源 |
 | `html.semantic-components-v1` | Template Capability | `infrastructure/html/components/core-v1/README.md` | 离线样式令牌、布局与六种语义组件 |
 | `html.responsive-layout-v1` | Template Capability | `infrastructure/html/styles/responsive-v1/README.md` | 离线响应式、长宽比、方向和打印布局规则 |
 | `html.runtime-kit-v1` | Template Capability | `infrastructure/html/runtime-kits/runtime-kit-v1/README.md` | 离线 KaTeX 公式、显示模式、全屏和浏览器保存 PDF 入口 |

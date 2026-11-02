@@ -1,0 +1,20 @@
+id: html.single-page.agenda.route-v1
+kind: single-page-template
+version: 1.0.0
+role: agenda
+variant: route
+label: 目录
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - title
+  - introduction
+  - agenda-items
+compatible_container_families:
+  - paged-deck

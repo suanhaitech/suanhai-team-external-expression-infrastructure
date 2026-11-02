@@ -47,7 +47,7 @@
 | `harness/group-asset-repository/ENTRYPOINT.md` | `workflows/group-asset-repository-onboarding/ENTRYPOINT.md` |
 | `workflows/group-asset-repository/CREATE_AND_INITIALIZE.md` | `workflows/group-asset-repository-create-and-initialize/CREATE_AND_INITIALIZE.md` |
 | `tools/submodule-preflight/submodule_preflight.py` | `infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py` |
-| `templates/html-report/project-report-v1/` | `infrastructure/html/page-templates/project-report-v1/` |
+| `templates/html-report/project-report-v1/` | `infrastructure/html/page-templates/project-report-v1/` → `infrastructure/html/templates/presets/project-report-v1/` |
 
 保留小组自有规则与已确认上下文，只修正仍在使用的引用，不为迁移重写历史评审证据。按 Manifest 的能力 ID 发现入口，避免长期硬编码工具路径。新 gitlink 未提交前完整 preflight 会发现父仓 HEAD 与 index 不同，此时使用更新工作流规定的提交前核对；不要为了让预检通过擅自提交。
 

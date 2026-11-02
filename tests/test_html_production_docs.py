@@ -20,7 +20,13 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("infrastructure/html/", html)
         self.assertIn("infrastructure/", workflow)
         self.assertTrue((ROOT / "workflows/html/production/ENTRYPOINT.md").is_file())
-        self.assertTrue((ROOT / "infrastructure/html/page-templates/project-report-v1/index.html").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/templates/README.md").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/templates/containers/README.md").is_file())
+        for role in ("cover", "transition", "content", "closing"):
+            self.assertTrue((ROOT / "infrastructure/html/templates/single-page" / role / "README.md").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/templates/presets/README.md").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/templates/presets/project-report-v1/index.html").is_file())
+        self.assertTrue((ROOT / "infrastructure/html/templates/presets/presentation-deck-v1/index.html").is_file())
 
     def test_workflow_has_protocol_entrypoint_and_forwardable_prompt(self):
         workflow = (WORKFLOW / "WORKFLOW.md").read_text(encoding="utf-8")
@@ -42,8 +48,17 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("entrypoint: workflows/html/production/ENTRYPOINT.md", manifest)
         self.assertIn("id: html.semantic-components-v1", manifest)
         self.assertIn("entrypoint: infrastructure/html/components/core-v1/README.md", manifest)
-        self.assertIn("path: infrastructure/html/page-templates/project-report-v1", manifest)
-        self.assertIn("entrypoint: infrastructure/html/page-templates/project-report-v1/index.html", manifest)
+        self.assertIn("templates/presets/", manifest)
+        self.assertNotIn("path: infrastructure/html/page-templates/", manifest)
+        self.assertIn("path: infrastructure/html/templates/presets/project-report-v1", manifest)
+        self.assertIn("entrypoint: infrastructure/html/templates/presets/project-report-v1/index.html", manifest)
+        self.assertIn("id: html.presentation-deck-v1", manifest)
+        self.assertIn("path: infrastructure/html/templates/presets/presentation-deck-v1", manifest)
+        self.assertIn("entrypoint: infrastructure/html/templates/presets/presentation-deck-v1/index.html", manifest)
+        self.assertIn("id: html.container.presentation-deck-v1", manifest)
+        materializer = (ROOT / "infrastructure/html/tools/materialize/README.md").read_text(encoding="utf-8")
+        self.assertIn("--container-id", materializer)
+        self.assertIn("--page-id", materializer)
         self.assertIn("id: html.materialize", manifest)
         self.assertIn("entrypoint: infrastructure/html/tools/materialize/materialize_html.py", manifest)
         self.assertIn("id: html.responsive-layout-v1", manifest)
@@ -60,6 +75,24 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         workflow = (WORKFLOW / "WORKFLOW.md").read_text(encoding="utf-8")
         self.assertIn("html.viewport-check", workflow)
         self.assertIn("html.pdf-export", workflow)
+        deck = ROOT / "infrastructure/html/templates/presets/presentation-deck-v1"
+        deck_html = (deck / "index.html").read_text(encoding="utf-8")
+        deck_js = (deck / "deck.js").read_text(encoding="utf-8")
+        deck_css = (deck / "deck.css").read_text(encoding="utf-8")
+        self.assertIn("data-page-prev", deck_html)
+        self.assertIn("data-page-select", deck_html)
+        self.assertIn("data-page-next", deck_html)
+        self.assertIn("data-deck-page", deck_html)
+        self.assertIn("data-speaker-note", deck_html)
+        self.assertIn("ArrowRight", deck_js)
+        self.assertIn("PageDown", deck_js)
+        self.assertIn("Home", deck_js)
+        self.assertIn("data-page-prev", deck_js)
+        self.assertIn("@media print", deck_css)
+        self.assertIn("break-after: page", deck_css)
+        self.assertIn("deck-controls", deck_css)
+        self.assertNotIn("http://", deck_html + deck_js + deck_css)
+        self.assertNotIn("https://", deck_html + deck_js + deck_css)
 
     def test_materialize_tool_and_report_schema_are_declared(self):
         tool = (ROOT / "infrastructure/html/tools/materialize/README.md").read_text(encoding="utf-8")
@@ -68,6 +101,8 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("materialization.json", tool)
         self.assertEqual(schema["properties"]["materialization"]["properties"]["tool"]["const"], "html.materialize")
         self.assertIn("materialization", schema["required"])
+        self.assertIn("pages", schema["properties"])
+        self.assertEqual(schema["properties"]["components"].get("minItems"), 0)
 
     def test_materialized_report_metadata_is_valid_yaml_shape(self):
         fixture = ROOT / "tests/fixtures/html/materialized-report.yml"
