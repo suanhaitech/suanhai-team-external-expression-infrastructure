@@ -30,3 +30,5 @@ infrastructure/html/
 `html.project-report-v1` 适合纵向连续阅读的长页报告；`html.presentation-deck-v1` 适合逐页讲解，底部提供页码、上一页/下一页和进度，支持键盘翻页、手动比例、讲者备注和逐页打印。两者位于 `templates/presets/`，作为完整组合预设由 `expression.html-production` 选择；逐页容器和单页模板也可以通过 `html.materialize` 按顺序组合。完整预设保留用于兼容旧任务和快速起稿。
 
 详细的工作流与页面组合规则见 [`docs/html-framework.md`](../../docs/html-framework.md)。
+
+当前由工作流识别的任务画像见 [`scenarios/catalog.json`](../../scenarios/catalog.json)：课程学习与面向合作方的项目进展沟通。场景会影响内容组织和验收标准；它不是 HTML 模板或新的工作流能力。

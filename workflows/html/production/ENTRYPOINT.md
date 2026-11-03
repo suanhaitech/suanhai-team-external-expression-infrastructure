@@ -12,6 +12,8 @@
 
 Agent 应把这段请求解释为“启动工作流”，而不是用户已经授权提交、推送或发布。
 
+任务澄清时先从 [`scenarios/catalog.json`](../../../scenarios/catalog.json) 识别表达场景，再读取场景画像。当前包括课程学习与面向合作方的项目进展沟通；两者都走本 HTML 主工作流，但学习目标、内容组织和验收重点不同。选择页面资产前，Agent 必须把画像转成可审阅的逐页计划，说明页面目标、核心信息、来源/证据、候选资产和场景验收信号，并取得用户确认。场景 ID 传给物料化工具并记录在作品元数据中；场景不会自动决定 HTML 长页或逐页容器、主题样式或交互。
+
 选择页面资产时，连续阅读型长页优先考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；只有在还需要公式、显示模式、全屏或浏览器打印入口时，才额外物料化 `html.runtime-kit-v1`。
 
 ## 读取顺序
@@ -20,8 +22,9 @@ Agent 应把这段请求解释为“启动工作流”，而不是用户已经�
 2. 消费端 `README.md`、`context/`、`tasks/`、`reports/` 或仓库自身规定的作品目录；
 3. submodule 的 `manifest.yml`；
 4. 本工作流 `WORKFLOW.md`；
-5. 被选择的模板、组件、运行时包和工具入口；组件包按 `package.yml` → `index.yml` → 组件 `component.yml` → `template.html` 的顺序读取，运行时包按 `package.yml` → `index.yml` → 入口和资源读取；物料化使用 `html.materialize`，先预览并核对计划摘要，再显式应用；
-6. 当前任务的 `task.json`、`sources.yml` 和已有版本。
+5. `scenarios/catalog.json` 及匹配场景画像；没有适用画像时说明未分类，不得将媒介或容器当作场景；
+6. 被选择的模板、组件、运行时包和工具入口；组件包按 `package.yml` → `index.yml` → 组件 `component.yml` → `template.html` 的顺序读取，运行时包按 `package.yml` → `index.yml` → 入口和资源读取；物料化使用 `html.materialize`，先预览并核对计划摘要，再显式应用；
+7. 当前任务的 `task.json`、`sources.yml` 和已有版本。
 
 如果 Manifest、gitlink、submodule HEAD 或工作区状态不一致，先停止并报告，不修复或升级依赖。
 

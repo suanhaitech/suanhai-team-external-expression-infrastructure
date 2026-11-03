@@ -1,6 +1,6 @@
 # Agent 协作约定
 
-本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的工作流能力，以及工作流可消费的模板、工具、运行资源、技能和检查协议；不承载具体小组的项目事实或对外表达资产。
+本仓库是 Suanhai 团队共享的对外表达基础设施工程仓库。它提供可复用的场景画像、工作流能力，以及工作流可消费的模板、工具、运行资源、技能和检查协议；不承载具体小组的项目事实或对外表达资产。场景画像是工作流读取的任务分类，不是可执行能力。
 
 根 `AGENTS.md` 是本仓库自身的总 Harness，约束维护本基础设施仓库的 Agent。消费端可调用的完整工作流及其 Agent 执行入口统一放在 `workflows/`；入口承担该工作流的 Harness 职责。可复用模板、工具、运行资源、领域 Schema、技能和检查协议统一放在 `infrastructure/<领域>/`。一个目录层级只表示领域归属，不暗示必须把工作流再拆成子工作流。
 
@@ -8,7 +8,8 @@
 
 - 仓库提供 Agent 发现协议、任务循环（`expression.task-loop`）、网页 HTML 制作工作流（`expression.html-production`）、长页 HTML 项目汇报模板（`html.project-report-v1`）、多页 HTML 演示稿模板（`html.presentation-deck-v1`）、网页 HTML 语义组件包（`html.semantic-components-v1`）、HTML 响应式布局包（`html.responsive-layout-v1`）、HTML 页面运行时包（`html.runtime-kit-v1`）、HTML 模板与组件安全物料化工具（`html.materialize`）、小组资产仓模板铺设工具（`consumer.group-asset-bootstrap`）、仓库创建与初始化流程（`consumer.group-asset-create-and-initialize`）、仓内初始化流程（`consumer.group-asset-onboarding`）、既有仓库首次接入流程（`consumer.infrastructure-adoption`）及其 Harness 安装工具（`consumer.infrastructure-adoption-harness`），以及 submodule 更新流程（`consumer.submodule-update`）；
 - `manifest.yml` 是能力发现的唯一入口；
-- 各独立工作流位于 `workflows/`；HTML 制作工作流位于 `workflows/html/production/`，HTML 容器、单页模板、组合预设、组件、样式、运行时和专用工具位于 `infrastructure/html/`；资产仓建仓与初始化流程位于 `workflows/group-asset-repository-create-and-initialize/`、`workflows/group-asset-repository-onboarding/`，其模板和铺设工具位于 `infrastructure/group-asset-repository/`；
+- `scenarios/catalog.json` 是 HTML 工作流场景画像索引，不属于 Manifest capability 注册；当前有课程学习、面向合作方的项目进展沟通两个画像；
+- 各独立工作流位于 `workflows/`；任务画像位于 `scenarios/`；HTML 制作工作流位于 `workflows/html/production/`，HTML 容器、单页模板、组合预设、组件、样式、运行时和专用工具位于 `infrastructure/html/`；资产仓建仓与初始化流程位于 `workflows/group-asset-repository-create-and-initialize/`、`workflows/group-asset-repository-onboarding/`，其模板和铺设工具位于 `infrastructure/group-asset-repository/`；
 - `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
 - 实际能力以当前 `capabilities` 为准；任务循环、状态工具、HTML 网页制作工作流、长页项目汇报模板、多页演示稿模板、语义组件包、响应式布局包、`html.runtime-kit-v1`、`html.materialize`、`html.viewport-check` 和 `html.pdf-export` 属于 `implemented / experimental`；演示稿模板提供底部页码/前后页导航、键盘翻页、比例选择、讲者备注和逐页打印；运行时包的公式渲染、显示模式、全屏和浏览器保存 PDF 入口已实现，但真实浏览器视觉检查、确定性 PDF 导出和完整无障碍检查仍受本机运行时条件限制或为 `not-run / planned`；
 - 不得因为目录存在，就把计划能力描述为已经可用。

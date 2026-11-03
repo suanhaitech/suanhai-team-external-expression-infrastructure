@@ -103,6 +103,41 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("materialization", schema["required"])
         self.assertIn("pages", schema["properties"])
         self.assertEqual(schema["properties"]["components"].get("minItems"), 0)
+        self.assertIn("scenario", schema["properties"])
+        self.assertIn("--scenario-id", tool)
+
+    def test_expression_scenarios_are_documented_and_not_manifest_capabilities(self):
+        catalog = json.loads((ROOT / "scenarios/catalog.json").read_text(encoding="utf-8"))
+        ids = {item["id"] for item in catalog["scenarios"]}
+        self.assertEqual(
+            ids,
+            {
+                "expression.scenario.course-learning-v1",
+                "expression.scenario.project-progress-communication-v1",
+            },
+        )
+        for item in catalog["scenarios"]:
+            self.assertEqual(item["workflow"], "expression.html-production")
+            self.assertTrue((ROOT / item["profile"]).is_file())
+            self.assertTrue((ROOT / item["metadata"]).is_file())
+        manifest = (ROOT / "manifest.yml").read_text(encoding="utf-8")
+        self.assertNotIn("id: expression.scenario.course-learning-v1", manifest)
+        self.assertNotIn("id: expression.scenario.project-progress-communication-v1", manifest)
+
+    def test_course_scenario_maps_learning_requirements_to_reviewable_page_plan(self):
+        course = (ROOT / "scenarios/course-learning-v1/README.md").read_text(encoding="utf-8")
+        workflow = (WORKFLOW / "WORKFLOW.md").read_text(encoding="utf-8")
+        entrypoint = (WORKFLOW / "ENTRYPOINT.md").read_text(encoding="utf-8")
+        prompt = (WORKFLOW / "START_HTML_PRODUCTION.md").read_text(encoding="utf-8")
+
+        for requirement in ("学习结果", "内容路径", "单页职责", "学习者参与", "来源与判断边界"):
+            self.assertIn(requirement, course)
+        self.assertIn("暂无专用单页或交互组件", course)
+        self.assertIn("逐页计划", workflow)
+        self.assertIn("逐页计划", entrypoint)
+        self.assertIn("逐页计划", prompt)
+        self.assertIn("选择页面资产前", workflow)
+        self.assertIn("场景本身不自动决定模板", workflow)
 
     def test_materialized_report_metadata_is_valid_yaml_shape(self):
         fixture = ROOT / "tests/fixtures/html/materialized-report.yml"

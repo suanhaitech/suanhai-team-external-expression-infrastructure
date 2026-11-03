@@ -1,0 +1,7 @@
+id: expression.scenario.course-learning-v1
+kind: expression-scenario
+version: 1.0.0
+label: 课程学习
+workflow: expression.html-production
+output_root: courses
+status: implemented

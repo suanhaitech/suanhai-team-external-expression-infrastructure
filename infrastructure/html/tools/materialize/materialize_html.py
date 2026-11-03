@@ -198,6 +198,59 @@ def scalar_metadata(path: Path) -> dict[str, str]:
     return values
 
 
+def scenario_asset(infrastructure: Path, scenario_id: str | None) -> dict[str, str] | None:
+    """只允许物料化记录引用仓库显式登记且已实现的场景画像。"""
+    if scenario_id is None:
+        return None
+    catalog_path = infrastructure / "scenarios/catalog.json"
+    try:
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise MaterializeError(f"无法读取基础设施场景目录：{error}") from error
+    if not isinstance(catalog, dict) or catalog.get("schema_version") != 1 or not isinstance(catalog.get("scenarios"), list):
+        raise MaterializeError("基础设施场景目录格式不受支持")
+    matches = [item for item in catalog["scenarios"] if isinstance(item, dict) and item.get("id") == scenario_id]
+    if len(matches) != 1:
+        raise MaterializeError(f"基础设施没有唯一登记该场景：{scenario_id}")
+    item = matches[0]
+    required = {"id", "version", "label", "profile", "metadata", "workflow", "output_root", "status"}
+    if required - item.keys() or item["status"] != "implemented":
+        raise MaterializeError(f"场景未完整登记或尚未实现：{scenario_id}")
+    if not all(isinstance(item[key], str) and item[key].strip() for key in required):
+        raise MaterializeError(f"场景登记字段必须是非空字符串：{scenario_id}")
+    profile = safe_relative(item["profile"], "场景画像路径")
+    metadata = safe_relative(item["metadata"], "场景元数据路径")
+    profile_path = infrastructure.joinpath(*profile.parts)
+    metadata_path = infrastructure.joinpath(*metadata.parts)
+    assert_inside(infrastructure, profile_path, "场景画像")
+    assert_inside(infrastructure, metadata_path, "场景元数据")
+    if not profile_path.is_file() or not metadata_path.is_file():
+        raise MaterializeError(f"场景画像或元数据文件不存在：{scenario_id}")
+    try:
+        metadata_text = metadata_path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError) as error:
+        raise MaterializeError(f"无法读取场景元数据：{scenario_id}：{error}") from error
+    expected = {
+        "kind": "expression-scenario",
+        "id": item["id"],
+        "version": item["version"],
+        "workflow": item["workflow"],
+        "output_root": item["output_root"],
+        "status": item["status"],
+    }
+    for key, value in expected.items():
+        if not re.search(rf"^{re.escape(key)}:\s*{re.escape(value)}\s*$", metadata_text, re.M):
+            raise MaterializeError(f"场景目录与场景元数据不一致：{scenario_id} ({key})")
+    return {
+        "id": item["id"],
+        "version": item["version"],
+        "label": item["label"],
+        "profile": item["profile"],
+        "workflow": item["workflow"],
+        "output_root": item["output_root"],
+    }
+
+
 def single_page_metadata(path: Path) -> dict[str, Any]:
     """读取单页模板受限 YAML 元数据，并校验组合器所需的显式契约。"""
     try:
@@ -746,6 +799,7 @@ def report_metadata(
     semantic_components: list[dict[str, Any]],
     source_ids: list[str],
     pages: list[dict[str, Any]] | None = None,
+    scenario: dict[str, str] | None = None,
 ) -> bytes:
     lines = [
         "schema_version: 1",
@@ -806,6 +860,13 @@ def report_metadata(
         "  record: materialization.json",
         "  infrastructure_commit: " + yaml_quote(infrastructure_commit),
     ])
+    if scenario:
+        lines.extend([
+            "scenario:",
+            f"  id: {yaml_quote(scenario['id'])}",
+            f"  version: {yaml_quote(scenario['version'])}",
+            f"  profile: {yaml_quote(scenario['profile'])}",
+        ])
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
@@ -1003,6 +1064,7 @@ def build_plan(
     source_ids: list[str],
     container_id: str | None = None,
     page_ids: list[str] | None = None,
+    scenario_id: str | None = None,
 ) -> tuple[dict[PurePosixPath, bytes], dict[str, Any]]:
     page_ids = page_ids or []
     if (template_id is None) == (container_id is None):
@@ -1018,6 +1080,7 @@ def build_plan(
     if len(source_ids) != len(set(source_ids)) or any(not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", item) for item in source_ids):
         raise MaterializeError("--source-id 必须唯一且符合稳定来源 ID 格式")
     composition_mode = container_id is not None
+    selected_scenario = scenario_asset(infrastructure, scenario_id)
     selected_template_id = container_id or template_id
     assert selected_template_id is not None
     template_capability = manifest.get(selected_template_id)
@@ -1212,6 +1275,8 @@ def build_plan(
         "pages": selected_pages,
         "files": [],
     }
+    if selected_scenario:
+        materialization["scenario"] = selected_scenario
     copied[PurePosixPath("report.yml")] = report_metadata(
         task_context,
         task_id,
@@ -1224,6 +1289,7 @@ def build_plan(
         materialization["semantic_components"],
         source_ids,
         selected_pages,
+        selected_scenario,
     )
     # 报告元数据也属于物料化结果；记录文件自身不纳入清单，避免自引用哈希循环。
     materialization["files"] = [
@@ -1264,6 +1330,7 @@ def main() -> int:
     parser.add_argument("--component-id", action="append", default=[], help="组件包 index.yml 中登记的语义组件 ID，可重复指定")
     parser.add_argument("--layout-id", help="Manifest 中登记的 HTML 响应式布局包能力 ID")
     parser.add_argument("--runtime-kit-id", help="Manifest 中登记的 HTML 页面运行时包能力 ID")
+    parser.add_argument("--scenario-id", help="scenarios/catalog.json 中登记的场景画像 ID")
     parser.add_argument("--apply", action="store_true", help="写入文件；未指定时只输出 dry-run 计划")
     parser.add_argument("--expect-plan-sha256", help="必须与最近一次 dry-run 的 plan_sha256 一致，防止应用不同计划")
     parser.add_argument("--expect-task-version", type=int, help="--apply 时必须匹配 dry-run 读取的任务 version")
@@ -1285,6 +1352,7 @@ def main() -> int:
             infrastructure, manifest, args.template_id, args.component_package_id or "html.semantic-components-v1", args.component_id,
             args.layout_id, args.runtime_kit_id, args.task_id, version, task["revision"],
             task["version"], commit, task, args.source_id, args.container_id, args.page_id,
+            args.scenario_id,
         )
         digest = plan_sha256(destination, package, root)
         if args.apply and not args.expect_plan_sha256:
@@ -1313,6 +1381,7 @@ def main() -> int:
                     infrastructure, manifest, args.template_id, args.component_package_id or "html.semantic-components-v1", args.component_id,
                     args.layout_id, args.runtime_kit_id, args.task_id, version, latest_task["revision"],
                     latest_task["version"], commit, latest_task, args.source_id, args.container_id, args.page_id,
+                    args.scenario_id,
                 )
                 latest_digest = plan_sha256(destination, latest_package, root)
                 if latest_digest != digest:
@@ -1338,6 +1407,7 @@ def main() -> int:
             "runtime_kits": materialization["runtime_kits"],
             "semantic_components": materialization["semantic_components"],
             "pages": materialization["pages"],
+            "scenario": materialization.get("scenario"),
             "written": [path.relative_to(root).as_posix() for path, _ in writes] if args.apply else [],
             "would_write": [path.relative_to(root).as_posix() for path, _ in writes],
             "unchanged": [f"{relative_destination.as_posix()}/{path}" for path in unchanged],

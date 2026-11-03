@@ -70,6 +70,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         git(cls.source, "config", "core.autocrlf", "false")
 
         shutil.copytree(REPO_ROOT / "infrastructure/html", cls.source / "infrastructure/html")
+        shutil.copytree(REPO_ROOT / "scenarios", cls.source / "scenarios")
         page_fragment = cls.source / "infrastructure/html/templates/single-page/content/sample-v1"
         page_fragment.mkdir(parents=True)
         (page_fragment / "template.yml").write_text(
@@ -334,6 +335,30 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
             ok=False, template_id=None,
         )
         self.assertIn("暂不接受 --component-id", rejected_component["error"])
+
+    def test_registered_scenario_is_written_to_report_and_materialization_provenance(self):
+        scenario_id = "expression.scenario.course-learning-v1"
+        preview = self.cli("--scenario-id", scenario_id)
+        self.assertEqual(preview["scenario"]["id"], scenario_id)
+        applied = self.cli(
+            "--scenario-id", scenario_id,
+            "--apply", "--expect-plan-sha256", preview["plan_sha256"],
+            "--expect-task-version", str(preview["task_record_version"]),
+        )
+        record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["scenario"]["id"], scenario_id)
+        self.assertEqual(record["scenario"]["profile"], "scenarios/course-learning-v1/README.md")
+        report = (self.output / "report.yml").read_text(encoding="utf-8")
+        self.assertIn(f'id: "{scenario_id}"', report)
+        self.assertIn('profile: "scenarios/course-learning-v1/README.md"', report)
+        self.assertLess(report.index("components:"), report.index("scenario:"))
+        self.assertIn('  - "status.phase"', report)
+        self.assertIn('  - "action.next-step"', report)
+
+    def test_unknown_or_unimplemented_scenario_is_rejected(self):
+        result = self.cli("--scenario-id", "expression.scenario.not-registered-v1", ok=False)
+        self.assertIn("没有唯一登记该场景", result["error"])
+        self.assertFalse(self.output.exists())
 
     def test_only_complete_presets_are_accepted_by_template_id(self):
         for capability_id in (

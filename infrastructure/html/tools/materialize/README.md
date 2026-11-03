@@ -48,6 +48,21 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
 
 任务编号示例必须替换为真实任务编号。工具默认 `reports/`；自建仓可使用 task brief 中已对齐的输出根，但该根必须是任务工具默认允许目录或 `.suanhai/expression.json` 显式声明的目录。
 
+任务匹配已登记场景时，可以显式传入场景画像 ID：
+
+```powershell
+py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html/tools/materialize/materialize_html.py `
+  --root . `
+  --task-id EXPR-20261031-1234abcd `
+  --scenario-id expression.scenario.course-learning-v1 `
+  --container-id html.container.presentation-deck-v1 `
+  --page-id html.single-page.cover.editorial-v1 `
+  --page-id html.single-page.agenda.route-v1 `
+  --page-id html.single-page.content.method-v1
+```
+
+当前登记的场景画像位于基础设施根目录 `scenarios/catalog.json`。工具拒绝未知或未实现的场景，并把 `id`、版本和画像路径写入 `report.yml`、`materialization.json` 与 dry-run 结果。场景只记录任务分类，不会替任务简报选择输出根；输出位置仍以已对齐的 `brief.output` 为准。未传 `--scenario-id` 的旧调用保持原格式。
+
 逐页讲解有两种兼容路径：旧任务继续使用 `--template-id html.presentation-deck-v1`；新任务可以使用容器和有序单页模板组合：
 
 ```powershell

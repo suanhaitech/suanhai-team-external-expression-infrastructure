@@ -126,10 +126,11 @@ capabilities:
     kind: tool
     path: infrastructure/html/tools/materialize
     entrypoint: infrastructure/html/tools/materialize/materialize_html.py
-    purpose: 从已固定的基础设施 submodule 中按 Manifest 能力 ID 安全复制完整预设，或按容器与有序单页 ID 组合 HTML 页面，再装配响应式布局、运行时包和组件包；默认只预览，显式应用需匹配计划摘要和任务记录版本
+    purpose: 从已固定的基础设施 submodule 中按 Manifest 能力 ID 安全复制完整预设，或按容器与有序单页 ID 组合 HTML 页面，再装配响应式布局、运行时包和组件包；可选记录已登记场景画像 ID；默认只预览，显式应用需匹配计划摘要和任务记录版本
     inputs:
       - 消费端根目录、已进入 working 状态的任务编号及固定 submodule gitlink
       - Manifest 中已登记的完整预设 ID，或容器 ID 与有序单页 ID；可选布局/运行时包 ID、组件包 ID 和语义组件 ID
+      - 可选的 scenarios/catalog.json 场景画像 ID
       - dry-run 返回的计划摘要与任务记录版本
     outputs:
       - 消费端任务版本目录中的自包含 HTML、CSS、运行时和组件包文件
