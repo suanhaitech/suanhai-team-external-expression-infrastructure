@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 from pathlib import Path
 import unittest
 
@@ -217,26 +218,36 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertNotRegex(example, r"https?://|//cdn|@import")
         self.assertIn('rel="stylesheet" href="../styles.css"', example)
 
-        contracts = sorted((COMPONENTS / "semantic/contracts").glob("*.json"))
-        self.assertEqual(len(contracts), 6)
+        # 按公开目录而不是固定数量核对，新增组件不能绕过契约与模板检查。
+        tool_path = ROOT / "infrastructure/html/tools/materialize/materialize_html.py"
+        spec = importlib.util.spec_from_file_location("component_contract_reader", tool_path)
+        tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tool)
+        catalog_entries = tool.component_catalog(COMPONENTS / "index.yml", "html.semantic-components-v1")
+        self.assertTrue(catalog_entries)
+        contract_paths = set()
         required = {
             "id", "version", "role", "required_slots", "optional_slots",
             "states", "responsive", "accessibility",
         }
-        ids = set()
-        for path in contracts:
+        for component_id, entry in catalog_entries.items():
+            path = (COMPONENTS / entry["contract"]).resolve()
+            self.assertTrue(path.is_relative_to(COMPONENTS.resolve()))
+            self.assertTrue(path.is_file(), component_id)
+            self.assertNotIn(path, contract_paths)
+            contract_paths.add(path)
             data = json.loads(path.read_text(encoding="utf-8"))
             self.assertTrue(required.issubset(data), path.name)
-            self.assertNotIn(data["id"], ids)
-            ids.add(data["id"])
+            self.assertEqual(data["id"], component_id)
+            definition = COMPONENTS / entry["definition"]
+            template = COMPONENTS / entry["template"]
+            self.assertTrue(definition.is_file(), component_id)
+            self.assertTrue(template.is_file(), component_id)
+            self.assertIn(f"id: {component_id}", definition.read_text(encoding="utf-8"))
+            self.assertIn(f'data-component="{component_id}"', template.read_text(encoding="utf-8"))
 
-        self.assertEqual(
-            ids,
-            {
-                "content.summary", "status.phase", "status.metric",
-                "evidence.claim", "evidence.source", "action.next-step",
-            },
-        )
+        actual_contracts = {path.resolve() for path in (COMPONENTS / "semantic/contracts").glob("*.json")}
+        self.assertEqual(contract_paths, actual_contracts, "契约目录与公开组件索引必须闭合")
 
     def test_component_css_contains_mobile_print_and_reduced_motion_rules(self):
         css = (COMPONENTS / "styles.css").read_text(encoding="utf-8")

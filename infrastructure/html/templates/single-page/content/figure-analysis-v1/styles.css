@@ -1,0 +1,10 @@
+.sp-content-figure-analysis__layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 2rem; align-items: start; }
+.sp-content-figure-analysis__layout[data-analysis-layout="below"] { grid-template-columns: minmax(0, 1fr); }
+.sp-content-figure-analysis__layout img { width: 100%; object-fit: contain; }
+.sp-content-figure-analysis__analysis article { border-top: 1px solid var(--ex-color-line, #d5dde5); padding-top: .75rem; }
+.sp-content-figure-analysis__analysis article + article { margin-top: 1.25rem; }
+.sp-content-figure-analysis__analysis h3 { margin: 0 0 .5rem; color: var(--ex-color-accent, #173f78); font-size: 1.25rem; }
+.sp-content-figure-analysis__analysis p { margin: 0; color: var(--ex-color-muted, #586776); }
+@media (max-width: 800px) { .sp-content-figure-analysis__layout { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 800px) { .sp-content-figure-analysis__layout { grid-template-columns: minmax(0, 1fr); } }
+@media print { .sp-content-figure-analysis__layout figure { break-inside: avoid; } }

@@ -17,7 +17,7 @@ infrastructure/html/
 
 - `html.project-report-v1`
 - `html.presentation-deck-v1`
-- `html.container.presentation-deck-v1` 和七个 `html.single-page.*` 页面模板
+- `html.container.presentation-deck-v1` 和按角色登记的 `html.single-page.*` 页面模板
 - `html.semantic-components-v1`
 - `html.responsive-layout-v1`
 - `html.runtime-kit-v1`
@@ -32,3 +32,7 @@ infrastructure/html/
 详细的工作流与页面组合规则见 [`docs/html-framework.md`](../../docs/html-framework.md)。
 
 当前由工作流识别的任务画像见 [`scenarios/catalog.json`](../../scenarios/catalog.json)：课程学习与面向合作方的项目进展沟通。场景会影响内容组织和验收标准；它不是 HTML 模板或新的工作流能力。
+
+## 课程实践提炼的复用入口
+
+新增技术插图封面、阶段演进、数字观察、定义映射、两栏对照、图文分析和关键词矩阵。`html.presentation-foundation-v1` 提供公共页框，`--theme editorial-warm` 选择暖白主题，`html.image-viewer-v1` 提供可选原图阅读。新稿使用完整 `page-plan.json` 保持稳定页面 ID、来源和目录页码一致；局部修订复用同任务只读基线。`html.viewport-check` 可使用本机 CDP 做整稿逐页检查、交互和联系表，`html.source-assets` 登记本地素材。规则与全部候选归属见 [课程资产提炼](../../docs/course-reusable-assets.md)。

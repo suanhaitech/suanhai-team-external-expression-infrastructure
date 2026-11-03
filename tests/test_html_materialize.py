@@ -216,6 +216,39 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, "预期工具拒绝不安全输入")
         return json.loads(result.stderr)
 
+    def test_page_plan_cli_binds_preview_and_derives_only_target_page(self):
+        plan_file = self.root / "tasks" / TASK_ID / "page-plan.json"
+        document = {"schema_version": 1, "sources": [], "pages": [
+            {"id": "page-one", "template_id": SINGLE_PAGE_IDS[4], "title": "第一页", "objective": "解释", "core_message": "方法"},
+            {"id": "page-two", "template_id": SINGLE_PAGE_IDS[4], "title": "第二页", "objective": "迁移", "core_message": "练习", "notes": "默认隐藏备注"},
+        ]}
+        def save():
+            plan_file.write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
+        save()
+        arguments = ["--container-id", PRESENTATION_CONTAINER_ID, "--page-plan", plan_file.relative_to(self.root).as_posix()]
+        preview = self.cli(*arguments, template_id=None)
+        document["pages"][1]["title"] = "第二页修订"
+        save()
+        rejected = self.cli(*arguments, "--apply", "--expect-plan-sha256", preview["plan_sha256"], "--expect-task-version", "4", template_id=None, ok=False)
+        self.assertIn("计划摘要不匹配", rejected["error"])
+        preview = self.cli(*arguments, template_id=None)
+        self.cli(*arguments, "--apply", "--expect-plan-sha256", preview["plan_sha256"], "--expect-task-version", "4", template_id=None)
+        baseline = (self.output / "index.html").read_bytes()
+        task_file = self.root / "tasks" / TASK_ID / "task.json"
+        task = json.loads(task_file.read_text(encoding="utf-8"))
+        task.update(revision=2, version=5)
+        task_file.write_text(json.dumps(task), encoding="utf-8")
+        document["pages"][1]["title"] = "第三次局部改进"
+        save()
+        arguments += ["--baseline-version", "v001", "--replace-page", "page-two"]
+        preview = self.cli(*arguments, template_id=None)
+        self.cli(*arguments, "--apply", "--expect-plan-sha256", preview["plan_sha256"], "--expect-task-version", "5", template_id=None)
+        self.assertEqual((self.output / "index.html").read_bytes(), baseline)
+        new_output = self.output.parent / "v002"
+        self.assertIn("第三次局部改进", (new_output / "index.html").read_text(encoding="utf-8"))
+        metadata = json.loads((new_output / "materialization.json").read_text(encoding="utf-8"))
+        self.assertEqual(metadata["revision_source"]["preserved_pages"], ["page-one"])
+
     def test_dry_run_then_apply_copies_assets_and_records_provenance(self):
         before = git(self.root, "status", "--porcelain")
         preview = self.cli()

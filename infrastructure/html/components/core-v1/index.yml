@@ -31,3 +31,28 @@ components:
     contract: semantic/contracts/action.next-step.json
     definition: semantic/action/next-step/component.yml
     template: semantic/action/next-step/template.html
+  - id: content.definition
+    category: content
+    contract: semantic/contracts/content.definition.json
+    definition: semantic/content/definition/component.yml
+    template: semantic/content/definition/template.html
+  - id: content.mapping
+    category: content
+    contract: semantic/contracts/content.mapping.json
+    definition: semantic/content/mapping/component.yml
+    template: semantic/content/mapping/template.html
+  - id: content.keyword-grid
+    category: content
+    contract: semantic/contracts/content.keyword-grid.json
+    definition: semantic/content/keyword-grid/component.yml
+    template: semantic/content/keyword-grid/template.html
+  - id: evidence.observation
+    category: evidence
+    contract: semantic/contracts/evidence.observation.json
+    definition: semantic/evidence/observation/component.yml
+    template: semantic/evidence/observation/template.html
+  - id: evidence.figure-analysis
+    category: evidence
+    contract: semantic/contracts/evidence.figure-analysis.json
+    definition: semantic/evidence/figure-analysis/component.yml
+    template: semantic/evidence/figure-analysis/template.html

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "audience": "具备基本任务概念的学习者",
+  "time_budget_minutes": 15,
+  "learning_outcomes": ["区分可恢复与已完成", "解释恢复时应核对什么"],
+  "sources": [
+    {
+      "id": "synthetic-record-source",
+      "path": "source.md",
+      "kind": "synthetic-example"
+    }
+  ],
+  "pages": [
+    {
+      "id": "page-question",
+      "template_id": "html.single-page.content.method-v1",
+      "title": "保存记录等于完成任务吗？",
+      "objective": "提出本轮要区分的两个判断",
+      "core_message": "可恢复与已完成是不同的判断。",
+      "source_ids": ["synthetic-record-source"],
+      "responds_to": [],
+      "slots": {
+        "eyebrow": "问题引入",
+        "title": "保存记录等于完成任务吗？",
+        "summary": "先想一想：一项三步练习在第二步暂停，哪些信息值得保留？",
+        "method-note": "这是教学构造，未作生产系统可靠性结论。",
+        "source": "合成来源：可恢复的记录"
+      },
+      "notes": "先收集学习者的判断，再进入下一页；本段默认不在演示正文显示。",
+      "components": []
+    },
+    {
+      "id": "page-explanation",
+      "template_id": "html.single-page.content.evidence-v1",
+      "title": "记录服务于恢复，验收回答是否完成",
+      "objective": "用解释和构造情境回应开头的问题",
+      "core_message": "恢复信息与结果验收承担不同职责。",
+      "source_ids": ["synthetic-record-source"],
+      "responds_to": ["page-question"],
+      "slots": {
+        "eyebrow": "机制解释 / 教学归纳",
+        "title": "记录服务于恢复，验收回答是否完成",
+        "summary": "记录保存接续线索；完成判断仍要核对本轮约定的结果。",
+        "boundary": "此处仅区分概念，不声称任何具体系统可靠。",
+        "source": "source.md：示例定义、示例观察"
+      },
+      "notes": "请学习者指出：示例中的定义是什么，讲者归纳又是什么。",
+      "components": []
+    },
+    {
+      "id": "page-transfer",
+      "template_id": "html.single-page.closing.action-v1",
+      "title": "下一次恢复前，你会核对什么？",
+      "objective": "把区别迁移到一个新的练习",
+      "core_message": "先核对目标、进度与剩余动作，再判断是否继续。",
+      "source_ids": ["synthetic-record-source"],
+      "responds_to": ["page-question"],
+      "slots": {
+        "conclusion": "下一次恢复前，你会核对什么？",
+        "closing-note": "这是开放讨论题，没有在样例中记录真实学习者回答。"
+      },
+      "notes": "可以留出讨论时间；不得把计划中的练习写成已经观察到的学习效果。",
+      "components": []
+    }
+  ]
+}

@@ -14,7 +14,11 @@ Agent 应把这段请求解释为“启动工作流”，而不是用户已经�
 
 任务澄清时先从 [`scenarios/catalog.json`](../../../scenarios/catalog.json) 识别表达场景，再读取场景画像。当前包括课程学习与面向合作方的项目进展沟通；两者都走本 HTML 主工作流，但学习目标、内容组织和验收重点不同。选择页面资产前，Agent 必须把画像转成可审阅的逐页计划，说明页面目标、核心信息、来源/证据、候选资产和场景验收信号，并取得用户确认。场景 ID 传给物料化工具并记录在作品元数据中；场景不会自动决定 HTML 长页或逐页容器、主题样式或交互。
 
+课程简报还要记录受众已有基础、理解深度和时间预算。逐页计划覆盖当前整稿，使用稳定页面 ID；问题与后文回应通过 `responds_to` 关联，目录和显示页码从顺序派生。正文、默认隐藏备注和附录分别组织，必要条件保留在正文，完整来源通过 source-map 追溯；不要强制每页显示来源小字。中性记录入口见 [records/README.md](../../../infrastructure/html/examples/records/README.md)。
+
 选择页面资产时，连续阅读型长页优先考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；只有在还需要公式、显示模式、全屏或浏览器打印入口时，才额外物料化 `html.runtime-kit-v1`。
+
+整稿制作优先使用 `--page-plan <相对路径>`，与 `--page-id` 互斥。局部修订使用完整清单及 `--baseline-version v001 --replace-page <稳定 ID>`，先预览差异再应用；非目标页继承并检查，基线不能改写。局部认可不等于全稿验收；未制作内容明确占位，暂停复用任务循环的 `pause` / `resume`。
 
 ## 读取顺序
 
@@ -36,6 +40,8 @@ create/continue task
 clarify brief and sources
     ↓
 align with user
+    ↓
+confirm full page plan and source boundaries
     ↓
 choose template/components
     ↓
@@ -64,7 +70,7 @@ complete or pause for later
 - 组件包必须通过 `index.yml` 按稳定组件 ID 发现，Agent 不得扫描 CSS 猜测组件语义；
 - 组件包可被模板复制到消费端报告目录，也可由已有仓库按相对路径引用，但交付页面必须自包含；
 - 不能把 Manifest 未列出的交互式预览器或其他检查器当作已经可调用能力；已列出的 `html.runtime-kit-v1` 只提供页面内运行时，不替代浏览器视觉检查；`html.viewport-check` 与 `html.pdf-export` 仍须按其 `not-run` 语义执行。
-- `html.viewport-check` 的浏览器部分依赖消费端本机 Playwright 和浏览器运行时；返回 `not-run` 时必须如实保留，不能宣称通过。
+- `html.viewport-check` 支持 Playwright 或本机 Chrome/Edge/Chromium 的 CDP 后端；整稿检查用 `--all-pages --interactions --fail-on-overflow`，需要时输出截图和联系表。返回 `not-run` 时必须如实保留，不能宣称通过。
 - `html.pdf-export` 只在用户确认纸张、方向和输出路径后调用；浏览器不可用时不伪造 PDF 或完成状态。
 
 ## 停止条件

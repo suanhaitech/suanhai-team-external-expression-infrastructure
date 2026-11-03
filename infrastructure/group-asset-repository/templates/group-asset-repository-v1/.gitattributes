@@ -1,0 +1,8 @@
+# BEGIN suanhai-asset-bytes:v1
+# 已登记来源和作品按原始字节保存，避免换行转换改变评审摘要。
+books/** -text
+courses/** -text
+reports/** -text
+series/** -text
+tasks/** -text
+# END suanhai-asset-bytes:v1

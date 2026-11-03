@@ -76,7 +76,33 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
   --page-id html.single-page.closing.action-v1
 ```
 
-重复 `--page-id` 的出现顺序就是展示顺序；同一个页面变体可以安全重复使用。组合器会复制每个页面的 `styles.css`、替换容器示例页、生成唯一页码和 ID；`report.yml` 与 `materialization.json` 都记录有序页面 ID，后者还保留角色、变体、版本和来源。组合模式目前不接受 `--component-id`，因为单页包尚未声明通用语义组件插槽；需要语义组件时使用完整预设路径，或先扩展单页契约并补充评审。
+重复 `--page-id` 的出现顺序就是展示顺序；同一个页面变体可以安全重复使用。组合器复制单页样式和本地素材，替换容器示例页，生成唯一页码和 ID，并记录页面角色、变体、版本和来源。仅使用 `--page-id` 的旧调用保持兼容；新任务建议使用下面的完整页面计划。
+
+## 完整页面计划与可选资产
+
+`--page-plan tasks/<任务号>/page-plan.json` 取代重复的 `--page-id`，必须与容器搭配使用。协议见 `infrastructure/html/schemas/page-plan.schema.json`，中性样例见 `infrastructure/html/examples/records/page-plan.json`。每页保留稳定 ID、模板 ID、标题、职责、核心信息、来源 ID、回应关系、纯文本内容槽和默认隐藏备注。HTML 页面、目录与显示页码从同一清单生成，改变显示顺序不需要手改页面 ID。
+
+```text
+python materialize_html.py --root . --task-id <任务号> --container-id html.container.presentation-deck-v1 --page-plan tasks/<任务号>/page-plan.json --theme editorial-warm --layout-id html.responsive-layout-v1 --layout-id html.presentation-foundation-v1 --runtime-kit-id html.runtime-kit-v1 --runtime-kit-id html.image-viewer-v1
+```
+
+以上仍为预览，应用必须追加匹配的 `--apply --expect-plan-sha256 ... --expect-task-version ...`。主题为组件包中的可选令牌覆盖；布局包和运行时包可重复选择。原图阅读器独立于全屏/PDF/公式工具包，只有显式选择才装配。
+
+单页 `template.yml` 可声明 `component_slots: [supporting]`（YAML列表写法）及 `<!-- SUANHAI_COMPONENTS:supporting -->` 插槽。页面计划使用 `components: [{"slot":"supporting","id":"content.definition"}]` 把包内已登记组件放入指定页。工具拒绝未声明插槽、未登记组件和不兼容白名单；不会猜测任意 HTML 的插入位置。组合模式不接受缺少目标页面的 `--component-id`。
+
+`slots` 值是纯文本，自动转义。复杂表格、列表和图示应保留模板结构，在物料化的新版本里填充，不能把未审阅 HTML 作为字符串注入。填写结构插槽后需要检查语义是否仍适合原标签。共享样式使用 `shared_styles` 相对 `infrastructure/html` 声明；第一版共享CSS只接受无外部依赖的文件，其他包继续遵守原有显式资源协议。
+
+## 安全局部修订
+
+先通过任务循环反馈并进入下一轮 `working`，用完整新计划预览：
+
+```text
+python materialize_html.py --root . --task-id <任务号> --container-id html.container.presentation-deck-v1 --page-plan tasks/<任务号>/page-plan.json --baseline-version v001 --replace-page page-explanation
+```
+
+其余主题、布局、运行时和场景参数必须与基线保持一致。工具从同任务旧版本只读继承，新版本只替换指定页面；基线需有完整页面清单和物料化记录，非目标页逐字保留，并记录基线摘要及替换范围。检查目录不继承为本轮验证证据，其他来源素材保留；已有PDF不代表新版导出，必须重新检查和导出。
+
+第一版要求固定基础设施提交、容器、主题、布局、运行时、页面 ID 和顺序一致。插页、重排、升级公共资源或更换全局配置时使用完整装配，再做整稿检查。局部修订不能自动理解用户已在 HTML 中手改的目标页；完整页面计划需先表达该页要保留的内容，复杂手工结构应在新版本继续调整，不回写旧版本。
 
 ## 输出
 

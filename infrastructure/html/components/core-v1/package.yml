@@ -1,6 +1,6 @@
 id: html.semantic-components-v1
 kind: template
-version: 1.0.0
+version: 1.1.0
 entrypoint: README.md
 catalog: index.yml
 stylesheets:
@@ -13,6 +13,7 @@ layout:
 semantic_stylesheet: semantic/semantic.css
 themes:
   - themes/technical-light.css
+  - themes/editorial-warm.css
 offline: true
 network_dependencies: []
 javascript_dependencies: []
@@ -23,6 +24,11 @@ components:
   - evidence.claim
   - evidence.source
   - action.next-step
+  - content.definition
+  - content.mapping
+  - content.keyword-grid
+  - evidence.observation
+  - evidence.figure-analysis
 responsive_viewports_px:
   - 320
   - 390

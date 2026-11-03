@@ -54,7 +54,7 @@ infrastructure/html/
 ```
 
 - **内容**：项目事实、文字、数据、图片、来源和授权状态，由消费端提供并核对。
-- **页面模板**：页面容器、可组合的单页结构和完整组合预设。`html.project-report-v1` 与兼容预设 `html.presentation-deck-v1` 位于 `templates/presets/`；`html.container.presentation-deck-v1` 与七个 `html.single-page.*` 能力位于 `templates/containers/` 和 `templates/single-page/`。调用物料化器时，`--page-id` 的出现顺序就是页面顺序。
+- **页面模板**：页面容器、可组合的单页结构和完整组合预设。`html.project-report-v1` 与兼容预设 `html.presentation-deck-v1` 位于 `templates/presets/`；`html.container.presentation-deck-v1` 与按角色登记的 `html.single-page.*` 能力位于 `templates/containers/` 和 `templates/single-page/`。调用物料化器时，`--page-id` 的出现顺序就是页面顺序。
 - **组件**：可复用的信息结构或交互，例如阶段状态、指标、来源、全屏控件。组件可以携带自身必需的 CSS/JavaScript，保持可安装包完整。
 - **样式**：设计令牌、基础排版、跨页面布局、屏幕适配和打印规则。组件内部的局部样式仍由组件包管理；模板专属样式仍由模板包管理。
 - **运行时**：页面在浏览器中执行的能力及其本地依赖。当前候选包包含 KaTeX 公式渲染、显示模式、全屏和浏览器打印入口。
@@ -68,7 +68,7 @@ infrastructure/html/
 
 `html.project-report-v1` 是适合连续阅读的项目概览、阶段进展和对外汇报长页模板。`html.presentation-deck-v1` 是适合现场讲解和阶段沟通的多页演示稿模板：逐页聚焦一个判断或问题，页脚标记来源与数据口径，底部提供页码选择、上一页/下一页和进度，支持键盘翻页、讲者备注、自动或手动页面比例以及逐页打印。两种模板有不同的阅读节奏，主工作流依据受众、用途和交付方式选择，不把单页报告里的顶部章节导航复用成演示稿的切页机制。
 
-逐页演示也可选 `html.container.presentation-deck-v1`，并通过多个 `--page-id` 组合封面、目录、过渡、正文、结尾和附录；同一页面变体可以重复。组合模式复制各页面 CSS、替换容器页列表插槽，并在报告记录中保存有序页面 ID、角色、变体和来源。单页目前没有统一语义组件插槽，因此组合模式不接受 `--component-id`；完整预设调用继续兼容原有组件装配路径。
+逐页演示也可选 `html.container.presentation-deck-v1`，并通过多个 `--page-id` 组合封面、目录、过渡、正文、结尾和附录；同一页面变体可以重复。组合模式复制各页面 CSS、替换容器页列表插槽，并在报告记录中保存有序页面 ID、角色、变体和来源。新单页可声明具名组件插槽，完整页面计划用每页 components 绑定插槽和包内组件 ID；不接受未指定页面的顶层 `--component-id`。完整预设调用继续兼容原有组件装配路径。
 
 `html.semantic-components-v1` 当前实际登记六个语义组件：
 
@@ -133,3 +133,9 @@ HTML 工作流应执行当前实际可用的检查：
 6. 人工确认事实、表达质量与发布授权。
 
 无障碍自动化检查尚未作为完整能力提供。工具检查通过不代表项目事实正确，也不代表已取得发布授权。
+
+## 统一页面计划与局部修订
+
+页面计划契约在 `infrastructure/html/schemas/page-plan.schema.json`，中性记录样例在 `infrastructure/html/examples/records/`。物料化支持稳定页面 ID、纯文本叶子插槽、默认隐藏备注、来源引用和回应关系，目录从章节过渡页派生；完整页面计划是消费端内容模型，不是新的工作流。模板通过 shared_styles 和 component_slots 显式声明共享样式及可选组件位置。
+
+局部修订沿用同任务、同固定基础设施和同全局配置，从旧版本只读派生，指定可替换页，核对非目标页面不变。插页、重排或全局样式/运行时变化时采用完整修订。检查证据不能从旧版自动升级为新版通过；CDP与Playwright是可选浏览器后端，缺少环境保留 not-run。

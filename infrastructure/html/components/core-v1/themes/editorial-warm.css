@@ -1,0 +1,15 @@
+/* 可选暖纸白主题。只替换令牌，不改变任何页面的内容和交互。 */
+:root {
+  color-scheme: light;
+  --ex-color-page: #f7f1e5;
+  --ex-color-ink: #20364c;
+  --ex-color-accent: #173f78;
+  --ex-color-accent-soft: #e9edf1;
+  --ex-color-highlight: #b45f31;
+  --ex-color-muted: #52605b;
+  --ex-color-line: #c9c8ba;
+  --ex-color-surface: #f0eadc;
+}
+@media print {
+  :root { --ex-color-ink: #172b43; --ex-color-muted: #3f4b47; }
+}

@@ -6,8 +6,8 @@
 .sp-content-method {
   min-height: 34rem;
   padding: clamp(1.5rem, 5vw, 4.5rem);
-  background: #eef1f7;
-  color: #202b36;
+  background: var(--ex-color-page, #eef1f7);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
 }
@@ -19,7 +19,7 @@
 
 .sp-content-method__eyebrow {
   margin: 0 0 0.75rem;
-  color: #62508f;
+  color: var(--ex-color-accent, #62508f);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -35,12 +35,13 @@
 .sp-content-method__heading > p:last-child {
   max-width: 45rem;
   margin: 1rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-content-method__steps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -48,18 +49,18 @@
 
 .sp-content-method__steps li {
   min-width: 0;
-  border-top: 3px solid #62508f;
+  border-top: 3px solid var(--ex-color-accent, #62508f);
   padding: 1rem 1rem 0 0;
 }
 
 .sp-content-method__steps li + li {
-  margin-left: 1rem;
-  padding-left: 1rem;
-  border-left: 1px solid #c8d0df;
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
 }
 
 .sp-content-method__steps span {
-  color: #62508f;
+  color: var(--ex-color-accent, #62508f);
   font-size: 0.8125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -72,7 +73,7 @@
 
 .sp-content-method__steps p {
   margin: 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.9375rem;
 }
 
@@ -82,9 +83,9 @@
   justify-content: space-between;
   gap: 1rem;
   margin-top: 2.5rem;
-  border-top: 1px solid #c8d0df;
+  border-top: 1px solid var(--ex-color-line, #c8d0df);
   padding-top: 1rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.8125rem;
 }
 
@@ -137,3 +138,9 @@
     break-inside: avoid;
   }
 }
+
+.sp-content-method__steps li { position: relative; }
+@container (min-width: 1000px) {
+  .sp-content-method__steps li:not(:last-child)::after { content: "→"; position: absolute; top: -.95rem; right: -.9rem; padding: .1rem; background: var(--ex-color-page, #eef1f7); color: var(--ex-color-accent, #62508f); }
+}
+@media print { .sp-content-method__steps li::after { display: none; } }

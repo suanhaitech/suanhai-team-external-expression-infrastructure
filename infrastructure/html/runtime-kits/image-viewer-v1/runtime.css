@@ -1,0 +1,10 @@
+.source-viewer { box-sizing: border-box; width: min(96vw, 1440px); max-width: 96vw; max-height: 94dvh; padding: 1rem; border: 1px solid var(--line, #cbd5e1); border-radius: 1rem; background: var(--surface, #fff); color: var(--ink, #172033); box-shadow: 0 24px 90px #0005; }
+.source-viewer::backdrop { background: #0b1220b8; }
+.source-viewer__bar { display: flex; gap: 1rem; align-items: start; justify-content: space-between; }
+.source-viewer__bar p { margin: 0; line-height: 1.5; }
+.source-viewer__bar button { flex: none; min-height: 44px; padding: .4rem .9rem; border: 1px solid currentColor; border-radius: .5rem; color: inherit; background: transparent; cursor: pointer; }
+.source-viewer__image { overflow: auto; max-height: 76dvh; overscroll-behavior: contain; }
+.source-viewer__image img { display: block; width: 100%; height: auto; object-fit: contain; }
+.source-viewer [data-source-viewer-status]:empty { display: none; }
+.source-viewer :focus-visible { outline: 3px solid var(--accent, #2563eb); outline-offset: 3px; }
+@media print { .source-viewer { display: none !important; } }

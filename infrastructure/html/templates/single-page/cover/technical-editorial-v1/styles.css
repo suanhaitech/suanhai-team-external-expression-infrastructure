@@ -1,0 +1,16 @@
+.sp-cover-technical__topline { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid var(--ex-color-line, #d5dde5); padding-bottom: 1rem; }
+.sp-cover-technical__topline p { margin: 0; font-size: .875rem; letter-spacing: .08em; }
+.sp-cover-technical__topline > span { flex: 0 0 1.5rem; height: .25rem; background: var(--ex-color-highlight, #b45f31); }
+/* 按语义片段排版，允许长中文与长英文自然换行，不绑定某个专有名词长度。 */
+.sp-cover-technical .sp-cover-technical__title { max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: .25em .4em; margin: 2rem 0 0; color: var(--ex-color-accent, #173f78); font-size: clamp(2.25rem, 4.5vw, 4.5rem); font-weight: 600; line-height: 1.25; text-wrap: balance; }
+.sp-cover-technical__title > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.sp-cover-technical__lead { font-size: .6em; }
+.sp-cover-technical__hero { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; gap: 2.5rem; margin-top: 2rem; }
+.sp-cover-technical__subtitle { margin: 0; font-size: 1.375rem; }
+.sp-cover-technical__question { margin: 1.75rem 0 0; border-left: 2px solid var(--ex-color-highlight, #b45f31); padding-left: 1rem; color: var(--ex-color-muted, #586776); font-size: 1rem; }
+.sp-cover-technical figure img { width: 100%; max-height: 19rem; object-fit: contain; }
+@media (max-width: 700px) { .sp-cover-technical__hero { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; } .sp-cover-technical .sp-cover-technical__title { font-size: 2.5rem; } }
+@container (max-width: 700px) { .sp-cover-technical__hero { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; } .sp-cover-technical .sp-cover-technical__title { font-size: 2.5rem; } }
+@media print { .sp-cover-technical__hero { break-inside: avoid; } }
+
+/* 提升到模板自身的双类选择器，覆盖容器默认h1的12ch限制；单页标题独立决定宽度。 */

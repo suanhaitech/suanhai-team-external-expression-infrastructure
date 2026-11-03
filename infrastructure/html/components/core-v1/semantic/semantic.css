@@ -116,3 +116,37 @@
     break-inside: avoid;
   }
 }
+
+/* 课程与汇报共用的信息结构；适用目标由场景画像决定。 */
+.ex-definition, .ex-mapping, .ex-observation, .ex-figure-analysis { min-width: 0; border-top: var(--ex-border, 1px solid #d5dde5); padding-top: 1.25rem; }
+.ex-definition h3, .ex-mapping h3, .ex-observation h3, .ex-figure-analysis h3 { margin: 0 0 .75rem; color: var(--ex-color-accent, #173f78); font-size: 1.25rem; }
+.ex-definition__text { font-size: 1.25rem; line-height: 1.65; }
+.ex-definition__boundary, .ex-mapping__status, .ex-observation__source { font-size: .875rem; color: var(--ex-color-muted, #586776); }
+.ex-mapping dl { margin: 1rem 0; }
+.ex-mapping dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 1.5rem; border-top: 1px solid var(--ex-color-line, #d5dde5); padding: 1rem 0; }
+.ex-mapping dt { font-weight: 650; }
+.ex-mapping dd { margin: 0; }
+.ex-keyword-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; }
+.ex-keyword-grid__item { display: grid; grid-template-columns: minmax(5rem, .7fr) minmax(0, 1.3fr); align-items: center; gap: 1.5rem; min-width: 0; border-top: 1px solid var(--ex-color-line, #d5dde5); padding: 1.5rem 0; }
+.ex-keyword-grid h3 { margin: 0; font-size: 1.75rem; font-weight: 650; line-height: 1.35; }
+/* 判断修饰词与关键词一样重要：等字号等字重，辅助说明另用正文级。 */
+.ex-keyword-grid h3 span, .ex-keyword-grid h3 strong { display: block; font: inherit; }
+.ex-keyword-grid h3 span { color: var(--ex-color-highlight, #b45f31); }
+.ex-keyword-grid h3 strong { color: var(--ex-color-accent, #173f78); }
+.ex-keyword-grid p { margin: 0; color: var(--ex-color-muted, #586776); }
+.ex-observation__value { display: block; font-size: 2.75rem; line-height: 1.25; color: var(--ex-color-highlight, #b45f31); overflow-wrap: anywhere; }
+.ex-figure-analysis { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 1.5rem; }
+.ex-figure-analysis[data-analysis-layout="below"] { grid-template-columns: minmax(0, 1fr); }
+.ex-figure-analysis figure { min-width: 0; margin: 0; }
+.ex-figure-analysis img, .ex-figure-analysis svg { display: block; width: 100%; height: auto; object-fit: contain; }
+.ex-figure-analysis figcaption { margin-top: .75rem; font-size: .875rem; color: var(--ex-color-muted, #586776); }
+.ex-figure-analysis__analysis { min-width: 0; }
+@media (max-width: 760px) {
+  .ex-keyword-grid, .ex-figure-analysis, .ex-mapping dl > div { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 760px) {
+  .ex-keyword-grid, .ex-figure-analysis, .ex-mapping dl > div { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  .ex-keyword-grid__item, .ex-mapping dl > div, .ex-figure-analysis figure { break-inside: avoid; }
+}

@@ -17,6 +17,16 @@ Agent 不会因为 submodule 中存在文档，就自动发现并执行其中的
 
 公共模板已经把等价的启动规则放入消费端根 `AGENTS.md`。既有仓库不要直接手工复制下面的示例来绕过接入流程；应使用[既有仓库接入工作流](../workflows/infrastructure-adoption/ENTRYPOINT.md)调用 `consumer.infrastructure-adoption-harness`，提示词授权后由 Agent 预览校验并安装带标记的规则。下面的文本用于说明协议内容和模板实现，submodule 路径默认是 `vendor/suanhai-team-external-expression-infrastructure`；消费端原有的项目规则、权限边界和更严格的限制优先于本协议。
 
+### 登记来源与作品前保护原始字节
+
+跨设备 clone 可能因 Git 换行转换改变同一文件的 SHA-256，影响任务恢复和作品校验。新公共模板已经通过根 `.gitattributes` 对 `tasks/`、`reports/`、`courses/`、`series/`、`books/` 声明 `-text`；建仓后核对实际文件的 `git check-attr text -- <文件>` 结果为 `unset`。这里保护的是这些目录内的来源/作品及任务记录，不代表仓库任意位置的来源都已受保护。
+
+既有仓库或使用自定义输出根的仓库，在首次登记来源/作品摘要前，从固定 Manifest 发现 [`consumer.asset-bytes`](../infrastructure/repository-management/tools/asset-bytes/README.md)。先运行工具的默认只读预览（没有 `--dry-run` 参数），核对 `planned_text`、影响目录和 `plan_sha256`；本轮已有相应本地接入修改授权时，以相同参数加 `--apply --expect-plan-sha256 <预览摘要>` 显式应用。仅追加带标记的 `.gitattributes`，原规则保持不变；冲突、标记差异、嵌套规则覆盖时停止报告。不得改写旧 Harness 标记段来引入这项路由。
+
+工具默认保护上述五个目录。使用 `--output-root` 时应给出需要保护的完整安全顶层目录集合，包含任务记录目录及实际来源/作品目录，不能只给一个新增目录而遗漏已有目录；受保护的 `context/`、`vendor/` 不能通过此参数接管。来源在其他位置时先说明保护边界，不能声称已全部覆盖。
+
+规则只影响今后的 Git 转换，不恢复历史字节。不得自动执行 `git add --renormalize`、批量重签摘要或重写已有来源/作品；已经发生的摘要差异应先找原文件并解释，另行确定迁移。固定旧版 Manifest 没有该能力时，报告保护缺口，通过受控更新另行解决，不从远端临时复制工具。
+
 ```markdown
 ## 共享对外表达基础设施启动规则
 

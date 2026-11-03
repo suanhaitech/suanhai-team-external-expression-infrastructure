@@ -1,6 +1,6 @@
 # 单页模板契约
 
-单页模板是可嵌入 HTML 容器的逻辑页面。当前七种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
+单页模板是可嵌入 HTML 容器的逻辑页面。当前十四种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
 
 ```text
 single-page/
@@ -55,8 +55,17 @@ compatible_container_families:
 
 页面角色和变体是资产分类，不是独立工作流。当前 `html.container.presentation-deck-v1` 负责逐页组合、底部翻页、比例选择和打印；页面顺序由重复的 `--page-id` 参数决定。工具会复制每个页面的 CSS 并记录来源；项目内容仍由消费端 Agent 填充 `data-slot`。
 
-当前 MVP 只支持 `paged-deck` 容器，不接受单页组合中的 `--component-id`。单页还没有通用组件插槽；若直接把语义组件片段插到页面外层，容易破坏页面布局，因此工具明确拒绝该组合。
+当前只支持 `paged-deck` 容器。新正文页声明可选 `component_slots: [supporting]`（受限 YAML 中使用逐行列表）与 `<!-- SUANHAI_COMPONENTS:supporting -->` 标记；page-plan 为每页用 `components: [{slot: "supporting", id: "content.definition"}]` 显式分配组件。不声明槽的旧模板保持兼容，不允许把组件无差别插到所有页面。未用的槽不占版面。
+
+新模板的 `shared_styles` 指向 HTML 领域内的公共样式，例如 `styles/presentation-v1/styles.css`；工具复制到作品并保留来源记录，作品不依赖 submodule 路径。暖白主题 `editorial-warm` 可选择，不强制应用于所有课程。
 
 ## 本地预览
 
 预览入口位于 [`preview/index.html`](preview/index.html)。在仓库根运行 `python -m http.server 8000`，再访问 `/infrastructure/html/templates/single-page/preview/`。它用于设计比较，不是生产装配器。
+
+## 课程实践提炼的通用页面
+
+- 封面：`cover/technical-editorial-v1`（本地插图＋语义标题片段）；
+- 正文：`stages-v1`、`observation-v1`、`definition-mapping-v1`、`comparison-v1`、`figure-analysis-v1`、`keyword-grid-v1`；
+- 既有增强：目录起始页码、过渡范围说明、方法页2–4步骤；
+- 共同规则：一页一个问题、标题自然换行、手机可读字号、必要限定可见，详细说明可以放默认隐藏备注。

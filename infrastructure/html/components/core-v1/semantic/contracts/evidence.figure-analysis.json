@@ -1,0 +1,24 @@
+{
+  "id": "evidence.figure-analysis",
+  "version": "1.0.0",
+  "role": "本地图像、图注与解释共用的图文分析结构",
+  "required_slots": [
+    "figure",
+    "alt",
+    "caption",
+    "analysis",
+    "source"
+  ],
+  "optional_slots": [
+    "layout",
+    "boundary",
+    "source_ids"
+  ],
+  "states": [
+    "draft",
+    "confirmed"
+  ],
+  "responsive": "窄屏单列自然增高，保持可读字号和长文本换行。",
+  "accessibility": "语义标题、图像替代文本与可见状态；颜色不能是唯一判断依据。",
+  "provenance": "图片与结论均需来源；原图保持比例，不裁掉图例，不自动将原图重绘为未经确认的架构。"
+}

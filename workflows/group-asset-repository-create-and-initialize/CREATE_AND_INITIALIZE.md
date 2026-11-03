@@ -17,6 +17,8 @@
 
 本提示词授权你在下列条件全部满足后，使用当前已登录的 GitHub 身份，在 `suanhaitech` 下创建一个小组资产仓；将它克隆到用户指定的本地目录；在该目录中运行只读检查，并按下面的初始化协议写入小组上下文候选。创建一个新远程仓库是持久外部变更，应准确报告目标仓、可见性和结果。
 
+新模板已包含根 `.gitattributes` 字节保护规则。若使用实际自定义目录而需要补齐规则，本地初始化授权还包括从固定 Manifest 调用 `consumer.asset-bytes`，默认只读预览、核对摘要后增补同一保护段；不得覆盖原规则、改写历史来源/作品或运行 `git add --renormalize`。
+
 本授权不包括：
 
 - 请求或修改 GitHub 组织、团队、账号、仓库或 Agent 权限；
@@ -76,10 +78,13 @@ Agent 子进程的 PATH 和网络权限可能与普通 PowerShell、Terminal 或
 - `.gitmodules` 的路径为 `vendor/suanhai-team-external-expression-infrastructure`，URL 为公开基础设施仓 HTTPS 地址；
 - `git ls-tree HEAD vendor/suanhai-team-external-expression-infrastructure` 显示 `160000 commit <SHA>`；
 - submodule HEAD 等于父仓 gitlink，submodule 工作区干净；
+- 模板根 `.gitattributes` 包含 tasks/reports/courses/series/books 的 `-text` 规则，对实际相关路径运行 `git check-attr text -- <文件>`，有效值为 `unset`；这不表示 context 等其他目录的所有来源自动受保护；
 - Manifest 中存在 `consumer.group-asset-onboarding`，其入口文件存在；
 - Agent 工具环境可运行 Manifest 声明的 submodule preflight，且本地固定依赖检查通过。
 
 这是新仓建立后的首个共享能力快照，供本次“创建并初始化”顶层流程及其调用的 onboarding 能力复用；不在同一条流程中重复查询。若远端 `main` 与模板 gitlink 的 SHA 不同，报告两个 SHA，并说明差异不证明候选是快进、包含新能力或已验收。由于本提示词未授权修改 gitlink，暂停初始化并让组长选择：暂缓更新、按当前固定 SHA 继续，或结束本流程后另行授权 `consumer.submodule-update`。远端检查失败时明确标为未知；本地检查通过可在固定版本上继续，但不得声称与远端同步。Python 不可用、gitlink 不一致、submodule 脏、来源 URL 错误或本地检查其他失败时，停止初始化写入，保留新仓并报告。不能把手工查文件冒充脚本预检通过。
+
+模板规则正确且覆盖实际目录时只核对，不重复修改。若需要额外的安全顶层目录，读取固定 Manifest 中 `consumer.asset-bytes` 的入口及 `infrastructure/repository-management/tools/asset-bytes/README.md`，先运行 `protect_asset_bytes.py --root .` 默认只读预览（没有 `--dry-run` 参数）。使用重复 `--output-root` 时给出包含 tasks 与所有实际来源/作品目录的完整集合，不只传新增目录，也不能接管 context/vendor。展示 `planned_text`、保护边界和 `plan_sha256`，在本提示词已有本地初始化授权范围内以相同参数加 `--apply --expect-plan-sha256 <本次预览摘要>` 显式应用；原规则保留，同标记内容冲突或嵌套规则覆盖时停止，不手工覆盖。规则仅影响今后 Git 转换，不恢复历史字节、不批量重签摘要。固定版本未声明该能力时报告缺口，不从远端临时复制、不自动升级。
 
 ## 阶段 5：把工作交给新仓初始化 Harness
 
@@ -106,6 +111,7 @@ Agent 子进程的 PATH 和网络权限可能与普通 PowerShell、Terminal 或
 - 本机克隆绝对路径；
 - 模版源和基础设施固定 gitlink 的完整 commit SHA；
 - 预检逐项结果，注明跳过项和未知远端状态；
+- `.gitattributes` 有效保护目录、必要增补及未覆盖的来源位置；
 - 写入了哪些消费端文件；哪些信息是候选、哪些已经由用户明确核对、哪些仍待确认；
 - 是否创建了真实项目、任务或作品；本流程默认均不创建任务和作品；
 - 工作区及 submodule 状态；

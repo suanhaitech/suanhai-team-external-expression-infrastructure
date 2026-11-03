@@ -58,6 +58,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 - [消费端 Agent Bootstrap 协议](docs/consumer-repository-bootstrap.md)
 - [消费端对外表达 Harness v0.1](docs/consumer-repository-harness-v0.1.md)
 - [消费端 submodule 版本协议](docs/submodule-consumer-versioning.md)
+- [来源与作品原始字节保护](infrastructure/repository-management/tools/asset-bytes/README.md)
 - [消费端 Agent 冒烟测试](docs/consumer-repository-smoke-test.md)
 - [任务循环入口](workflows/task-loop/ENTRYPOINT.md)
 - [HTML 网页制作工作流入口](workflows/html/production/ENTRYPOINT.md)
@@ -122,3 +123,9 @@ python -m unittest discover -s tests -p "test_*.py" -v
 ## 当前阶段边界
 
 HTML 网页制作工作流、语义组件包、响应式样式包、离线运行时包、模板/组件安全物料化工具、多视口检查和 PDF 导出目前为 `implemented / experimental`：它们分别提供页面制作编排、语义结构、可复用布局、页面内公式/显示/全屏/浏览器保存 PDF 能力、资产复制、静态/可选浏览器检查和本地 PDF 输出。浏览器检查和 PDF 导出依赖消费端本机运行时；运行时包缺少浏览器时不能声称交互或视觉检查通过，完整自动化无障碍检查仍未实现。
+
+## 课程实践沉淀的新资产
+
+开发版新增7种单页、5个语义组件、公共页框与可选暖白主题、原图阅读器；既有目录/过渡/方法页增强。HTML物料化支持完整页面清单、稳定ID、具名组件插槽、多布局/运行时与受控局部修订。整稿检查支持本机CDP、逐页交互、截图联系表和版本并排；素材登记与字节保护分别提供独立工具。课程画像、HTML主流程、启动和接入提示词同步维护。
+
+全部30项的归属和边界见 [课程资产提炼](docs/course-reusable-assets.md)，实际选择以固定提交的Manifest为准。新资源是开发版可复用工程资产，教学有效性、专业内容和发布仍需消费端评审；现有消费端不会自动升级。
