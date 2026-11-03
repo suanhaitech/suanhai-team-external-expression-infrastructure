@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from pathlib import PurePosixPath
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -88,7 +89,8 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
              "--disable-background-networking", "--disable-extensions", "--disable-sync",
              "--no-first-run", "--no-default-browser-check", "--remote-debugging-address=127.0.0.1",
              "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1",
-             "--remote-debugging-port=0", f"--user-data-dir={profile}", "about:blank"],
+             "--remote-debugging-port=0", *(["--no-sandbox"] if sys.platform.startswith("linux") else []),
+             f"--user-data-dir={profile}", "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         cls.cdp = None

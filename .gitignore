@@ -13,6 +13,14 @@ tmp/
 preview/
 screenshots/
 
+# 仓库内的单页模板预览是可复用设计资产，不属于本地临时预览输出
+!infrastructure/
+!infrastructure/html/
+!infrastructure/html/templates/
+!infrastructure/html/templates/single-page/
+!infrastructure/html/templates/single-page/preview/
+!infrastructure/html/templates/single-page/preview/**
+
 # 凭据和本地配置
 .env
 .env.*
