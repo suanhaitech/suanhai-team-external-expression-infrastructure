@@ -269,7 +269,18 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
     def test_print_shows_all_pages_without_clipping(self):
         self.cdp.call("Emulation.setEmulatedMedia", {"media": "print"})
         self.settle()
-        stage_metrics = self.evaluate("(() => { const shell=document.querySelector('.deck-shell').getBoundingClientRect(); const stage=document.querySelector('[data-deck-stage]').getBoundingClientRect(); return {shellWidth:shell.width, stageWidth:stage.width}; })()")
+        # Chromium 的打印媒体样式可能已匹配，但容器查询触发的后续布局仍保留
+        # 屏幕画布宽度；本机可复现两帧后仍需下一次布局才恢复全宽。按打印的
+        # 可观察结果有界等待，不把固定帧数当作布局完成。永久塌缩仍由原断言失败。
+        deadline = time.monotonic() + 3
+        while True:
+            stage_metrics = self.evaluate("(() => { const shell=document.querySelector('.deck-shell').getBoundingClientRect(); const stage=document.querySelector('[data-deck-stage]'); const rect=stage.getBoundingClientRect(); return {shellWidth:shell.width, stageWidth:rect.width, printMedia:matchMedia('print').matches, stageDisplay:getComputedStyle(stage).display, stageContainer:getComputedStyle(stage).containerType}; })()")
+            if stage_metrics["printMedia"] and stage_metrics["stageWidth"] >= stage_metrics["shellWidth"] * 0.9:
+                break
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(0.025)
+        self.assertTrue(stage_metrics["printMedia"], stage_metrics)
         self.assertGreaterEqual(stage_metrics["stageWidth"], stage_metrics["shellWidth"] * 0.9, stage_metrics)
         metrics = self.evaluate("[...document.querySelectorAll('[data-deck-page]')].map(page => ({id:page.id, display:getComputedStyle(page).display, overflow:getComputedStyle(page).overflow, height:page.clientHeight, scrollHeight:page.scrollHeight, breakAfter:getComputedStyle(page).breakAfter}))")
         for page in metrics:
