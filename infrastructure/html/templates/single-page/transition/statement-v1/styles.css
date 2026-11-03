@@ -113,3 +113,12 @@
     print-color-adjust: exact;
   }
 }
+
+/* 移除 data-transition-tone="paper" 可恢复既有深色变体；槽名保持兼容。 */
+.sp-transition-statement[data-transition-tone="paper"] { background: var(--ex-color-page, #f7f1e5); color: var(--ex-color-accent, #173f78); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__number { color: var(--ex-color-muted, #52605b); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__number strong { color: var(--ex-color-highlight, #b45f31); font-family: Georgia, serif; font-weight: 400; }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__eyebrow { color: var(--ex-color-highlight, #b45f31); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__question,
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__cue { color: var(--ex-color-muted, #52605b); }
+.sp-transition-statement__footer { grid-column: 1 / -1; justify-self: end; font-size: .875rem; }

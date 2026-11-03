@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "tool": "html.viewport-check",
+  "created_at": "2026-11-04T00:00:00Z",
+  "html_sha256": null,
+  "status": "not-run",
+  "checks": [
+    {
+      "id": "browser-layout-and-interaction",
+      "status": "not-run",
+      "evidence": {
+        "example": true,
+        "reason": "中性记录样例；尚未指定实际产物并运行检查"
+      }
+    }
+  ],
+  "limits": [
+    "该文件只展示记录格式，不能登记为实际检查结果",
+    "空摘要和 not-run 不构成视觉、交互或内容验收证据"
+  ]
+}

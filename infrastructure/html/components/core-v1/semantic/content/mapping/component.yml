@@ -1,0 +1,20 @@
+id: content.mapping
+version: 1.0.0
+category: content
+role: 将问题与响应机制或设计目标对应，不将目标冒充已实现收益
+required_slots:
+  - label
+  - pairs
+  - relationship_state
+optional_slots:
+  - boundary
+  - source_ids
+states:
+  - draft
+  - candidate
+  - confirmed
+template: template.html
+styles: ../../semantic.css
+responsive: 窄屏单列自然增高，长文本正常换行
+accessibility: 标题与状态可见；图片有替代文本；不只靠颜色区分
+provenance: 每一映射需区分已观察结果、设计目标与讲者推断，必要限定保留在正文。

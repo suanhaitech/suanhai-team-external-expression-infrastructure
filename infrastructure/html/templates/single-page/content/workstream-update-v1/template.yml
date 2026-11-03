@@ -1,0 +1,32 @@
+id: html.single-page.content.workstream-update-v1
+kind: single-page-template
+version: 1.0.0
+role: content
+variant: workstream-update
+label: 工作主线结果与证据
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - summary
+  - owner
+  - status
+  - commitment
+  - result
+  - evidence
+  - conditions
+  - conclusion
+  - limitation
+  - project-impact
+  - next-result
+  - next-check
+  - source
+compatible_container_families:
+  - paged-deck

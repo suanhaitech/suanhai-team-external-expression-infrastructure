@@ -1,0 +1,28 @@
+{
+  "id": "content.keyword-grid",
+  "version": "1.0.0",
+  "role": "以2–4项关键词判断组织问题提出或总结回顾",
+  "required_slots": [
+    "items"
+  ],
+  "optional_slots": [
+    "source_ids",
+    "boundary"
+  ],
+  "states": [
+    "draft",
+    "confirmed"
+  ],
+  "responsive": "窄屏单列自然增高，保持可读字号和长文本换行。",
+  "accessibility": "语义标题、图像替代文本与可见状态；颜色不能是唯一判断依据。",
+  "provenance": "事实判断必须有source_ids；首尾复用时保持语义对应，不强制使用某四个词。",
+  "items": {
+    "min_items": 2,
+    "max_items": 4,
+    "required_fields": [
+      "modifier",
+      "keyword",
+      "explanation"
+    ]
+  }
+}

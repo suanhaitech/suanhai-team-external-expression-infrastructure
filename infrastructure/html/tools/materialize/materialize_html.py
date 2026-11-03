@@ -329,9 +329,9 @@ def validate_single_page_fragment(markup: str, metadata: dict[str, Any], stylesh
 
 def prefix_fragment_ids(markup: str, prefix: str) -> str:
     """为每个实例重写 HTML ID 与常见 ID 引用，允许重复组合同一页面变体。"""
-    mapping = {value: f"{prefix}-{value}" for value in re.findall(r'\bid="([^"]+)"', markup)}
+    mapping = {value: f"{prefix}-{value}" for value in re.findall(r'(?<![\w:-])id="([^"]+)"', markup)}
     for old, new in mapping.items():
-        markup = re.sub(rf'(\bid=")({re.escape(old)})(")', rf'\g<1>{new}\g<3>', markup)
+        markup = re.sub(rf'((?<![\w:-])id=")({re.escape(old)})(")', rf'\g<1>{new}\g<3>', markup)
     for attribute in ("aria-labelledby", "aria-describedby", "aria-controls", "for"):
         pattern = re.compile(rf'({attribute}=")([^"]+)(")')
         markup = pattern.sub(
@@ -339,6 +339,116 @@ def prefix_fragment_ids(markup: str, prefix: str) -> str:
             markup,
         )
     return re.sub(r'href="#([^"]+)"', lambda match: f'href="#{mapping.get(match.group(1), match.group(1))}"', markup)
+
+
+class ElementRanges(HTMLParser):
+    """只定位元素，不重新序列化 HTML，保证局部修订不改其他页的字节。"""
+
+    def __init__(self, markup: str, attribute: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.markup = markup
+        self.attribute = attribute
+        self.offsets = [0]
+        for line in markup.splitlines(keepends=True):
+            self.offsets.append(self.offsets[-1] + len(line))
+        self.stack: list[tuple[str, dict[str, str | None], int, int]] = []
+        self.ranges: list[tuple[dict[str, str | None], int, int, int, int]] = []
+        self.feed(markup)
+
+    def position(self) -> int:
+        line, column = self.getpos()
+        return self.offsets[line - 1] + column
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+            start = self.position()
+            self.stack.append((tag, dict(attrs), start, start + len(self.get_starttag_text())))
+
+    def handle_endtag(self, tag: str) -> None:
+        if not self.stack or self.stack[-1][0] != tag:
+            return
+        _, attrs, start, inner_start = self.stack.pop()
+        if self.attribute in attrs:
+            inner_end = self.position()
+            end = self.markup.find(">", inner_end) + 1
+            self.ranges.append((attrs, start, inner_start, inner_end, end))
+
+
+def fill_slots(markup: str, slots: dict[str, str], *, literal: bool = True) -> str:
+    ranges = ElementRanges(markup, "data-slot").ranges
+    changes = []
+    for slot, value in slots.items():
+        found = [item for item in ranges if item[0].get("data-slot") == slot]
+        if len(found) != 1:
+            raise MaterializeError(f"内容插槽必须唯一存在：{slot}")
+        _, outer_start, start, end, _ = found[0]
+        tag = re.match(r"<([a-zA-Z0-9]+)", markup[outer_start:]).group(1).lower()
+        if literal and tag in {"ol", "ul", "dl", "table", "thead", "tbody", "tfoot", "tr", "select", "svg"}:
+            raise MaterializeError(f"结构插槽不能用纯文本替换：{slot}；请在物料化后保留结构填充")
+        changes.append((start, end, html_escape(value) if literal else value))
+    ordered = sorted(changes)
+    if any(left[1] > right[0] for left, right in zip(ordered, ordered[1:])):
+        raise MaterializeError("不能同时填写相互嵌套的内容插槽")
+    for start, end, value in reversed(ordered):
+        markup = markup[:start] + value + markup[end:]
+    return markup
+
+
+def validate_page_plan(plan: Any) -> dict[str, Any]:
+    """校验跨 Agent 的最小页面协议；事实和用户认可仍由工作流负责。"""
+    if not isinstance(plan, dict) or type(plan.get("schema_version")) is not int or plan["schema_version"] != 1:
+        raise MaterializeError("page-plan 必须是 schema_version: 1 的对象")
+    pages = plan.get("pages")
+    if not isinstance(pages, list) or not pages:
+        raise MaterializeError("page-plan 必须覆盖全稿，pages 不能为空")
+    sources = plan.get("sources", [])
+    if not isinstance(sources, list) or any(not isinstance(item, dict) or not isinstance(item.get("id"), str) for item in sources):
+        raise MaterializeError("page-plan sources 必须是带 id 的来源对象列表")
+    source_ids = [item["id"] for item in sources]
+    if len(set(source_ids)) != len(source_ids) or any(not CAPABILITY_ID.fullmatch(item) for item in source_ids):
+        raise MaterializeError("page-plan 来源 ID 必须有效且唯一")
+    ids = []
+    for page in pages:
+        if not isinstance(page, dict):
+            raise MaterializeError("page-plan 每页必须是对象")
+        for field in ("id", "template_id", "title", "objective", "core_message"):
+            if not isinstance(page.get(field), str) or not page[field].strip():
+                raise MaterializeError(f"page-plan 页面缺少非空字段：{field}")
+        if not re.fullmatch(r"[a-z][a-z0-9_-]*", page["id"]) or not CAPABILITY_ID.fullmatch(page["template_id"]):
+            raise MaterializeError("page-plan 页面 ID 或模板 ID 无效")
+        ids.append(page["id"])
+        for field in ("source_ids", "responds_to"):
+            values = page.get(field, [])
+            if not isinstance(values, list) or any(not isinstance(value, str) for value in values) or len(set(values)) != len(values):
+                raise MaterializeError(f"page-plan {field} 必须是唯一字符串列表")
+        if set(page.get("source_ids", [])) - set(source_ids):
+            raise MaterializeError(f"页面引用未登记来源：{page['id']}")
+        if not isinstance(page.get("slots", {}), dict) or any(not isinstance(key, str) or not isinstance(value, str) for key, value in page.get("slots", {}).items()):
+            raise MaterializeError("page-plan slots 必须是纯文本键值，不接受任意 HTML")
+        if not isinstance(page.get("notes", ""), str):
+            raise MaterializeError("page-plan notes 必须是字符串")
+        if not isinstance(page.get("components", []), list):
+            raise MaterializeError("page-plan components 必须是列表")
+        for component in page.get("components", []):
+            if not isinstance(component, dict) or set(component) != {"slot", "id"} or any(not isinstance(component.get(key), str) or not CAPABILITY_ID.fullmatch(component[key]) for key in ("slot", "id")):
+                raise MaterializeError("页面组件必须声明有效的 slot 和 id")
+    if len(set(ids)) != len(ids):
+        raise MaterializeError("page-plan 页面 ID 重复")
+    for page in pages:
+        if set(page.get("responds_to", [])) - set(ids) or page["id"] in page.get("responds_to", []):
+            raise MaterializeError(f"页面回应关系引用不存在页面或自身：{page['id']}")
+    return plan
+
+
+def read_page_plan(root: Path, relative: str | None) -> dict[str, Any] | None:
+    if relative is None:
+        return None
+    path = root.joinpath(*safe_relative(relative, "page-plan 路径").parts)
+    assert_inside(root, path, "page-plan")
+    try:
+        return validate_page_plan(json.loads(path.read_text(encoding="utf-8-sig")))
+    except json.JSONDecodeError as error:
+        raise MaterializeError(f"page-plan JSON 无法解析：{error}") from error
 
 
 def compose_deck_pages(
@@ -358,7 +468,8 @@ def compose_deck_pages(
     linked_stylesheets: set[str] = set()
     for index, page in enumerate(pages, start=1):
         metadata = page["metadata"]
-        markup = prefix_fragment_ids(page["markup"], f"slide-{index:02d}")
+        stable_id = page.get("stable_id", f"slide-{index:02d}")
+        markup = prefix_fragment_ids(page["markup"], stable_id)
         markup = markup.replace(PAGE_NUMBER_MARKER, '<span class="deck-page-number">' + f"{index:02d}" + "</span>")
         page_class = "deck-page"
         if metadata["role"] == "cover":
@@ -366,10 +477,12 @@ def compose_deck_pages(
         elif metadata["role"] == "closing":
             page_class += " deck-page--closing"
         title_slot = html_escape(metadata["title_slot"], quote=True)
-        label = html_escape(metadata["label"], quote=True)
+        label = html_escape(page.get("title", metadata["label"]), quote=True)
+        note = html_escape(page.get("notes", ""), quote=True)
         fragments.append(
-            f'<div class="{page_class}" id="slide-{index:02d}" data-deck-page '
+            f'<div class="{page_class}" id="{stable_id}" data-deck-page data-page-id="{stable_id}" '
             f'data-page-title="{label}" data-page-title-slot="{title_slot}" '
+            f'data-speaker-note="{note}" '
             f'data-page-role="{html_escape(metadata["role"], quote=True)}" '
             f'role="group" aria-roledescription="幻灯片" aria-label="{index:02d}：{label}">\n'
             f"{markup}\n</div>"
@@ -378,6 +491,10 @@ def compose_deck_pages(
         if stylesheet_path not in linked_stylesheets:
             stylesheets.append(f'    <link rel="stylesheet" href="{stylesheet_path}" />')
             linked_stylesheets.add(stylesheet_path)
+        for shared_path in page.get("shared_stylesheets", []):
+            if shared_path not in linked_stylesheets:
+                stylesheets.append(f'    <link rel="stylesheet" href="{shared_path}" />')
+                linked_stylesheets.add(shared_path)
 
     stage_pattern = re.compile(r'(<main\b[^>]*data-deck-stage[^>]*>)(.*?)(</main>)', re.S)
     matches = stage_pattern.findall(html)
@@ -782,6 +899,33 @@ def validate_runtime_files(files: list[tuple[PurePosixPath, bytes]]) -> list[tup
     return files
 
 
+def inject_runtime_kits(template_files, runtime_kits):
+    """多个可选运行时共用容器插槽；只有完整工具包会创建工具栏和公式资源。"""
+    if len(runtime_kits) <= 1 and (not runtime_kits or runtime_kits[0]["id"] == "html.runtime-kit-v1"):
+        return inject_runtime_kit(template_files, runtime_kits[0] if runtime_kits else None)
+    result = []
+    for relative, content in template_files:
+        if relative.as_posix() != "index.html":
+            result.append((relative, content))
+            continue
+        markup = content.decode("utf-8")
+        for marker in (RUNTIME_STYLES_MARKER, RUNTIME_SCRIPTS_MARKER, RUNTIME_TOOLBAR_MARKER):
+            if markup.count(marker) != 1:
+                raise MaterializeError(f"模板必须恰有一个运行时插槽：{marker}")
+        styles, scripts, toolbar = [], [], ""
+        for kit in runtime_kits:
+            destination = kit["destination"]
+            styles.append(f'<link rel="stylesheet" href="{destination}/runtime.css" />')
+            if kit["id"] == "html.runtime-kit-v1":
+                styles.append(f'<link rel="stylesheet" href="{destination}/math/katex.min.css" />')
+                scripts.append(f'<script src="{destination}/math/katex.min.js"></script>')
+                toolbar = '<div class="runtime-toolbar" data-runtime-toolbar role="region" aria-label="页面工具"></div>'
+            scripts.append(f'<script src="{destination}/runtime.js"></script>')
+        markup = markup.replace(RUNTIME_STYLES_MARKER, "\n".join(styles)).replace(RUNTIME_SCRIPTS_MARKER, "\n".join(scripts)).replace(RUNTIME_TOOLBAR_MARKER, toolbar)
+        result.append((relative, markup.encode("utf-8")))
+    return result
+
+
 def yaml_quote(value: str) -> str:
     """使用 JSON 字符串作为 YAML 双引号标量，避免项目中文和标点破坏结构。"""
     return json.dumps(value, ensure_ascii=False)
@@ -1065,8 +1209,16 @@ def build_plan(
     container_id: str | None = None,
     page_ids: list[str] | None = None,
     scenario_id: str | None = None,
+    page_plan: dict[str, Any] | None = None,
+    theme: str | None = None,
 ) -> tuple[dict[PurePosixPath, bytes], dict[str, Any]]:
     page_ids = page_ids or []
+    if page_plan is not None:
+        page_plan = validate_page_plan(page_plan)
+        if page_ids or container_id is None:
+            raise MaterializeError("--page-plan 仅用于容器组合，且不能同时传 --page-id")
+        page_ids = [item["template_id"] for item in page_plan["pages"]]
+        source_ids = sorted(set(source_ids) | {item["id"] for item in page_plan.get("sources", [])})
     if (template_id is None) == (container_id is None):
         raise MaterializeError("必须且只能选择 --template-id 或 --container-id")
     if container_id is None and page_ids:
@@ -1095,7 +1247,7 @@ def build_plan(
     page_specs: list[dict[str, Any]] = []
     copied: dict[PurePosixPath, bytes] = {}
     if composition_mode:
-        if component_ids:
+        if component_ids and page_plan is None:
             raise MaterializeError("单页模板组合暂不接受 --component-id；请在内容结构阶段规划页面组件")
         for order, page_id in enumerate(page_ids, start=1):
             capability = manifest.get(page_id)
@@ -1105,8 +1257,17 @@ def build_plan(
             if not container_family:
                 raise MaterializeError(f"页面容器元数据缺少 family：{selected_template_id}")
             metadata, markup, stylesheet = single_page_asset(infrastructure, capability, container_family)
+            plan_page = page_plan["pages"][order - 1] if page_plan else None
+            if plan_page:
+                content_slots = {**plan_page.get("slots", {}), metadata["title_slot"]: plan_page["title"]}
+                markup = fill_slots(markup, content_slots)
             style_directory = PurePosixPath("assets") / component_slug(page_id)
             stylesheet_destination = style_directory / "styles.css"
+            # 单页可自带本地图示；保持相对资源目录，不能只复制 CSS 而丢掉图像。
+            for relative, content in package_files(infrastructure / capability["path"]):
+                if relative.as_posix() not in {"page.html", metadata["stylesheet"]}:
+                    copied[style_directory / relative] = content
+            markup = re.sub(r'\b(src|href|data-source-image)="(?![a-zA-Z][a-zA-Z0-9+.-]*:|#|/)([^"?]+)"', lambda match: f'{match.group(1)}="{style_directory.as_posix()}/{match.group(2)}"', markup)
             if stylesheet_destination in copied and copied[stylesheet_destination] != stylesheet:
                 raise MaterializeError(f"重复单页 ID 的样式内容不一致：{page_id}")
             copied[stylesheet_destination] = stylesheet
@@ -1120,16 +1281,19 @@ def build_plan(
                 "source": capability["path"],
                 "entrypoint": capability["entrypoint"],
                 "stylesheet": metadata["stylesheet"],
-                "destination": f"index.html#slide-{order:02d}",
+                "destination": "index.html#" + (plan_page["id"] if plan_page else f"slide-{order:02d}"),
                 "stylesheet_destination": stylesheet_destination.as_posix(),
             }
+            if plan_page:
+                page_record["page_id"] = plan_page["id"]
+                page_record["title"] = plan_page["title"]
             selected_pages.append(page_record)
             page_specs.append({
                 "metadata": metadata,
                 "markup": markup,
                 "stylesheet_destination": stylesheet_destination.as_posix(),
+                **({"stable_id": plan_page["id"], "title": plan_page["title"], "notes": plan_page.get("notes", ""), "plan": plan_page} if plan_page else {}),
             })
-        template_contents = compose_deck_pages(template_contents, page_specs)
 
     selected_components: list[dict[str, Any]] = []
     selected_layouts: list[dict[str, Any]] = []
@@ -1137,7 +1301,13 @@ def build_plan(
     snippets: list[bytes] = []
     selected_packages: list[dict[str, Any]] = []
 
-    if not composition_mode:
+    per_page_components = [item for page in (page_plan or {}).get("pages", []) for item in page.get("components", [])]
+    requested_component_ids = list(component_ids)
+    if composition_mode and component_ids:
+        raise MaterializeError("组合页面的组件须在 page-plan 中指定目标 slot，不接受未指定页面的 --component-id")
+    if not composition_mode or per_page_components or theme:
+        if composition_mode:
+            component_ids = list(dict.fromkeys(item["id"] for item in per_page_components))
         package_capability = manifest.get(component_package_id)
         if package_capability is None:
             raise MaterializeError(f"Manifest 没有登记组件包：{component_package_id}")
@@ -1152,7 +1322,7 @@ def build_plan(
         catalog = component_catalog(catalog_path, component_package_id)
         if legacy_package_selection:
             component_ids = list(catalog)
-        if not component_ids:
+        if not component_ids and not composition_mode:
             raise MaterializeError("至少通过 --component-id 选择一个组件目录中的语义组件")
 
         if len(component_ids) != len(set(component_ids)):
@@ -1198,40 +1368,91 @@ def build_plan(
             "destination": package_target.as_posix(),
         })
 
-    if layout_id:
-        layout_capability = manifest.get(layout_id)
+    if composition_mode:
+        snippets_by_id = {item["id"]: snippet.decode("utf-8") for item, snippet in zip(selected_components, snippets)}
+        for spec in page_specs:
+            declared = spec["metadata"].get("component_slots", [])
+            assignments = spec.get("plan", {}).get("components", [])
+            if not isinstance(declared, list) or len(set(declared)) != len(declared):
+                raise MaterializeError("component_slots 必须是唯一具名插槽列表")
+            actual = re.findall(r"<!-- SUANHAI_COMPONENTS:([a-z0-9._-]+) -->", spec["markup"])
+            if sorted(actual) != sorted(declared):
+                raise MaterializeError(f"单页组件插槽与元数据不一致：{spec['metadata']['id']}")
+            if any(item["slot"] not in declared for item in assignments):
+                raise MaterializeError("page-plan 引用了未声明的单页组件插槽")
+            allowed = spec["metadata"].get("supported_components")
+            if allowed is not None and any(item["id"] not in allowed for item in assignments):
+                raise MaterializeError("单页模板不兼容所选组件")
+            for slot in declared:
+                content = "\n".join(snippets_by_id[item["id"]] for item in assignments if item["slot"] == slot)
+                spec["markup"] = spec["markup"].replace(f"<!-- SUANHAI_COMPONENTS:{slot} -->", content)
+            shared_styles = spec["metadata"].get("shared_styles", [])
+            if not isinstance(shared_styles, list):
+                raise MaterializeError("shared_styles 必须是相对路径列表")
+            for shared in shared_styles:
+                shared_relative = safe_relative(shared, "共享样式路径")
+                shared_root = infrastructure / "infrastructure/html"
+                source = shared_root.joinpath(*shared_relative.parts)
+                assert_inside(shared_root, source, "共享样式")
+                if not source.is_file() or source.suffix != ".css":
+                    raise MaterializeError("共享样式必须是存在的 CSS 文件")
+                destination = PurePosixPath("assets/shared") / shared_relative
+                # 共享样式的相对引用保持原结构，防止只复制入口导致离线资源失效。
+                for child, data in package_files(source.parent):
+                    if child.suffix == ".css":
+                        css = data.decode("utf-8")
+                        if re.search(r"https?://|@import|url\(", css, re.I):
+                            raise MaterializeError("共享样式第一版不允许外部依赖；请使用自包含 CSS")
+                    copied[PurePosixPath("assets/shared") / shared_relative.parent / child] = data
+                spec.setdefault("shared_stylesheets", []).append(destination.as_posix())
+        if page_plan:
+            chapter_specs = [(index, spec) for index, spec in enumerate(page_specs, 1) if spec["metadata"]["role"] == "transition"]
+            for spec in page_specs:
+                if spec["metadata"]["role"] == "agenda" and "agenda-items" not in spec.get("plan", {}).get("slots", {}):
+                    entries = "".join(f'<li><span class="sp-agenda-route__number">{index:02d}</span><div><h3>{html_escape(chapter["title"])}</h3><p>{html_escape(chapter["plan"]["objective"])}</p></div><span class="sp-agenda-route__page" aria-label="起始页">p. {page_number:02d}</span></li>' for index, (page_number, chapter) in enumerate(chapter_specs, 1))
+                    if entries:
+                        spec["markup"] = fill_slots(spec["markup"], {"agenda-items": entries}, literal=False)
+        template_contents = compose_deck_pages(template_contents, page_specs)
+
+    layout_ids = [layout_id] if isinstance(layout_id, str) else list(layout_id or [])
+    for selected_layout_id in dict.fromkeys(layout_ids):
+        layout_capability = manifest.get(selected_layout_id)
         if layout_capability is None:
-            raise MaterializeError(f"Manifest 没有登记响应式布局包：{layout_id}")
+            raise MaterializeError(f"Manifest 没有登记响应式布局包：{selected_layout_id}")
         layout_root, layout_metadata = capability_asset(infrastructure, layout_capability, role="layout")
-        layout_target = PurePosixPath("assets") / component_slug(layout_id)
+        layout_target = PurePosixPath("assets") / component_slug(selected_layout_id)
         for relative, content in package_files(layout_root):
             output_path = layout_target / relative
             if output_path in copied:
                 raise MaterializeError(f"响应式布局包输出路径冲突：{output_path.as_posix()}")
             copied[output_path] = content
         selected_layouts.append({
-            "id": layout_id,
+            "id": selected_layout_id,
             "version": layout_metadata["version"],
             "source": layout_capability["path"],
             "entrypoint": layout_capability["entrypoint"],
             "destination": layout_target.as_posix(),
         })
 
-    selected_runtime_kit: dict[str, Any] | None = None
-    if runtime_kit_id:
-        runtime_capability = manifest.get(runtime_kit_id)
+    runtime_ids = [runtime_kit_id] if isinstance(runtime_kit_id, str) else list(runtime_kit_id or [])
+    for selected_runtime_id in dict.fromkeys(runtime_ids):
+        runtime_capability = manifest.get(selected_runtime_id)
         if runtime_capability is None:
-            raise MaterializeError(f"Manifest 没有登记 HTML 运行时包：{runtime_kit_id}")
+            raise MaterializeError(f"Manifest 没有登记 HTML 运行时包：{selected_runtime_id}")
         runtime_root, runtime_metadata = capability_asset(infrastructure, runtime_capability, role="runtime")
-        runtime_target = PurePosixPath("assets") / component_slug(runtime_kit_id)
-        runtime_files = validate_runtime_files(package_files(runtime_root))
+        runtime_target = PurePosixPath("assets") / component_slug(selected_runtime_id)
+        runtime_files = package_files(runtime_root)
+        if selected_runtime_id == "html.runtime-kit-v1":
+            validate_runtime_files(runtime_files)
+        elif not {PurePosixPath("runtime.js"), PurePosixPath("runtime.css")} <= {path for path, _ in runtime_files}:
+            raise MaterializeError("附加运行时包必须提供 runtime.js 和 runtime.css")
         for relative, content in runtime_files:
             output_path = runtime_target / relative
             if output_path in copied:
                 raise MaterializeError(f"HTML 运行时包输出路径冲突：{output_path.as_posix()}")
             copied[output_path] = content
         selected_runtime_kit = {
-            "id": runtime_kit_id,
+            "id": selected_runtime_id,
             "version": runtime_metadata["version"],
             "source": runtime_capability["path"],
             "entrypoint": runtime_capability["entrypoint"],
@@ -1240,8 +1461,17 @@ def build_plan(
         selected_runtime_kits.append(selected_runtime_kit)
 
     template_contents = inject_component_stylesheets(template_contents, selected_packages + selected_layouts)
-    template_contents = inject_runtime_kit(template_contents, selected_runtime_kit)
-    template_contents = inject_semantic_components(template_contents, snippets)
+    template_contents = inject_runtime_kits(template_contents, selected_runtime_kits)
+    template_contents = inject_semantic_components(template_contents, [] if composition_mode else snippets)
+    if theme:
+        if not re.fullmatch(r"[a-z][a-z0-9-]*", theme):
+            raise MaterializeError("主题名称只能使用小写字母、数字和连字符")
+        theme_path = PurePosixPath("assets") / component_slug(component_package_id) / "themes" / (theme + ".css")
+        if theme_path not in copied:
+            raise MaterializeError(f"组件包未提供主题：{theme}")
+        for index, (relative, content) in enumerate(template_contents):
+            if relative.as_posix() == "index.html":
+                template_contents[index] = (relative, content.replace(b"</head>", f'<link rel="stylesheet" href="{theme_path.as_posix()}" />\n</head>'.encode("utf-8")))
     # 组件样式插槽是显式模板契约，避免对 HTML 做不稳定的任意文本重写。
     for relative, content in template_contents:
         if relative in copied:
@@ -1275,6 +1505,14 @@ def build_plan(
         "pages": selected_pages,
         "files": [],
     }
+    if page_plan:
+        copied[PurePosixPath("page-plan.json")] = (json.dumps(page_plan, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        final_html = copied[PurePosixPath("index.html")].decode("utf-8")
+        element_ids = re.findall(r'(?<![\w:-])id="([^"]+)"', final_html)
+        if len(element_ids) != len(set(element_ids)):
+            raise MaterializeError("页面计划与模板生成了重复 HTML ID；请调整稳定页面 ID")
+    if theme:
+        materialization["theme"] = theme
     if selected_scenario:
         materialization["scenario"] = selected_scenario
     copied[PurePosixPath("report.yml")] = report_metadata(
@@ -1302,6 +1540,98 @@ def build_plan(
     return copied, materialization
 
 
+def derive_revision(root: Path, task: dict[str, Any], files: dict[PurePosixPath, bytes], metadata: dict[str, Any], baseline_version: str | None, replace_pages: list[str]) -> tuple[dict[PurePosixPath, bytes], dict[str, Any]]:
+    """在新目录继承旧稿，仅替换指定页；基线和非目标页均不写入。
+
+    第一版局部修订要求页序和固定基础设施版本一致。插页、重排应由完整页面计划
+    重新装配，避免用局部替换掩盖跨页导航、共享样式或来源的连带变化。
+    """
+    if baseline_version is None:
+        if replace_pages:
+            raise MaterializeError("--replace-page 必须配合 --baseline-version")
+        return files, metadata
+    if not VERSION.fullmatch(baseline_version) or baseline_version >= task["version_name"]:
+        raise MaterializeError("基线必须是当前任务更早的 vNNN 版本")
+    if not replace_pages or len(set(replace_pages)) != len(replace_pages):
+        raise MaterializeError("局部修订必须指定唯一的 --replace-page")
+    baseline = task["output"].parent / baseline_version
+    assert_inside(root, baseline, "基线版本")
+    if not baseline.is_dir():
+        raise MaterializeError("基线版本必须是已有作品目录")
+    baseline_files = dict(package_files(baseline))
+    try:
+        old_plan = validate_page_plan(json.loads(baseline_files[PurePosixPath("page-plan.json")]))
+        new_plan = validate_page_plan(json.loads(files[PurePosixPath("page-plan.json")]))
+        old_metadata = json.loads(baseline_files[PurePosixPath("materialization.json")])
+        old_html = baseline_files[PurePosixPath("index.html")].decode("utf-8")
+        new_html = files[PurePosixPath("index.html")].decode("utf-8")
+    except (KeyError, ValueError, UnicodeError) as error:
+        raise MaterializeError("局部修订需要基线完整的 page-plan.json、物料化记录和 index.html") from error
+    if old_metadata.get("task_id") != metadata["task_id"] or old_metadata.get("infrastructure", {}).get("commit") != metadata["infrastructure"]["commit"]:
+        raise MaterializeError("局部修订只接受同任务、同固定基础设施版本；升级请完整重新装配")
+    for global_key in ("template", "components", "layouts", "runtime_kits", "theme", "scenario"):
+        if old_metadata.get(global_key) != metadata.get(global_key):
+            raise MaterializeError(f"局部修订不能改变全局装配配置：{global_key}；请使用完整修订")
+    old_ids = [page["id"] for page in old_plan["pages"]]
+    if {key: value for key, value in old_plan.items() if key != "pages"} != {key: value for key, value in new_plan.items() if key != "pages"}:
+        raise MaterializeError("局部修订不能改变全稿来源定义或简报设置；请使用完整修订")
+    if old_ids != [page["id"] for page in new_plan["pages"]] or set(replace_pages) - set(old_ids):
+        raise MaterializeError("局部修订必须保持全稿页面 ID 和顺序，且替换页必须存在")
+    for previous, current in zip(old_plan["pages"], new_plan["pages"]):
+        if current["id"] not in replace_pages and previous != current:
+            raise MaterializeError(f"非目标页面计划发生变化：{current['id']}")
+
+    def page_ranges(markup):
+        ranges = ElementRanges(markup, "data-deck-page").ranges
+        mapping = {attrs.get("data-page-id", attrs.get("id")): (start, end) for attrs, start, _, _, end in ranges}
+        if len(mapping) != len(old_ids) or set(mapping) != set(old_ids):
+            raise MaterializeError("基线或新稿的 HTML 页面未与全稿计划一一对应")
+        return mapping
+
+    previous_ranges, current_ranges = page_ranges(old_html), page_ranges(new_html)
+    replacements = [(previous_ranges[key][0], previous_ranges[key][1], new_html[slice(*current_ranges[key])]) for key in replace_pages]
+    result_html = old_html
+    for start, end, content in sorted(replacements, reverse=True):
+        result_html = result_html[:start] + content + result_html[end:]
+    for key in set(old_ids) - set(replace_pages):
+        updated_ranges = page_ranges(result_html)
+        if result_html[slice(*updated_ranges[key])] != old_html[slice(*previous_ranges[key])]:
+            raise MaterializeError(f"非目标页面被改动：{key}")
+    # 新版可增加资源，但不能在局部修订中暗改共用 CSS/JS；这类变化须整稿检查。
+    reserved = {PurePosixPath(name) for name in ("index.html", "report.yml", "materialization.json", "page-plan.json")}
+    evidence_files = {path for path in baseline_files if path.parts[0] == "checks"}
+    for path, content in baseline_files.items():
+        if path.suffix != ".json":
+            continue
+        try:
+            record = json.loads(content)
+        except (ValueError, UnicodeError):
+            continue
+        if isinstance(record, dict) and record.get("tool") in {"html.viewport-check", "html.pdf-export"}:
+            evidence_files.add(path)
+            if record["tool"] == "html.pdf-export" and record.get("output"):
+                evidence_files.add(safe_relative(record["output"], "旧版 PDF 导出路径"))
+    result_files = {path: content for path, content in baseline_files.items() if path not in reserved and path not in evidence_files}
+    for path, content in files.items():
+        if path in reserved:
+            continue
+        if path in result_files and result_files[path] != content:
+            raise MaterializeError(f"局部修订改变了已有公共资源：{path}；请使用完整修订")
+        result_files[path] = content
+    old_links = set(re.findall(r'<link[^>]+href="([^"]+)"', result_html))
+    new_links = re.findall(r'<link[^>]+href="([^"]+)"', new_html)
+    additions = "\n".join(f'<link rel="stylesheet" href="{html_escape(href, quote=True)}" />' for href in new_links if href not in old_links)
+    if additions:
+        result_html = result_html.replace("</head>", additions + "\n</head>")
+    result_files[PurePosixPath("index.html")] = result_html.encode("utf-8")
+    result_files[PurePosixPath("page-plan.json")] = files[PurePosixPath("page-plan.json")]
+    result_files[PurePosixPath("report.yml")] = files[PurePosixPath("report.yml")]
+    metadata["revision_source"] = {"version": baseline_version, "index_sha256": hashlib.sha256(old_html.encode("utf-8")).hexdigest(), "replaced_pages": replace_pages, "preserved_pages": [key for key in old_ids if key not in replace_pages], "checks": "not-run", "excluded_old_evidence": sorted(path.as_posix() for path in evidence_files)}
+    metadata["files"] = [{"path": path.as_posix(), "sha256": hashlib.sha256(content).hexdigest()} for path, content in sorted(result_files.items(), key=lambda item: item[0].as_posix())]
+    result_files[PurePosixPath("materialization.json")] = (json.dumps(metadata, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    return result_files, metadata
+
+
 def plan_sha256(destination: Path, files: dict[PurePosixPath, bytes], root: Path) -> str:
     entries = [
         {
@@ -1326,10 +1656,14 @@ def main() -> int:
     template_group.add_argument("--template-id", help="Manifest 中登记的完整页面预设能力 ID")
     template_group.add_argument("--container-id", help="Manifest 中登记的页面容器能力 ID；与 --page-id 配合")
     parser.add_argument("--page-id", action="append", default=[], help="按展示顺序选择单页模板能力 ID，可重复指定")
+    parser.add_argument("--page-plan", help="消费端相对路径的完整页面计划 JSON；与 --page-id 互斥")
+    parser.add_argument("--baseline-version", help="局部修订继承的同任务更早 vNNN 版本")
+    parser.add_argument("--replace-page", action="append", default=[], help="局部修订允许替换的稳定页面 ID")
+    parser.add_argument("--theme", help="已选择组件包中的主题，如 editorial-warm")
     parser.add_argument("--component-package-id", help="Manifest 中登记的 HTML 组件包能力 ID")
     parser.add_argument("--component-id", action="append", default=[], help="组件包 index.yml 中登记的语义组件 ID，可重复指定")
-    parser.add_argument("--layout-id", help="Manifest 中登记的 HTML 响应式布局包能力 ID")
-    parser.add_argument("--runtime-kit-id", help="Manifest 中登记的 HTML 页面运行时包能力 ID")
+    parser.add_argument("--layout-id", action="append", default=[], help="Manifest 中登记的 HTML 布局包能力 ID，可重复选择")
+    parser.add_argument("--runtime-kit-id", action="append", default=[], help="Manifest 中登记的 HTML 页面运行时包能力 ID，可重复选择")
     parser.add_argument("--scenario-id", help="scenarios/catalog.json 中登记的场景画像 ID")
     parser.add_argument("--apply", action="store_true", help="写入文件；未指定时只输出 dry-run 计划")
     parser.add_argument("--expect-plan-sha256", help="必须与最近一次 dry-run 的 plan_sha256 一致，防止应用不同计划")
@@ -1353,7 +1687,9 @@ def main() -> int:
             args.layout_id, args.runtime_kit_id, args.task_id, version, task["revision"],
             task["version"], commit, task, args.source_id, args.container_id, args.page_id,
             args.scenario_id,
+            read_page_plan(root, args.page_plan), args.theme,
         )
+        package, materialization = derive_revision(root, task, package, materialization, args.baseline_version, args.replace_page)
         digest = plan_sha256(destination, package, root)
         if args.apply and not args.expect_plan_sha256:
             raise MaterializeError("--apply 必须携带最近一次 dry-run 返回的 --expect-plan-sha256")
@@ -1382,7 +1718,9 @@ def main() -> int:
                     args.layout_id, args.runtime_kit_id, args.task_id, version, latest_task["revision"],
                     latest_task["version"], commit, latest_task, args.source_id, args.container_id, args.page_id,
                     args.scenario_id,
+                    read_page_plan(root, args.page_plan), args.theme,
                 )
+                latest_package, _ = derive_revision(root, latest_task, latest_package, json.loads(latest_package[PurePosixPath("materialization.json")]), args.baseline_version, args.replace_page)
                 latest_digest = plan_sha256(destination, latest_package, root)
                 if latest_digest != digest:
                     raise MaterializeError("资产内容在 dry-run 后发生变化；没有写入，请重新生成计划")

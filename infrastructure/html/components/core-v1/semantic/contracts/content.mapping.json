@@ -1,0 +1,29 @@
+{
+  "id": "content.mapping",
+  "version": "1.0.0",
+  "role": "将问题与响应机制或设计目标对应，不将目标冒充已实现收益",
+  "required_slots": [
+    "label",
+    "pairs",
+    "relationship_state"
+  ],
+  "optional_slots": [
+    "boundary",
+    "source_ids"
+  ],
+  "states": [
+    "draft",
+    "candidate",
+    "confirmed"
+  ],
+  "responsive": "窄屏单列自然增高，保持可读字号和长文本换行。",
+  "accessibility": "语义标题、图像替代文本与可见状态；颜色不能是唯一判断依据。",
+  "provenance": "每一映射需区分已观察结果、设计目标与讲者推断，必要限定保留在正文。",
+  "pairs": {
+    "min_items": 1,
+    "required_fields": [
+      "problem",
+      "response"
+    ]
+  }
+}

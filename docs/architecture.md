@@ -67,6 +67,8 @@ HTML 网页制作由 [`expression.html-production`](../workflows/html/production
 
 HTML 主工作流当前读取 [`scenarios/`](../scenarios/README.md) 中的“课程学习”和“面向合作方的项目进展沟通”画像。课程通常归档到消费端 `courses/`，项目进展沟通通常归档到 `reports/`；HTML、PDF、长页与逐页演示是交付形式或容器，不是场景。
 
+项目周期汇报在现有画像中组织项目经理的总体判断、主线证据与跨线影响；工作流负责来源和核验记录，页面通过项目总览、可重复主线更新、跨线依赖三个正文变体组合，不另设一套工作流或固定整套预设。项目事实与具体责任人仍留在消费端，设计依据见 [项目总汇报设计](project-progress-report-design.md)。
+
 用户协作循环负责目标和版本确认，Agent 内部循环负责授权范围内的制作与检查。状态工具不运行 Agent、不提供 HTML 生成或浏览器预览，也无法证明用户身份或发布权限。跨设备恢复依赖父仓文件同步与准确 submodule gitlink，不由任务编号自动完成。
 
 ## 责任边界

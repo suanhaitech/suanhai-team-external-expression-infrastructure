@@ -68,6 +68,19 @@ python3 "./<实际路径>/infrastructure/repository-management/tools/infrastruct
 
 ## 阶段 5：验证接入
 
+### 来源与作品字节保护
+
+登记任务、来源与作品摘要前，从固定 Manifest 读取 [`consumer.asset-bytes`](../../infrastructure/repository-management/tools/asset-bytes/README.md)。公共模板已带根 `.gitattributes`；既有仓不搬用模板，应按工具默认只读预览核对保护目录和 `plan_sha256`，再在本提示词的本地接入授权范围内显式应用：
+
+```powershell
+python "<实际路径>/infrastructure/repository-management/tools/asset-bytes/protect_asset_bytes.py" --root .
+python "<实际路径>/infrastructure/repository-management/tools/asset-bytes/protect_asset_bytes.py" --root . --apply --expect-plan-sha256 <本次预览摘要>
+```
+
+该工具没有 `--dry-run` 参数。只增补根 `.gitattributes` 标记段、保留原始规则，不改 Harness 生成标记。默认目录为 tasks/reports/courses/series/books；自定义输出或来源目录时，用重复 `--output-root` 指定包含任务目录在内的完整安全顶层集合，两次命令参数必须相同。`context/` 与 `vendor/` 不可用此工具接管，不得声称任意来源都已保护。
+
+应用后以 `git check-attr text -- <实际文件>` 核对有效属性为 `unset`；标记冲突、嵌套规则覆盖或固定版本缺少该能力时报告，必要时另行受控更新，不绕过工具改写。不得 `git add --renormalize`、重写历史来源/作品或批量重签旧摘要；规则存在不代表旧字节已恢复。
+
 读取固定版本 Manifest，确认 schema、仓库名、能力入口和 `uses` 依赖有效。运行可用的 Manifest 校验器；若环境没有 Ruby，报告未执行。
 
 新 gitlink 在父仓首次提交前通常只存在 index，完整 `consumer.submodule-preflight` 会因 HEAD 暂无 gitlink 而失败。此时不得将失败解释成接入错误，也不得为通过检查擅自提交。提交前使用本地核对：
@@ -76,6 +89,7 @@ python3 "./<实际路径>/infrastructure/repository-management/tools/infrastruct
 - submodule `HEAD` 与 index gitlink SHA 一致，submodule 工作区干净；
 - `.gitmodules` 中 URL 和路径正确；
 - `AGENTS.md` 原内容保留，标记仅出现一次；
+- `.gitattributes` 原规则保留，实际来源/作品路径的字节保护已核对，保护缺口如实记录；
 - `git diff --check` 通过，改动仅限预期接入文件。
 
 仅当父仓提交已包含 gitlink 后，才运行完整预检：

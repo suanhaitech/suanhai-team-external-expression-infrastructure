@@ -1,0 +1,8 @@
+.sp-content-stages__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1.5rem; padding: 0; margin: 0; list-style: none; }
+.sp-content-stages__grid li { min-width: 0; border-top: 2px solid var(--ex-color-accent, #173f78); padding-top: 1rem; }
+.sp-content-stages__grid span { color: var(--ex-color-highlight, #b45f31); font-family: Georgia, serif; font-size: 2rem; }
+.sp-content-stages__grid h3 { margin: .75rem 0; font-size: 1.375rem; }
+.sp-content-stages__grid p { margin: 0; color: var(--ex-color-muted, #586776); }
+@media (max-width: 600px) { .sp-content-stages__grid { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 600px) { .sp-content-stages__grid { grid-template-columns: minmax(0, 1fr); } }
+@media print { .sp-content-stages__grid li { break-inside: avoid; } }

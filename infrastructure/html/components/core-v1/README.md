@@ -24,6 +24,11 @@
 | `evidence.claim` | 带核验状态的判断 |
 | `evidence.source` | 来源和允许使用范围 |
 | `action.next-step` | 下一步、责任人和完成标准 |
+| `content.definition` | 界定概念对象、定义句和适用边界 |
+| `content.mapping` | 将问题与响应机制或设计目标对应，不将目标冒充已实现收益 |
+| `content.keyword-grid` | 以2–4项关键词判断组织问题提出或总结回顾 |
+| `evidence.observation` | 展示观察值、样本与口径并标明来源状态 |
+| `evidence.figure-analysis` | 本地图像、图注与解释共用的图文分析结构 |
 
 布局原语包括 `ex-container`、`ex-stack`、`ex-grid`、`ex-section` 和 `ex-prose`。样式使用 `ex-` 前缀，避免与消费端既有 CSS 类名冲突。
 
@@ -47,3 +52,9 @@ Agent 调用顺序固定为：读取 `package.yml` → 读取 `index.yml` → �
 - 页面只引用本地 CSS；数学公式运行时由独立的 `html.runtime-kit-v1` 包提供，组件包本身不内置公式引擎、图表运行时或自动浏览器截图。
 
 具体契约见 `semantic/contracts/*.json`。包版本和资源入口见 `package.yml`，组件目录见 `index.yml`。
+
+## 可选主题与组合页面
+
+`themes/editorial-warm.css` 为暖纸白、墨蓝与橙色强调的可选主题；放在总样式之后加载，或在物料化时选择 `--theme editorial-warm`。它不强制应用于课程，原有主题仍可使用。
+
+单页组合可在页面声明的具名槽中选用组件，组件仍由核心包统一提供。`content.mapping` 必须保留目标/事实的性质；`evidence.observation` 保留口径和来源状态；`evidence.figure-analysis` 保留图注和图像替代文本。详尽来源可放默认隐藏备注，必要事实限定不能因此隐藏。

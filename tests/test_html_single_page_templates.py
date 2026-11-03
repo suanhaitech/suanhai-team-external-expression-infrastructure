@@ -16,6 +16,9 @@ EXAMPLES = (
     ("transition", "statement-v1", "transition"),
     ("content", "evidence-v1", "content"),
     ("content", "method-v1", "content"),
+    ("content", "project-overview-v1", "content"),
+    ("content", "workstream-update-v1", "content"),
+    ("content", "dependencies-v1", "content"),
     ("closing", "action-v1", "closing"),
     ("appendix", "source-register-v1", "appendix"),
 )
@@ -51,7 +54,7 @@ class FragmentParser(HTMLParser):
 
 class HtmlSinglePageTemplateTests(unittest.TestCase):
     def test_each_prototype_obeys_the_fragment_and_metadata_contract(self) -> None:
-        self.assertEqual(len(EXAMPLES), 7)
+        self.assertEqual(len(EXAMPLES), 10)
         for role, variant, expected_role in EXAMPLES:
             with self.subTest(role=role, variant=variant):
                 package = SINGLE_PAGE / role / variant

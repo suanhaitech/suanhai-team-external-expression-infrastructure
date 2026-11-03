@@ -1,0 +1,23 @@
+<section class="sp-workstream-update" data-single-page-role="content" data-single-page-variant="workstream-update" aria-labelledby="sp-workstream-update-title">
+  <header class="sp-workstream-update__heading">
+    <p class="sp-workstream-update__eyebrow" data-slot="eyebrow">[工作主线 / 本期主题]</p>
+    <h2 id="sp-workstream-update-title" data-slot="title">[用结果说明这条主线本期推进到了哪里]</h2>
+    <p class="sp-workstream-update__summary" data-slot="summary">[说明本期最重要的结果，以及它解决了什么问题；不能确认的判断保留为待核验。]</p>
+    <div class="sp-workstream-update__meta"><span data-slot="owner">[主线负责人 · 核验日期]</span><span data-slot="status">[已核验 / 待核验 / 未收到更新；数据截至日期]</span></div>
+  </header>
+  <!-- 将事实、证据和解释分开，避免把“做过工作”直接提升为“项目目标已达成”；核验责任保留在主线负责人。 -->
+  <div class="sp-workstream-update__body">
+    <div class="sp-workstream-update__facts">
+      <section><h3>本期承诺</h3><p data-slot="commitment">[上期约定的本期目标或验收点；发生变化时注明调整依据。]</p></section>
+      <section><h3>实际结果</h3><p data-slot="result">[实际形成的产出与状态，明确相对承诺完成或未完成了什么。]</p></section>
+      <section class="sp-workstream-update__evidence"><h3>证据与适用条件</h3><p data-slot="evidence">[来源文件、版本、图表或已授权附件链接。]</p><small data-slot="conditions">[验证范围、统计时间、比较基线和适用条件。]</small></section>
+    </div>
+    <aside class="sp-workstream-update__interpretation">
+      <div><h3>当前结论</h3><p data-slot="conclusion">[证据能够支持的判断，注明已确认或待核验。]</p></div>
+      <div><h3>限制与缺口</h3><p data-slot="limitation">[尚未覆盖、未通过或证据不足的部分；没有更新时写明待确认。]</p></div>
+      <div><h3>对项目的影响</h3><p data-slot="project-impact">[对其他主线、交付或里程碑的影响；由项目经理结合各线事实整合。]</p></div>
+    </aside>
+  </div>
+  <div class="sp-workstream-update__next"><h3>下周期可核对结果</h3><p data-slot="next-result">[下周期应交付的结果或验收证据，不只写继续研究。]</p><small data-slot="next-check">[负责人 · 期望时间 · 完成标准 · 所需依赖]</small></div>
+  <footer class="sp-workstream-update__footer"><small data-slot="source">[来源清单与版本；主线核验状态]</small><span><!-- SUANHAI_PAGE_NUMBER --></span></footer>
+</section>

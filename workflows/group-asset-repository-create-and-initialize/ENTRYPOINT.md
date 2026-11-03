@@ -14,8 +14,9 @@
 2. 对新仓创建，遵循提示词核对组织、仓库名、可见性、本地路径、账号及工具环境；缺少必要参数时集中询问。
 3. 仅通过公开模板生成 API 创建仓库，并递归克隆。发生名称冲突、权限不足、目录冲突或环境失败时停止并报告，不换名、改可见性或覆盖目标。
 4. 从模板父仓 gitlink 恢复并核对固定基础设施版本。首次初始化 submodule 后运行一次只读 `consumer.submodule-preflight`，检查本地状态和远端稳定 `main`；若远端 SHA 不同，报告为候选变化并暂停，等待用户选择暂缓后继续固定版本，或结束本流程并另行授权受控更新。不得执行 `git submodule update --remote` 或自行选择新版本。
-5. 将这次预检快照和固定 SHA 传给 `consumer.group-asset-onboarding` 并复用至本流程结束，不重复查询；新的独立顶层调用再重新预检。读取新仓根 `README.md` 和 `AGENTS.md`，确认 Manifest 与 onboarding 入口后，逐步完成上下文初始化。
-6. 初始化候选和待确认事项留在消费端工作区供组长审阅；是否提交或推送由负责人另行决定。
+5. 核对模板根 `.gitattributes` 的任务与作品 `-text` 规则，用 `git check-attr text -- <实际文件>` 检查有效值为 `unset`。模板已配置时不重复安装。自定义目录或保护缺口按固定 Manifest 中的 [`consumer.asset-bytes`](../../infrastructure/repository-management/tools/asset-bytes/README.md) 默认只读预览；本地初始化授权涵盖必要的保护段增补时，核对摘要后显式 `--apply --expect-plan-sha256 <摘要>`，原规则不覆盖，不执行 `git add --renormalize`，不重写历史文件。工具不支持 `--dry-run` 参数；自定义 `--output-root` 要列包含 tasks 的完整安全目录集合。能力缺失或规则冲突时报告，不自动升级 gitlink。
+6. 将这次预检快照和固定 SHA 传给 `consumer.group-asset-onboarding` 并复用至本流程结束，不重复查询；新的独立顶层调用再重新预检。读取新仓根 `README.md` 和 `AGENTS.md`，确认 Manifest 与 onboarding 入口后，逐步完成上下文初始化。
+7. 初始化候选和待确认事项留在消费端工作区供组长审阅；是否提交或推送由负责人另行决定。
 
 ## 停止条件
 

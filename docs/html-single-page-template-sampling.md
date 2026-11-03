@@ -1,6 +1,6 @@
 # HTML 单页模板采样与筛选
 
-状态：设计采样记录与已登记页面资产清单。七个页面均为基础设施仓原创模板，不是第三方模板的复制品；页面现已登记为 Manifest 能力，可由 `html.materialize` 与逐页容器组合。
+状态：设计采样记录与已登记页面资产清单。十个页面均为基础设施仓原创模板，不是第三方模板的复制品；页面现已登记为 Manifest 能力，可由 `html.materialize` 与逐页容器组合。
 
 ## 页面角色
 
@@ -37,10 +37,13 @@ Bootstrap 示例遵循 Bootstrap 项目的 MIT 许可；Reveal.js 使用 MIT 许
 | 章节过渡 | `transition/statement-v1` | 章节编号、主题和关键问题 |
 | 正文 | `content/evidence-v1` | 判断、证据、口径和表达边界 |
 | 正文 | `content/method-v1` | 问题、方法、检查和判断步骤 |
+| 正文 | `content/project-overview-v1` | 项目总体判断、上期基线、本期变化和里程碑影响 |
+| 正文 | `content/workstream-update-v1` | 单条主线的目标、结果、证据条件、限制和下周期结果 |
+| 正文 | `content/dependencies-v1` | 跨主线输入输出、就绪条件、项目影响和协作请求 |
 | 结尾 | `closing/action-v1` | 收束结论和可执行后续动作 |
 | 附录 | `appendix/source-register-v1` | 来源名称、版本定位和授权引用范围 |
 
-这些页面已可被物料化工具调用。正文还可继续新增指标、对比、架构/流程和公式等变体；应在这批页面完成消费端视觉验证后再扩充，避免先堆数量而没有统一的页面契约。
+这些页面已可被物料化工具调用。三种项目正文页基于周期汇报的通用结构重新设计，仅提炼总体叙事、证据分层和跨线关系，没有复制来源项目的页面、图片、数据或文案；职责与取舍见 [项目总汇报设计](project-progress-report-design.md)。后续是否新增指标、对比、架构/流程或公式变体，以真实消费端反馈为依据。
 
 ## 调用方式
 
@@ -57,4 +60,4 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
   --page-id html.single-page.closing.action-v1
 ```
 
-重复 `--page-id` 的顺序就是页面顺序。当前组合器要求页面兼容 `paged-deck`，会复制单页样式、生成页码并记录每页的能力 ID、角色、变体和来源。单页组合目前不接受 `--component-id`；页面尚无通用语义组件插槽，避免把选中的组件静默放入不合适的页面。需要结构化语义组件时，使用仍兼容的完整预设路径，或在消费端按页面语义编排后另行登记评审。
+重复 `--page-id` 的顺序就是页面顺序。当前组合器要求页面兼容 `paged-deck`，会复制单页样式、生成页码并记录每页的能力 ID、角色、变体和来源。新任务可改用完整 `--page-plan` 保存稳定页面 ID、内容、来源和备注；两种输入互斥。页面可通过 `component_slots` 声明具名组件位置，计划中用 `components` 绑定包内组件 ID；没有声明的插槽仍拒绝插入。单页组合不接受缺少目标页面的顶层 `--component-id`，完整预设的原有组件接口继续兼容。实际契约见 [物料化工具](../infrastructure/html/tools/materialize/README.md)。

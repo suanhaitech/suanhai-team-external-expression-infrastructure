@@ -3,7 +3,7 @@
   "scenarios": [
     {
       "id": "expression.scenario.course-learning-v1",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "label": "课程学习",
       "profile": "scenarios/course-learning-v1/README.md",
       "metadata": "scenarios/course-learning-v1/scene.yml",
@@ -13,7 +13,7 @@
     },
     {
       "id": "expression.scenario.project-progress-communication-v1",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "label": "面向合作方的项目进展沟通",
       "profile": "scenarios/project-progress-communication-v1/README.md",
       "metadata": "scenarios/project-progress-communication-v1/scene.yml",

@@ -75,6 +75,8 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 
 反馈原话、检查命令及结果、未解决事项应进入事件 `--note`，下一步进入 `--next-action`。这份记录应足以让新 Agent 接着做，不要求保存聊天全文或内部推理。
 
+对封面、某一页、某个案例或一个视觉方向的认可只适用于该范围；记录目标页面稳定 ID、基线版本和允许修改的部分，不据此记录整份作品 `complete`。页面计划、修订清单、来源映射和交接记录是辅助文件，任务状态只以工具维护的 `task.json` 为准，不能手工修改 `task.json` 或把辅助文件当作第二个状态真源。
+
 ```powershell
 python vendor/suanhai-team-external-expression-infrastructure/infrastructure/task-loop/tools/task-record/task_loop.py --root . event ID --expect-version N --type review --note "结构草稿完成，等待用户意见；HTML尚未生成" --artifact "reports/ID/v001/outline.md" --next-action "请用户评审结构"
 python vendor/suanhai-team-external-expression-infrastructure/infrastructure/task-loop/tools/task-record/task_loop.py --root . event ID --expect-version N --type feedback --scope minor --note "实际用户反馈；记录相应调整" --next-action "生成v002并检查"
@@ -85,6 +87,8 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 ## 暂停、完成与恢复
 
 暂停前记录：当前版本、已做工作、检查结果、未解决问题和下一步。新会话拿到编号后先 `show`，核对当前仓库/submodule 和产出是否仍存在，再复述任务目标与当前进度。状态为 paused 时按用户续作要求 `resume`；completed 时按新需求 `reopen`。
+
+分阶段作品还应区分已制作内容、明确的占位页、已讨论未制作章节，以及只确认样式尚未确认内容的页面。暂停不要求补齐所有页面，也不代表已完成验收；复用 `pause` / `resume`，不为每种表达场景另设状态机。HTML 任务可参考 [中性交接样例](../../infrastructure/html/examples/records/handoff.md)。
 
 如果来源缺失、旧摘要不符、用户决定相互冲突，先说明差异，不根据旧聊天猜测或补造。`show` 对结构合法记录返回摘要及只读 `_diagnostics`，`list` 逐项显示损坏记录的错误，不因一条坏记录隐藏其他任务；这些诊断不写回 JSON。读取和诊断不改变状态；来源/产出缺失或已确认历史产物被改写时，写入会拒绝。待评审产物被外部改动时仍可登记反馈，但不能沿用旧摘要完成本轮。JSON 本身损坏时可只读查看原文件，不据此重新创建同一任务。
 

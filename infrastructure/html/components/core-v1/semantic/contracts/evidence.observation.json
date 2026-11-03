@@ -1,0 +1,25 @@
+{
+  "id": "evidence.observation",
+  "version": "1.0.0",
+  "role": "展示观察值、样本与口径并标明来源状态",
+  "required_slots": [
+    "label",
+    "value",
+    "scope",
+    "source",
+    "source_status"
+  ],
+  "optional_slots": [
+    "uncertainty",
+    "questions",
+    "source_ids"
+  ],
+  "states": [
+    "draft",
+    "unverified",
+    "confirmed"
+  ],
+  "responsive": "窄屏单列自然增高，保持可读字号和长文本换行。",
+  "accessibility": "语义标题、图像替代文本与可见状态；颜色不能是唯一判断依据。",
+  "provenance": "观察值不是因果结论；样本、时间、单位、来源状态不应只放到隐藏备注中。"
+}

@@ -1,0 +1,13 @@
+schema_version: 1
+id: html.presentation-foundation-v1
+version: 1.0.0
+kind: layout
+entrypoint: styles.css
+offline: true
+network_dependencies: []
+supports:
+  - shared-page-frame
+  - typography
+  - mixed-language-titles
+  - container-responsive
+  - print

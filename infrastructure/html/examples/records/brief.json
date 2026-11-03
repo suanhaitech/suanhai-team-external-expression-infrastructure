@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "scenario_id": "expression.scenario.course-learning-v1",
+  "topic": "用中性练习说明记录与恢复",
+  "audience": {
+    "description": "参与短时讨论的学习者",
+    "prior_knowledge": ["知道任务可以分步骤进行"],
+    "unfamiliar_terms": ["检查点"]
+  },
+  "depth": "能区分两个概念，并解释恢复时需要的信息；不讨论具体实现",
+  "time_budget_minutes": 15,
+  "participation": "先阅读例子，再口头回答一个判断问题",
+  "learning_outcomes": [
+    "用自己的话解释示例中检查点的职责",
+    "判断保存恢复信息是否等于任务完成",
+    "列出再次开始时要核对的信息"
+  ],
+  "scope": {
+    "included": ["示例定义", "构造情境", "一次迁移讨论"],
+    "excluded": ["生产系统实现", "性能或可靠性结论"]
+  },
+  "source_files": ["source.md"],
+  "acceptance": ["学习链没有跳步", "构造示例与来源定义明确区分"],
+  "user_confirmation": null,
+  "limits": ["中性样例，不能当作真实简报对齐或学习效果证据"]
+}
