@@ -60,4 +60,4 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
   --page-id html.single-page.closing.action-v1
 ```
 
-重复 `--page-id` 的顺序就是页面顺序。当前组合器要求页面兼容 `paged-deck`，会复制单页样式、生成页码并记录每页的能力 ID、角色、变体和来源。单页组合目前不接受 `--component-id`；页面尚无通用语义组件插槽，避免把选中的组件静默放入不合适的页面。需要结构化语义组件时，使用仍兼容的完整预设路径，或在消费端按页面语义编排后另行登记评审。
+重复 `--page-id` 的顺序就是页面顺序。当前组合器要求页面兼容 `paged-deck`，会复制单页样式、生成页码并记录每页的能力 ID、角色、变体和来源。新任务可改用完整 `--page-plan` 保存稳定页面 ID、内容、来源和备注；两种输入互斥。页面可通过 `component_slots` 声明具名组件位置，计划中用 `components` 绑定包内组件 ID；没有声明的插槽仍拒绝插入。单页组合不接受缺少目标页面的顶层 `--component-id`，完整预设的原有组件接口继续兼容。实际契约见 [物料化工具](../infrastructure/html/tools/materialize/README.md)。

@@ -33,9 +33,12 @@ class ReferenceParser(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.references: list[str] = []
         self.viewport_meta = False
+        self.page_ids: list[str | None] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         data = dict(attrs)
+        if "data-deck-page" in data:
+            self.page_ids.append(data.get("data-page-id") or data.get("id"))
         if tag.lower() == "meta" and data.get("name", "").lower() == "viewport":
             self.viewport_meta = True
         for key in ("href", "src", "poster", "data-source-image"):
@@ -108,12 +111,22 @@ def static_check(html_path: Path) -> dict[str, object]:
                 errors.append(f"CSS 资源文件不存在：{css.relative_to(html_path.parent)} -> {raw}")
     if not re.search(r"<html\b", text, flags=re.IGNORECASE):
         warnings.append("页面没有显式 html 根标签")
+    plan_path = html_path.parent / "page-plan.json"
+    if plan_path.exists():
+        try:
+            document = json.loads(plan_path.read_text(encoding="utf-8"))
+            planned = [page["id"] for page in document["pages"]]
+            if document.get("schema_version") != 1 or not planned or len(set(planned)) != len(planned) or planned != parser.page_ids:
+                errors.append("page-plan 与 HTML 的页面 ID、数量或顺序不一致")
+        except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
+            errors.append(f"page-plan 无法核对：{exc}")
     return {
         "status": "fail" if errors else "pass",
         "errors": errors,
         "warnings": warnings,
         "viewport_meta": parser.viewport_meta,
         "references": len(parser.references),
+        "planned_pages": len(parser.page_ids) if plan_path.exists() else None,
     }
 
 
@@ -245,13 +258,13 @@ def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, inter
     return {"status": "fail" if failed else "pass", "version": session.version, "viewports": results, "interactions": action_results}
 
 
-def browser_check(html_path, viewports, screenshot_dir, *, backend="auto", browser=None, all_pages=False, interactions=False):
+def browser_check(html_path, viewports, screenshot_dir, *, backend="auto", browser=None, all_pages=False, interactions=False, sandbox=True):
     if backend == "none":
         return {"status": "not-run", "reason": "调用方选择 --backend none", "viewports": [], "interactions": []}
     reasons = []
     for choice in (["playwright", "cdp"] if backend == "auto" else [backend]):
         try:
-            with (PlaywrightSession() if choice == "playwright" else ChromiumSession(browser)) as session:
+            with (PlaywrightSession() if choice == "playwright" else ChromiumSession(browser, sandbox=sandbox)) as session:
                 result = _run_browser(session, html_path, viewports, screenshot_dir, all_pages, interactions)
                 result["backend"] = choice
                 return result

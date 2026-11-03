@@ -61,8 +61,18 @@ def main() -> int:
     parser.add_argument("--expect-plan-sha256")
     args = parser.parse_args()
     temporary = None
+    lock_path = None
+    lock_owned = False
     try:
         root = Path(args.root).resolve(strict=True)
+        if args.apply:
+            # 官方写入者之间串行化：锁内重新计算计划，第二个并发操作必须重新预览。
+            # 锁不自动按时间清除，避免把慢操作误当成失效进程；异常退出需人工核实。
+            lock_path = root / ".suanhai-asset-bytes.lock"
+            descriptor = os.open(lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            lock_owned = True
+            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                stream.write(str(os.getpid()))
         original, updated, digest = plan(root, args.output_root)
         if args.apply and args.expect_plan_sha256 != digest:
             raise ValueError("应用必须匹配 dry-run 的计划摘要")
@@ -71,7 +81,7 @@ def main() -> int:
             with tempfile.NamedTemporaryFile(dir=root, prefix=".asset-bytes-", delete=False) as stream:
                 temporary = Path(stream.name)
                 stream.write(updated)
-            if (path.exists() and (is_link(path) or path.read_bytes() != original)) or (not path.exists() and original is not None):
+            if path.is_symlink() or (path.exists() and (is_link(path) or path.read_bytes() != original)) or (not path.exists() and original is not None):
                 raise ValueError("预览后 .gitattributes 已变化，未写入")
             os.replace(temporary, path)
             temporary = None
@@ -83,6 +93,8 @@ def main() -> int:
     finally:
         if temporary:
             temporary.unlink(missing_ok=True)
+        if lock_owned and lock_path:
+            lock_path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

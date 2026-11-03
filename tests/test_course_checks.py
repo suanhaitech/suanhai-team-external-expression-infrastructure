@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "infrastructure/html/tools"
@@ -27,6 +29,7 @@ def module(name, path):
 
 assets = module("course_source_assets", SOURCE)
 viewport = module("course_viewport", VIEWPORT)
+import browser_support
 
 
 class SourceAssetsTest(unittest.TestCase):
@@ -73,6 +76,40 @@ class SourceAssetsTest(unittest.TestCase):
 
 
 class CourseCheckTest(unittest.TestCase):
+    def test_browser_sandbox_default_and_explicit_ci_policy_are_separate(self):
+        with mock.patch.object(browser_support, "find_browser", return_value=sys.executable):
+            for sandbox in (True, False):
+                with mock.patch.object(browser_support.subprocess, "Popen", side_effect=OSError("合成启动失败")) as launch:
+                    with self.assertRaises(browser_support.BrowserUnavailable):
+                        with browser_support.ChromiumSession(sandbox=sandbox):
+                            pass
+                    self.assertEqual("--no-sandbox" in launch.call_args.args[0], not sandbox)
+
+    def test_devtools_loopback_does_not_use_environment_proxy(self):
+        with tempfile.TemporaryDirectory(prefix="devtools-proxy-test-") as folder:
+            root = Path(folder)
+            (root / "version.json").write_text('{"Browser":"synthetic"}', encoding="utf-8")
+            with browser_support.LocalArtifactServer(root) as origin:
+                port = int(origin.rsplit(":", 1)[1])
+                environment = {"http_proxy": "http://127.0.0.1:1", "HTTP_PROXY": "http://127.0.0.1:1", "all_proxy": "http://127.0.0.1:1", "ALL_PROXY": "http://127.0.0.1:1", "no_proxy": "", "NO_PROXY": ""}
+                with mock.patch.dict(os.environ, environment):
+                    self.assertEqual(browser_support._local_json(port, "/version.json"), {"Browser": "synthetic"})
+
+    def test_devtools_startup_retries_temporary_http_not_ready(self):
+        if not browser_support.find_browser():
+            self.skipTest("未安装本机 Chromium；启动重试浏览器验证 not-run")
+        original = browser_support._local_json
+        attempts = []
+        def delayed_ready(*args, **kwargs):
+            attempts.append(args)
+            if len(attempts) == 1:
+                raise TimeoutError("合成端口文件先就绪、HTTP暂未就绪")
+            return original(*args, **kwargs)
+        with mock.patch.object(browser_support, "_local_json", side_effect=delayed_ready):
+            with browser_support.ChromiumSession(sandbox=not sys.platform.startswith("linux")) as session:
+                self.assertEqual(session.evaluate("1 + 1"), 2)
+        self.assertGreaterEqual(len(attempts), 3)
+
     def test_missing_browser_is_not_run_and_external_citation_is_not_runtime(self):
         with tempfile.TemporaryDirectory(prefix="course-unavailable-") as folder:
             path = Path(folder) / "index.html"
@@ -100,6 +137,16 @@ class CourseCheckTest(unittest.TestCase):
             record["status"] = "pass"
             with self.assertRaises(jsonschema.ValidationError):
                 jsonschema.validate(record, schema)
+
+    def test_full_page_plan_detects_manual_page_omission(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            html = root / "index.html"
+            html.write_text('<html><head><meta name="viewport" content="width=device-width"></head><body><section id="page-one" data-page-id="page-one" data-deck-page>正文</section></body></html>', encoding="utf-8")
+            (root / "page-plan.json").write_text(json.dumps({"schema_version": 1, "pages": [{"id": "page-one"}, {"id": "page-two"}]}), encoding="utf-8")
+            self.assertEqual(viewport.static_check(html)["status"], "fail")
+            (root / "page-plan.json").write_text(json.dumps({"schema_version": 1, "pages": [{"id": "page-one"}]}), encoding="utf-8")
+            self.assertEqual(viewport.static_check(html)["status"], "pass")
 
     def test_gallery_outputs_offline_version_comparison(self):
         with tempfile.TemporaryDirectory(prefix="course-gallery-") as folder:
@@ -132,7 +179,10 @@ class CourseCheckTest(unittest.TestCase):
             container = container.replace('<script src="deck.js"></script>', '<script src="deck.js"></script><script src="viewer.js"></script>')
             path = root / "index.html"
             path.write_text(container, encoding="utf-8")
-            report = viewport.browser_check(path, [("desktop", 1366, 768, "screen"), ("phone", 390, 844, "screen")], root / "shots", backend="cdp", all_pages=True, interactions=True)
+            # 与既有演示稿CI一致，只在隔离Linux runner的合成样例中明确选择无沙箱。
+            # 消费者默认保留沙箱；不能在启动失败后自动关闭或把失败改成skip。
+            ci_sandbox = not sys.platform.startswith("linux")
+            report = viewport.browser_check(path, [("desktop", 1366, 768, "screen"), ("phone", 390, 844, "screen")], root / "shots", backend="cdp", all_pages=True, interactions=True, sandbox=ci_sandbox)
             if report["status"] == "not-run":
                 self.fail(f"本机浏览器存在但无法执行：{report}")
             self.assertEqual(len(report["viewports"]), 4, report)
@@ -143,7 +193,7 @@ class CourseCheckTest(unittest.TestCase):
             self.assertEqual(len(list((root / "shots").glob("*.png"))), 4)
             # 同一成品移除故意缺陷后必须通过，证明检查不是永远报错的测试替身。
             path.write_text(container.replace('class="blocked"', 'class="readable"'), encoding="utf-8")
-            passing = viewport.browser_check(path, [("desktop", 1366, 768, "screen"), ("phone", 390, 844, "screen")], None, backend="cdp", all_pages=True, interactions=True)
+            passing = viewport.browser_check(path, [("desktop", 1366, 768, "screen"), ("phone", 390, 844, "screen")], None, backend="cdp", all_pages=True, interactions=True, sandbox=ci_sandbox)
             self.assertEqual(passing["status"], "pass", passing)
 
 

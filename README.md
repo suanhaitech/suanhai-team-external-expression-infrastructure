@@ -36,7 +36,7 @@ Agent 从仓库根目录的 `manifest.yml` 发现已实现能力：
 | `html.project-report-v1` | template | 网页形式下，离线项目概览、阶段进展和对外汇报 HTML/CSS 页面模板 |
 | `html.presentation-deck-v1` | template | 网页形式下，离线多页演示稿模板，带底部翻页、比例选择、讲者备注和逐页打印 |
 | `html.container.presentation-deck-v1` | template | 逐页演示稿容器；可按顺序组合 `html.single-page.*` 页面 |
-| `html.semantic-components-v1` | template | 离线设计令牌、基础排版布局和六类语义 HTML 组件契约 |
+| `html.semantic-components-v1` | template | 离线设计令牌、基础排版布局和已登记的语义 HTML 组件契约 |
 | `html.runtime-kit-v1` | template | 网页形式下，离线 KaTeX 公式、显示模式切换、全屏和浏览器保存 PDF 运行时包 |
 | `html.materialize` | tool | 复制完整页面预设，或按容器和有序单页能力组合页面；记录来源 commit 与文件哈希 |
 | `html.responsive-layout-v1` | template | 网页内部可复用的响应式布局、长宽比、方向、打印和安全溢出 CSS 规则 |

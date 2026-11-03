@@ -22,6 +22,8 @@ Agent 应把这段请求解释为“启动工作流”，而不是用户已经�
 
 整稿制作优先使用 `--page-plan <相对路径>`，与 `--page-id` 互斥。局部修订使用完整清单及 `--baseline-version v001 --replace-page <稳定 ID>`，先预览差异再应用；非目标页继承并检查，基线不能改写。局部认可不等于全稿验收；未制作内容明确占位，暂停复用任务循环的 `pause` / `resume`。
 
+复用公共页框 `html.presentation-foundation-v1` 和可选 `--theme editorial-warm`；需要原图阅读时独立选择 `html.image-viewer-v1`，可与工具栏运行时并用。原图与衍生图按 `html.source-assets` 预览、登记、核验，不把来源描述等同使用授权。演示稿评审使用整稿检查和可选联系表，不只截图首页；具体参数与边界见主流程。
+
 ## 读取顺序
 
 1. 消费端根 `AGENTS.md`；
@@ -67,7 +69,7 @@ complete or pause for later
 - Agent 不得依赖特定厂商的隐藏能力；文件协议、相对路径和标准命令是最小运行基础；
 - 标准模板仓库默认提供 `reports/`；任务简报登记稳定输出根 `reports/<task-id>`，每次修订由工具生成 `vNNN` 目录。既有仓库可通过根目录 `.suanhai/expression.json` 声明额外输出根目录，例如 `web/`，任务工具会校验该配置和路径边界；
 - 自建仓需要让 `expression.task-record` 管理作品哈希时，可创建 `.suanhai/expression.json`，例如 `{"schema_version":1,"output_roots":["web"]}`；受保护目录 `vendor/`、`.git/`、`context/` 和 `tasks/` 永远不能作为作品输出根；
-- 任何页面模板都必须声明入口、版本、离线要求、资源和组件依赖；组件包通过 `--component-package-id` 选择，语义片段通过重复的 `--component-id` 选择，工具只把已登记片段插入显式插槽；
+- 任何页面模板都必须声明入口、版本、离线要求、资源和组件依赖；组件包通过 `--component-package-id` 选择。完整预设的语义片段通过重复的 `--component-id` 选择，单页组合在页面计划中用 `components` 指定目标页面和插槽，工具只把已登记片段插入显式位置；
 - 页面需要公式、显示模式、全屏或浏览器保存 PDF 入口时，通过 `--runtime-kit-id html.runtime-kit-v1` 选择离线运行时；模板必须声明运行时样式、工具栏和脚本三个插槽。运行时使用 `data-math` 标记，提供自动/窄屏/平板/桌面模式、Fullscreen API 全屏入口和浏览器打印保存 PDF 入口；窄屏工具栏改用模式下拉框并重新排布动作按钮；确定性 PDF 仍调用 `html.pdf-export`。
 - 组件包必须通过 `index.yml` 按稳定组件 ID 发现，Agent 不得扫描 CSS 猜测组件语义；
 - 组件包可被模板复制到消费端报告目录，也可由已有仓库按相对路径引用，但交付页面必须自包含；

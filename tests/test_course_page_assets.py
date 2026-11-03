@@ -13,7 +13,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,7 +34,7 @@ def load_module(name, relative):
     spec.loader.exec_module(module)
     return module
 
-PDF = load_module("course_assets_pdf", "infrastructure/html/tools/pdf-export/export_pdf.py")
+BROWSER = load_module("course_assets_browser", "infrastructure/html/tools/browser_support.py")
 MATERIALIZE = load_module("course_assets_materialize", "infrastructure/html/tools/materialize/materialize_html.py")
 
 class CoursePageAssetContractTests(unittest.TestCase):
@@ -90,7 +89,7 @@ class CoursePageAssetContractTests(unittest.TestCase):
 class CoursePageAssetBrowserTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        browser = PDF._find_browser(None)
+        browser = BROWSER.find_browser(None)
         if not browser:
             raise unittest.SkipTest("本机无Chrome/Edge/Chromium，真实浏览器布局检查not-run")
         cls.resources = ExitStack()
@@ -115,52 +114,22 @@ class CoursePageAssetBrowserTests(unittest.TestCase):
             fragments.append('<div class="frame deck-page">' + markup + '</div>')
         document = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+''.join(heads)+ '<style>body{margin:0}.frame{container-type:inline-size;max-width:1280px;margin:0 auto}</style></head><body>'+''.join(fragments)+'</body></html>'
         (artifact / "index.html").write_text(document, encoding="utf-8")
-        cls.server = PDF.LocalArtifactServer(artifact)
+        cls.server = BROWSER.LocalArtifactServer(artifact)
         cls.url = cls.resources.enter_context(cls.server)
-        profile = workspace / "profile"
-        profile.mkdir()
-        cls.process = subprocess.Popen([browser, "--headless=new", "--disable-gpu", "--disable-background-networking", "--disable-extensions", "--disable-sync", "--no-first-run", "--no-default-browser-check", "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0", *(["--no-sandbox"] if sys.platform.startswith("linux") else []), f"--user-data-dir={profile}", "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        cls.resources.callback(cls.close_browser)
-        cls.cdp = None
-        deadline = time.monotonic() + 20
-        port_file = profile / "DevToolsActivePort"
-        while time.monotonic() < deadline:
-            if port_file.is_file():
-                lines = port_file.read_text(encoding="ascii", errors="replace").splitlines()
-                if lines and lines[0].isdigit():
-                    port = int(lines[0]); break
-            time.sleep(.1)
-        else:
-            raise AssertionError("浏览器未在20秒内启动DevTools")
-        target = next(x for x in PDF._http_json(f"http://127.0.0.1:{port}/json/list") if x.get("type") == "page")
-        cls.cdp = PDF.CDP(target["webSocketDebuggerUrl"], timeout=15)
-        cls.cdp.call("Page.enable")
-        cls.cdp.call("Runtime.enable")
-        cls.cdp.call("Page.navigate", {"url": cls.url})
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            state = cls.cdp.call("Runtime.evaluate", {"expression": "document.readyState", "returnByValue": True})["result"].get("value")
-            if state == "complete": break
-            time.sleep(.05)
-
-    @classmethod
-    def close_browser(cls):
-        if cls.cdp:
-            try: cls.cdp.call("Browser.close")
-            except Exception: pass
-            cls.cdp.close()
-        if cls.process.poll() is None:
-            cls.process.terminate()
-            try: cls.process.wait(timeout=5)
-            except subprocess.TimeoutExpired: cls.process.kill(); cls.process.wait(timeout=5)
+        # 浏览器启动和资源清理由生产检查器共用同一会话实现，避免CI环境下
+        # 各测试各自重复维护 DevTools 端口发现、进程退出和连接重试。
+        # 浏览器已发现但启动失败时直接使测试失败，不能降级成跳过。
+        # Linux CI 只播放本测试生成的中性本地资产，沿用已有演示稿测试的隔离策略。
+        # 消费者 ChromiumSession 和 CLI 仍默认保留浏览器沙箱，不自动降级。
+        cls.session = cls.resources.enter_context(BROWSER.ChromiumSession(browser, timeout=30, sandbox=not sys.platform.startswith("linux")))
+        cls.cdp = cls.session.cdp
+        cls.session.navigate(cls.url)
 
     def evaluate(self, expression):
-        response = self.cdp.call("Runtime.evaluate", {"expression": expression, "returnByValue": True, "awaitPromise": True})
-        self.assertNotIn("exceptionDetails", response, response)
-        return response["result"].get("value")
+        return self.session.evaluate(expression)
 
     def viewport(self, width):
-        self.cdp.call("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": False})
+        self.session.viewport(width, 900, "screen")
         self.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
 
     def test_local_figures_load_and_narrow_layout_does_not_overflow(self):

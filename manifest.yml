@@ -107,7 +107,7 @@ capabilities:
     kind: template
     path: infrastructure/html/components/core-v1
     entrypoint: infrastructure/html/components/core-v1/README.md
-    purpose: 可被不同消费端复制的离线 HTML 设计令牌、基础排版与布局原语、主题和六类语义组件 CSS/HTML 契约；响应式规则由独立样式包提供，不含公式引擎和自动预览
+    purpose: 可被不同消费端复制的离线 HTML 设计令牌、基础排版与布局原语、主题和已登记语义组件 CSS/HTML 契约；响应式规则由独立样式包提供，不含公式引擎和自动预览
     inputs:
       - 消费端已对齐的页面内容与来源状态
       - 选择使用的语义组件
@@ -266,6 +266,7 @@ capabilities:
     uses:
       - consumer.group-asset-onboarding
       - consumer.submodule-preflight
+      - consumer.asset-bytes
   - id: consumer.submodule-update
     kind: workflow
     path: workflows/submodule-update
@@ -309,6 +310,7 @@ capabilities:
     uses:
       - consumer.infrastructure-adoption-harness
       - consumer.submodule-preflight
+      - consumer.asset-bytes
   - id: html.single-page.cover.technical-editorial-v1
     kind: template
     path: infrastructure/html/templates/single-page/cover/technical-editorial-v1

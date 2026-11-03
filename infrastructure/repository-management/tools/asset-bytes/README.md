@@ -8,3 +8,5 @@ python protect_asset_bytes.py --root . --apply --expect-plan-sha256 <预览摘�
 ```
 
 默认保护 reports、courses、series、books、tasks。自定义输出目录时用重复的 `--output-root` 给出完整目录列表，并包含需要保护的任务记录目录。工具保留现有规则原文；标记内有不同内容时拒绝覆盖。应用后针对实际文件运行 `git check-attr text -- <文件>`，遇到嵌套规则或仓库级配置冲突由维护者明确合并。规则只影响今后的 Git 转换；历史摘要不因规则存在自动恢复。
+
+应用阶段用仓根 `.suanhai-asset-bytes.lock` 串行化官方写入，并在锁内重新计算计划。发现锁时失败关闭；异常退出残留锁需维护者确认对应进程已结束后再清理，工具不按时间自动偷取锁。锁不替代对外部编辑器并发写文件的协调。

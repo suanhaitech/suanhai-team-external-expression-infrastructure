@@ -63,6 +63,8 @@ Agent 为候选来源建立 `sources.yml`，记录路径或 URL、版本/日期�
 
 只有已登记且允许使用的来源才能进入页面；有来源不等于已经核验，用户口述不等于发布授权。
 
+使用图片或衍生图时，按 [`html.source-assets`](../../../infrastructure/html/tools/source-assets/README.md) 准备素材规格：原始图与裁剪、加注等衍生版本分别登记，说明来源、使用边界和转换。工具只核验已经取得的本地文件，不下载 URL 或确认版权。把素材复制到本次版本目录后，先预览 `register`、核对摘要再显式应用；进入评审前以 `validate` 核验文件哈希和衍生关系。语义来源映射与素材字节登记承担不同职责，不能互相替代。
+
 对于项目周期汇报，项目经理是总报告的整合者和主汇报人，不是所有技术事实的唯一来源。先确认汇报周期、数据截止时间、目标受众和披露范围，再从已授权的主线材料或用户提供的信息中收集上期目标、本期结果、证据位置、结论/限制、依赖风险和下周期目标。主线负责人核验各自的事实、数值和专业结论；项目经理核对总体判断、跨线关系、里程碑影响与统一口径。未收到更新或证据不足的内容标记为“待确认”，不得当作无进展或用上一期内容填补；缺少上期基线时明确注明。核验状态记入消费端来源清单或评审记录，不新增一套任务状态机。
 
 对已登记场景，Agent 必须读取其场景画像，并在选择页面资产前形成一份消费端可审阅的逐页计划。计划应覆盖当前整稿，而不是只列本轮新做的页面；至少列出稳定页面 ID、页面目标、核心信息、来源/证据、候选页面职责或资产、场景验收信号。页序、目录与显示页码从当前页面顺序派生，插页时不手工在多处维护序号。场景画像提供决策要求，逐页计划说明本任务如何应用这些要求；不得只设置场景 ID 后直接制作。
@@ -91,6 +93,8 @@ Agent 从当前 Manifest 选择已实现的页面模板和组件包，读取其�
 
 当 Manifest 注册 `html.materialize` 时，应调用 `infrastructure/html/tools/materialize/materialize_html.py` 物料化已选模板、响应式布局包、运行时包和组件，不要逐文件手工复制。已登记场景应传入 `--scenario-id <场景 ID>`；该值只作作品分类与溯源，不改变已对齐的任务输出路径。需要响应式布局时传入 `--layout-id html.responsive-layout-v1`，需要运行时能力时传入 `--runtime-kit-id html.runtime-kit-v1`。先 dry-run，核对目标目录、能力版本和基础设施 commit，再把预览返回的 `plan_sha256` 与 `task_record_version` 一并传给 `--apply`。工具要求任务已进入 `working`，并从已经对齐的 `brief.output` 推导任务修订路径。遇到缺少能力、路径不匹配、gitlink 不一致或目标冲突时停止，不绕开工具直接复制。
 
+新单页的公共页框由 `shared_styles` 声明并随作品复制；可按需显式选择 `--layout-id html.presentation-foundation-v1`，暖白主题使用 `--theme editorial-warm`，不复制一套私有排版。布局包与运行时包参数均可重复。需要完整原图阅读时单独选择 `--runtime-kit-id html.image-viewer-v1`，按其入口标记本地原图链接；它提供完整展示、滚动、关闭和焦点管理，不提供图片编辑或缩放按钮，也不需要先选择公式/工具栏包。
+
 ### 5. 生成首版
 
 Agent 在消费端任务目录创建 `v001`，至少包含：
@@ -110,7 +114,9 @@ HTML 和 CSS 使用相对路径，资源自包含，不依赖 CDN、远程字体
 
 ### 6. 响应式检查、预览与 PDF
 
-Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。若本机具备 Playwright 浏览器运行时，可生成视口截图；否则保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
+Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。浏览器后端可用 Playwright 或本机 Chrome、Edge、Chromium 的 CDP；`--backend auto` 优先尝试 Playwright，不可用时尝试 CDP。演示稿传入 `--all-pages --interactions --fail-on-overflow`，遍历整稿并检查实际交互，不能用首张截图代替全部页面。浏览器均不可用时保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
+
+需要整体审阅时用 `--screenshot-dir <本轮截图目录> --contact-sheet <本轮图册.html>` 生成离线截图联系表；可通过 `--compare-with <旧检查JSON>` 按视口与页序并排展示新旧截图。插页或重排后人工确认对应关系，工具不自动判断审美、内容等价或用户认可。实际结果保存 HTML 摘要、逐项状态、证据和限制；统一结果契约见 [check-result.schema.json](../../../infrastructure/html/schemas/check-result.schema.json)。
 
 Agent 生成本地预览或截图，至少检查桌面、手机和打印视图。用户反馈按以下类别记录：内容、事实/来源、结构、视觉、屏幕适配、打印/无障碍和范围变化。
 
@@ -120,7 +126,7 @@ Agent 生成本地预览或截图，至少检查桌面、手机和打印视图�
 
 ### 7. 检查与评审
 
-Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路径在任务目录内、来源 ID 闭合、HTML 结构和本地资源可解析，并保存 `html.viewport-check` 的静态结果；如果本机具备 Playwright，再保存真实视口结果。用户要求 PDF 时，还要保存 `html.pdf-export` 的元数据。无障碍和公式检查尚未注册，必须把这两个缺口保留在评审限制中。
+Agent 在进入 `review` 前执行当前已实现的检查：文件存在、路径在任务目录内、来源 ID 闭合、HTML 结构和本地资源可解析，并保存 `html.viewport-check` 的静态结果；如果 Playwright 或本机 CDP 可用，再保存整稿真实视口与交互结果。存在已登记素材时运行 `html.source-assets validate`；用户要求 PDF 时，还要保存 `html.pdf-export` 的元数据。无障碍和公式专用检查尚未注册，必须把这两个缺口保留在评审限制中。
 
 检查通过不代表专业事实正确，也不代表对外发布授权。Chaos 或消费端负责人分别完成项目事实、表达质量、公式可读性、显示模式、全屏交互和 PDF 打印结果以及发布授权确认。
 

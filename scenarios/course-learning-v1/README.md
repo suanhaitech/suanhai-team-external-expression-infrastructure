@@ -23,9 +23,10 @@
 
 | 学习页面职责 | 可优先评估的现有资产 | 当前边界 |
 | --- | --- | --- |
-| 课程主题与学习路线 | `html.single-page.cover.editorial-v1`、`html.single-page.agenda.route-v1` | 可表达课程主题和章节路线，但没有专用学习目标模板 |
-| 概念/机制讲解 | `html.single-page.content.method-v1` | 可表达步骤和方法；概念地图、概念关系专页尚未登记 |
-| 例子、案例与依据 | `html.single-page.content.evidence-v1` | 适用于带来源/边界的证据；并非所有教学例子都应伪装成证据表格 |
+| 课程主题与学习路线 | `html.single-page.cover.editorial-v1`、`html.single-page.cover.technical-editorial-v1`、`html.single-page.agenda.route-v1` | 可选择纯文字或插图封面及章节路线，但没有专用学习目标模板 |
+| 概念/机制讲解 | `html.single-page.content.method-v1`、`html.single-page.content.stages-v1`、`html.single-page.content.definition-mapping-v1`、`html.single-page.content.comparison-v1` | 可表达流程、阶段、定义对应和对照；仍无任意概念地图编辑器，不能据此声称支持所有概念关系图 |
+| 例子、案例与依据 | `html.single-page.content.evidence-v1`、`html.single-page.content.observation-v1`、`html.single-page.content.figure-analysis-v1` | 按内容选择证据表、观察分析或原图讲解；并非所有教学例子都应伪装成证据表格，原图由消费端提供并登记 |
+| 关键概念回顾 | `html.single-page.content.keyword-grid-v1` | 可排列关键词及解释，不能代替概念间因果关系的论证 |
 | 学习者练习、自检与讨论 | 暂无专用单页或交互组件 | 需在页面计划中标记缺口并选择可行的通用内容组织；不得宣称已有互动练习能力 |
 | 小结、迁移与后续行动 | `html.single-page.closing.action-v1` | 可以承载迁移任务；需把“学习者下一步”与项目行动责任区分开 |
 | 来源与扩展阅读 | `html.single-page.appendix.source-register-v1` | 用于来源登记和补充材料 |
@@ -94,7 +95,7 @@
 
 ## 现有资产与缺口
 
-当前可以使用 `expression.html-production` 与 `html.container.presentation-deck-v1`，组合封面、目录、章节过渡、方法、证据、结尾和附录页面。学习目标、概念地图、练习/自检尚未登记为专用单页模板或交互能力；制作时必须把缺口记录为待补基础设施，不得伪称已有能力。
+当前可以使用 `expression.html-production` 与 `html.container.presentation-deck-v1`，组合封面、目录、章节过渡、方法、阶段、定义映射、对照、原图分析、关键词、结尾和附录页面。公共页框、可选暖白主题和原图阅读器由已登记基础设施提供；素材登记与逐页 QA 遵循主流程。学习目标、通用概念地图编辑、练习/自检尚未登记为专用单页模板或交互能力；制作时必须把缺口记录为待补基础设施，不得伪称已有能力。
 
 ## 验收
 

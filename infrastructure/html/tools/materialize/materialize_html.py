@@ -329,9 +329,9 @@ def validate_single_page_fragment(markup: str, metadata: dict[str, Any], stylesh
 
 def prefix_fragment_ids(markup: str, prefix: str) -> str:
     """为每个实例重写 HTML ID 与常见 ID 引用，允许重复组合同一页面变体。"""
-    mapping = {value: f"{prefix}-{value}" for value in re.findall(r'\bid="([^"]+)"', markup)}
+    mapping = {value: f"{prefix}-{value}" for value in re.findall(r'(?<![\w:-])id="([^"]+)"', markup)}
     for old, new in mapping.items():
-        markup = re.sub(rf'(\bid=")({re.escape(old)})(")', rf'\g<1>{new}\g<3>', markup)
+        markup = re.sub(rf'((?<![\w:-])id=")({re.escape(old)})(")', rf'\g<1>{new}\g<3>', markup)
     for attribute in ("aria-labelledby", "aria-describedby", "aria-controls", "for"):
         pattern = re.compile(rf'({attribute}=")([^"]+)(")')
         markup = pattern.sub(
@@ -381,7 +381,10 @@ def fill_slots(markup: str, slots: dict[str, str], *, literal: bool = True) -> s
         found = [item for item in ranges if item[0].get("data-slot") == slot]
         if len(found) != 1:
             raise MaterializeError(f"内容插槽必须唯一存在：{slot}")
-        _, _, start, end, _ = found[0]
+        _, outer_start, start, end, _ = found[0]
+        tag = re.match(r"<([a-zA-Z0-9]+)", markup[outer_start:]).group(1).lower()
+        if literal and tag in {"ol", "ul", "dl", "table", "thead", "tbody", "tfoot", "tr", "select", "svg"}:
+            raise MaterializeError(f"结构插槽不能用纯文本替换：{slot}；请在物料化后保留结构填充")
         changes.append((start, end, html_escape(value) if literal else value))
     ordered = sorted(changes)
     if any(left[1] > right[0] for left, right in zip(ordered, ordered[1:])):
@@ -1504,6 +1507,10 @@ def build_plan(
     }
     if page_plan:
         copied[PurePosixPath("page-plan.json")] = (json.dumps(page_plan, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        final_html = copied[PurePosixPath("index.html")].decode("utf-8")
+        element_ids = re.findall(r'(?<![\w:-])id="([^"]+)"', final_html)
+        if len(element_ids) != len(set(element_ids)):
+            raise MaterializeError("页面计划与模板生成了重复 HTML ID；请调整稳定页面 ID")
     if theme:
         materialization["theme"] = theme
     if selected_scenario:
@@ -1562,10 +1569,12 @@ def derive_revision(root: Path, task: dict[str, Any], files: dict[PurePosixPath,
         raise MaterializeError("局部修订需要基线完整的 page-plan.json、物料化记录和 index.html") from error
     if old_metadata.get("task_id") != metadata["task_id"] or old_metadata.get("infrastructure", {}).get("commit") != metadata["infrastructure"]["commit"]:
         raise MaterializeError("局部修订只接受同任务、同固定基础设施版本；升级请完整重新装配")
-    for global_key in ("template", "components", "layouts", "runtime_kits", "theme"):
+    for global_key in ("template", "components", "layouts", "runtime_kits", "theme", "scenario"):
         if old_metadata.get(global_key) != metadata.get(global_key):
             raise MaterializeError(f"局部修订不能改变全局装配配置：{global_key}；请使用完整修订")
     old_ids = [page["id"] for page in old_plan["pages"]]
+    if {key: value for key, value in old_plan.items() if key != "pages"} != {key: value for key, value in new_plan.items() if key != "pages"}:
+        raise MaterializeError("局部修订不能改变全稿来源定义或简报设置；请使用完整修订")
     if old_ids != [page["id"] for page in new_plan["pages"]] or set(replace_pages) - set(old_ids):
         raise MaterializeError("局部修订必须保持全稿页面 ID 和顺序，且替换页必须存在")
     for previous, current in zip(old_plan["pages"], new_plan["pages"]):
@@ -1590,7 +1599,19 @@ def derive_revision(root: Path, task: dict[str, Any], files: dict[PurePosixPath,
             raise MaterializeError(f"非目标页面被改动：{key}")
     # 新版可增加资源，但不能在局部修订中暗改共用 CSS/JS；这类变化须整稿检查。
     reserved = {PurePosixPath(name) for name in ("index.html", "report.yml", "materialization.json", "page-plan.json")}
-    result_files = {path: content for path, content in baseline_files.items() if path not in reserved and path.parts[0] != "checks"}
+    evidence_files = {path for path in baseline_files if path.parts[0] == "checks"}
+    for path, content in baseline_files.items():
+        if path.suffix != ".json":
+            continue
+        try:
+            record = json.loads(content)
+        except (ValueError, UnicodeError):
+            continue
+        if isinstance(record, dict) and record.get("tool") in {"html.viewport-check", "html.pdf-export"}:
+            evidence_files.add(path)
+            if record["tool"] == "html.pdf-export" and record.get("output"):
+                evidence_files.add(safe_relative(record["output"], "旧版 PDF 导出路径"))
+    result_files = {path: content for path, content in baseline_files.items() if path not in reserved and path not in evidence_files}
     for path, content in files.items():
         if path in reserved:
             continue
@@ -1605,7 +1626,7 @@ def derive_revision(root: Path, task: dict[str, Any], files: dict[PurePosixPath,
     result_files[PurePosixPath("index.html")] = result_html.encode("utf-8")
     result_files[PurePosixPath("page-plan.json")] = files[PurePosixPath("page-plan.json")]
     result_files[PurePosixPath("report.yml")] = files[PurePosixPath("report.yml")]
-    metadata["revision_source"] = {"version": baseline_version, "index_sha256": hashlib.sha256(old_html.encode("utf-8")).hexdigest(), "replaced_pages": replace_pages, "preserved_pages": [key for key in old_ids if key not in replace_pages], "checks": "not-run"}
+    metadata["revision_source"] = {"version": baseline_version, "index_sha256": hashlib.sha256(old_html.encode("utf-8")).hexdigest(), "replaced_pages": replace_pages, "preserved_pages": [key for key in old_ids if key not in replace_pages], "checks": "not-run", "excluded_old_evidence": sorted(path.as_posix() for path in evidence_files)}
     metadata["files"] = [{"path": path.as_posix(), "sha256": hashlib.sha256(content).hexdigest()} for path, content in sorted(result_files.items(), key=lambda item: item[0].as_posix())]
     result_files[PurePosixPath("materialization.json")] = (json.dumps(metadata, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
     return result_files, metadata

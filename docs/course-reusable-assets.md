@@ -24,7 +24,7 @@
 | 12 | 公共页框 | `styles/presentation-v1/` | 共用边距、页眉和页脚节奏，页面模板保留职责差异 |
 | 13 | 中文及混排字阶 | `styles/presentation-v1/` | 中文、英文、数字、长标题和副标题层级清楚，无固定项目标题 |
 | 14 | 跨屏与安全溢出 | `styles/presentation-v1/` 及既有 `styles/responsive-v1/` | 窄屏不横向溢出，长内容可滚动或续页，不以裁剪伪装适配 |
-| 15 | 原图放大阅读 | `runtime-kits/image-viewer-v1/` | 本地图片可开关与缩放，键盘/关闭行为可检查；不修改原图 |
+| 15 | 完整原图阅读 | `runtime-kits/image-viewer-v1/` | 本地原图可完整展示、滚动与关闭，焦点/键盘行为可检查；无编辑或缩放按钮 |
 | 16 | 整稿清单与目录页码同步 | `schemas/page-plan.schema.json`、`tools/materialize/` | 稳定页面 ID 唯一、来源引用闭合、页序派生；漏页和坏引用拒绝 |
 | 17 | 安全派生版本与局部修订 | `tools/materialize/` 的基线与目标页参数 | 基线只读，新版本生成；非目标页保持，目标冲突先预览再处理 |
 | 18 | 整稿逐页检查 | `tools/viewport-check/` | 遍历全部逻辑页；单次截图不能代替整稿；缺浏览器记 `not-run` |

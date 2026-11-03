@@ -50,6 +50,8 @@ class CourseMaterializationTest(unittest.TestCase):
                 build(document)
 
     def test_undeclared_component_slot_and_unknown_text_slot_rejected(self):
+        with self.assertRaises(TOOL.MaterializeError):
+            TOOL.fill_slots('<ol data-slot="items"><li>保留结构</li></ol>', {"items": "无效纯文本"})
         document = plan()
         document["pages"][1]["components"][0]["slot"] = "unknown"
         with self.assertRaises(TOOL.MaterializeError):
@@ -69,6 +71,11 @@ class CourseMaterializationTest(unittest.TestCase):
                 output.parent.mkdir(parents=True, exist_ok=True)
                 output.write_bytes(data)
             before = (baseline / "index.html").read_bytes()
+            (baseline / "viewport-check.json").write_text(json.dumps({"tool": "html.viewport-check", "status": "pass"}), encoding="utf-8")
+            (baseline / "pdf-export.json").write_text(json.dumps({"tool": "html.pdf-export", "status": "completed", "output": "report.pdf"}), encoding="utf-8")
+            (baseline / "report.pdf").write_bytes(b"%PDF-old-export")
+            (baseline / "sources").mkdir()
+            (baseline / "sources/paper.pdf").write_bytes(b"%PDF-source")
             document = plan()
             document["pages"][1]["title"] = "改进后的说明"
             new_files, record = build(document, "v002")
@@ -77,12 +84,21 @@ class CourseMaterializationTest(unittest.TestCase):
             self.assertEqual((baseline / "index.html").read_bytes(), before)
             self.assertIn("改进后的说明", result[PurePosixPath("index.html")].decode())
             self.assertEqual(metadata["revision_source"]["preserved_pages"], ["page-cover"])
+            self.assertNotIn(PurePosixPath("viewport-check.json"), result)
+            self.assertNotIn(PurePosixPath("pdf-export.json"), result)
+            self.assertNotIn(PurePosixPath("report.pdf"), result)
+            self.assertEqual(result[PurePosixPath("sources/paper.pdf")], b"%PDF-source")
             document["pages"][0]["title"] = "越界修改"
             files, record = build(document, "v002")
             with self.assertRaises(TOOL.MaterializeError):
                 TOOL.derive_revision(root, task, files, record, "v001", ["page-method"])
             files, record = build(plan(), "v002")
             record["runtime_kits"] = []
+            with self.assertRaises(TOOL.MaterializeError):
+                TOOL.derive_revision(root, task, files, record, "v001", ["page-method"])
+            document = plan()
+            document["sources"][0]["path"] = "changed.md"
+            files, record = build(document, "v002")
             with self.assertRaises(TOOL.MaterializeError):
                 TOOL.derive_revision(root, task, files, record, "v001", ["page-method"])
 
@@ -102,6 +118,10 @@ class CourseMaterializationTest(unittest.TestCase):
             run("--apply", "--expect-plan-sha256", preview["plan_sha256"])
             self.assertTrue((root / ".gitattributes").read_bytes().startswith(original))
             self.assertFalse(run()["would_write"])
+            (root / ".suanhai-asset-bytes.lock").write_text("another writer")
+            conflict = subprocess.run([sys.executable, str(tool), "--root", str(root), "--apply", "--expect-plan-sha256", run()["plan_sha256"]], capture_output=True)
+            self.assertNotEqual(conflict.returncode, 0)
+            self.assertTrue((root / ".suanhai-asset-bytes.lock").exists())
             checked = subprocess.run(["git", "-C", str(root), "check-attr", "text", "--", "courses/sample.md"], capture_output=True, text=True)
             self.assertIn("unset", checked.stdout)
 
