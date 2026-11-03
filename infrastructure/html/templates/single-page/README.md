@@ -1,6 +1,6 @@
 # 单页模板契约
 
-单页模板是可嵌入 HTML 容器的逻辑页面。当前七种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
+单页模板是可嵌入 HTML 容器的逻辑页面。当前十种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
 
 ```text
 single-page/
@@ -56,6 +56,8 @@ compatible_container_families:
 页面角色和变体是资产分类，不是独立工作流。当前 `html.container.presentation-deck-v1` 负责逐页组合、底部翻页、比例选择和打印；页面顺序由重复的 `--page-id` 参数决定。工具会复制每个页面的 CSS 并记录来源；项目内容仍由消费端 Agent 填充 `data-slot`。
 
 当前 MVP 只支持 `paged-deck` 容器，不接受单页组合中的 `--component-id`。单页还没有通用组件插槽；若直接把语义组件片段插到页面外层，容易破坏页面布局，因此工具明确拒绝该组合。
+
+项目经理统一主讲的周期汇报可组合 `content/project-overview-v1`、可重复的 `content/workstream-update-v1` 和 `content/dependencies-v1`，再复用封面、行动页和来源附录。它们承载总体判断、各线证据与跨线影响，不限定主线数量或总页数。内容映射和试用方法见 [项目总汇报设计](../../../../docs/project-progress-report-design.md)。
 
 ## 本地预览
 

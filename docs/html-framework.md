@@ -25,7 +25,7 @@ infrastructure/html/
 | 场景 | 主要结果 | 常用归档根 | 内容侧重点 |
 | --- | --- | --- | --- |
 | 课程学习 | 学习者能理解、讨论或应用主题 | `courses/` | 学习目标、概念递进、例子、练习和迁移 |
-| 面向合作方的项目进展沟通 | 合作方理解阶段、进展和下一步 | `reports/` | 阶段、工作主线、证据、风险和行动 |
+| 面向合作方的项目进展沟通 | 合作方理解项目总体变化、证据和协作请求 | `reports/` | 项目经理整体判断、主线结果与限制、跨线影响和下周期结果 |
 
 两种场景都使用同一条 HTML 制作主工作流；可以选择相同页面容器，但内容路径与验收问题不同。场景目录不是 Manifest capability，工作流入口显式读取场景目录并将选定 ID 交给物料化工具记录。
 
@@ -54,7 +54,7 @@ infrastructure/html/
 ```
 
 - **内容**：项目事实、文字、数据、图片、来源和授权状态，由消费端提供并核对。
-- **页面模板**：页面容器、可组合的单页结构和完整组合预设。`html.project-report-v1` 与兼容预设 `html.presentation-deck-v1` 位于 `templates/presets/`；`html.container.presentation-deck-v1` 与七个 `html.single-page.*` 能力位于 `templates/containers/` 和 `templates/single-page/`。调用物料化器时，`--page-id` 的出现顺序就是页面顺序。
+- **页面模板**：页面容器、可组合的单页结构和完整组合预设。`html.project-report-v1` 与兼容预设 `html.presentation-deck-v1` 位于 `templates/presets/`；`html.container.presentation-deck-v1` 与十个 `html.single-page.*` 能力位于 `templates/containers/` 和 `templates/single-page/`。调用物料化器时，`--page-id` 的出现顺序就是页面顺序。
 - **组件**：可复用的信息结构或交互，例如阶段状态、指标、来源、全屏控件。组件可以携带自身必需的 CSS/JavaScript，保持可安装包完整。
 - **样式**：设计令牌、基础排版、跨页面布局、屏幕适配和打印规则。组件内部的局部样式仍由组件包管理；模板专属样式仍由模板包管理。
 - **运行时**：页面在浏览器中执行的能力及其本地依赖。当前候选包包含 KaTeX 公式渲染、显示模式、全屏和浏览器打印入口。

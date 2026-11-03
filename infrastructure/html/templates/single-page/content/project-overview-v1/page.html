@@ -1,0 +1,23 @@
+<section class="sp-project-overview" data-single-page-role="content" data-single-page-variant="project-overview" aria-labelledby="sp-project-overview-title">
+  <header class="sp-project-overview__heading">
+    <p class="sp-project-overview__eyebrow" data-slot="eyebrow">[项目 / 阶段]</p>
+    <h2 id="sp-project-overview-title" data-slot="title">[用一句话概括项目整体的新判断]</h2>
+    <p class="sp-project-overview__summary" data-slot="summary">[说明项目当前处于什么阶段，以及本期结果对整体目标意味着什么；证据不足时标明待确认。]</p>
+  </header>
+  <dl class="sp-project-overview__meta">
+    <div><dt>汇报周期</dt><dd data-slot="period">[YYYY-MM-DD 至 YYYY-MM-DD]</dd></div>
+    <div><dt>信息截至</dt><dd data-slot="cutoff">[YYYY-MM-DD；不同口径分别注明]</dd></div>
+    <div><dt>主汇报人</dt><dd data-slot="presenter">[项目经理 / 总汇报责任人]</dd></div>
+  </dl>
+  <!-- 总览承担项目级整合：先比较基线与变化，再解释整体影响；专业事实仍由各主线负责人核验。 -->
+  <div class="sp-project-overview__changes">
+    <article><h3>上期基线</h3><p data-slot="baseline">[上期已确认的目标、状态或承诺；首次汇报时写明可核对的起点。]</p></article>
+    <article><h3>本期关键变化</h3><p data-slot="change">[相对基线新增了哪些可核对结果，哪些问题仍未解决；不以工作量替代变化。]</p></article>
+    <article><h3>目标与里程碑影响</h3><p data-slot="milestone-impact">[这些变化如何影响阶段目标、交付或时间安排；缺少依据时保留待确认状态。]</p></article>
+  </div>
+  <ul class="sp-project-overview__workstreams" data-slot="workstreams">
+    <li><strong>[工作主线]</strong><span>[本期结果 / 当前限制 / 对项目的作用]</span><small>[责任人 · 来源 · 更新时间]</small></li>
+    <li><strong>[工作主线]</strong><span>[本期结果 / 当前限制 / 对项目的作用]</span><small>[责任人 · 来源 · 更新时间]</small></li>
+  </ul>
+  <footer class="sp-project-overview__footer"><small data-slot="source">[上期汇报、本期来源清单与版本；主线核验状态]</small><span><!-- SUANHAI_PAGE_NUMBER --></span></footer>
+</section>
