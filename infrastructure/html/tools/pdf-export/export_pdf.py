@@ -324,8 +324,45 @@ class LocalArtifactServer:
 
 
 def _http_json(url: str, timeout: float = 1.0) -> Any:
-    with urllib.request.urlopen(url, timeout=timeout) as response:
+    # DevTools 服务只应通过loopback访问，不经过环境或Windows系统代理。
+    # 仅调整本次请求，不修改用户代理设置，也不扩大允许连接的地址范围。
+    parsed = urlsplit(url)
+    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+        raise ExportError("拒绝连接非本机 DevTools HTTP 服务")
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(url, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def _connect_devtools(port: int, timeout: float) -> tuple[CDP, dict[str, Any]]:
+    """等待启动期HTTP与page target真正可用，不把端口文件当作就绪信号。
+
+    浏览器可以先写端口文件、稍后才响应HTTP，也可能替换初始about:blank目标。
+    只在建立会话期间有界重试；导航、渲染和打印阶段的失败仍直接报告，不能
+    因为重跑页面隐藏真正的导出问题。保持原有打印语义与沙箱设置不变。
+    """
+    deadline = time.monotonic() + min(timeout, 15.0)
+    cdp: CDP | None = None
+    while True:
+        try:
+            version = _http_json(f"http://127.0.0.1:{port}/json/version")
+            targets = _http_json(f"http://127.0.0.1:{port}/json/list")
+            target = next((item for item in targets if item.get("type") == "page"), None)
+            if not target:
+                raise ExportError("浏览器尚未创建可用页面目标")
+            cdp = CDP(target["webSocketDebuggerUrl"], timeout=min(timeout, 3.0))
+            cdp.call("Page.enable")
+            cdp.call("Runtime.enable")
+            cdp.timeout = timeout
+            cdp.ws.sock.settimeout(timeout)
+            return cdp, version
+        except (OSError, ValueError, KeyError, ExportError) as exc:
+            if cdp:
+                cdp.close()
+                cdp = None
+            if time.monotonic() >= deadline:
+                raise ExportError(f"浏览器 DevTools 初始化未在时限内就绪：{exc}") from exc
+            time.sleep(0.1)
 
 
 def _read_stream(cdp: CDP, stream_handle: str) -> bytes:
@@ -403,14 +440,7 @@ def _print_pdf(
                 time.sleep(0.1)
             if port is None:
                 raise ExportError("浏览器未在时限内启动 DevTools")
-            version = _http_json(f"http://127.0.0.1:{port}/json/version")
-            targets = _http_json(f"http://127.0.0.1:{port}/json/list")
-            target = next((item for item in targets if item.get("type") == "page"), None)
-            if not target:
-                raise ExportError("浏览器没有创建可用页面目标")
-            cdp = CDP(target["webSocketDebuggerUrl"], timeout=timeout)
-            cdp.call("Page.enable")
-            cdp.call("Runtime.enable")
+            cdp, version = _connect_devtools(port, timeout)
             cdp.call("Page.navigate", {"url": page_url})
             cdp.wait_event("Page.loadEventFired", timeout=min(timeout, 45.0))
             cdp.call(

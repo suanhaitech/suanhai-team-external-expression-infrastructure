@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import importlib.util
+import os
 from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 _MODULE_PATH = Path(__file__).resolve().parents[1] / "infrastructure/html/tools/pdf-export/export_pdf.py"
 _SPEC = importlib.util.spec_from_file_location("html_pdf_export", _MODULE_PATH)
@@ -49,6 +51,34 @@ class HtmlPdfExportTest(unittest.TestCase):
         saved = json.loads((self.root / "pdf-export.json").read_text(encoding="utf-8"))
         self.assertEqual(saved["tool"], "html.pdf-export")
         self.assertIn("未检测到", saved["reason"])
+
+    def test_devtools_startup_waits_for_http_and_replaced_target(self) -> None:
+        # 确定性模拟两种真实启动竞态：HTTP暂未就绪、初始page target连接失效。
+        # 不依赖CI机器启动快慢；最终会话必须成功，不能把这些条件改成skip。
+        stale, ready = mock.MagicMock(), mock.MagicMock()
+        stale.call.side_effect = ExportError("初始目标已被浏览器替换")
+        responses = [TimeoutError("HTTP暂未就绪"), {"Browser": "synthetic"}, [{"type": "page", "webSocketDebuggerUrl": "ws://127.0.0.1/stale"}], {"Browser": "synthetic"}, [{"type": "page", "webSocketDebuggerUrl": "ws://127.0.0.1/ready"}]]
+        with mock.patch.object(_MODULE, "_http_json", side_effect=responses) as request, mock.patch.object(_MODULE, "CDP", side_effect=[stale, ready]), mock.patch.object(_MODULE.time, "sleep"):
+            cdp, version = _MODULE._connect_devtools(12345, 30)
+        self.assertIs(cdp, ready)
+        self.assertEqual(version, {"Browser": "synthetic"})
+        self.assertEqual(request.call_count, 5)
+        stale.close.assert_called_once()
+        ready.call.assert_has_calls([mock.call("Page.enable"), mock.call("Runtime.enable")])
+        ready.ws.sock.settimeout.assert_called_once_with(30)
+
+    def test_devtools_initialization_failure_is_bounded_and_explicit(self) -> None:
+        with mock.patch.object(_MODULE, "_http_json", side_effect=TimeoutError("持续不可用")), mock.patch.object(_MODULE.time, "monotonic", side_effect=[0, 16]):
+            with self.assertRaisesRegex(ExportError, "初始化未在时限内就绪"):
+                _MODULE._connect_devtools(12345, 30)
+
+    def test_devtools_http_ignores_system_proxy_and_rejects_remote(self) -> None:
+        (self.root / "version.json").write_text('{"Browser":"synthetic"}', encoding="utf-8")
+        environment = {"http_proxy": "http://127.0.0.1:1", "HTTP_PROXY": "http://127.0.0.1:1", "ALL_PROXY": "http://127.0.0.1:1", "all_proxy": "http://127.0.0.1:1", "NO_PROXY": "", "no_proxy": ""}
+        with _MODULE.LocalArtifactServer(self.root) as origin, mock.patch.dict(os.environ, environment):
+            self.assertEqual(_MODULE._http_json(origin + "/version.json"), {"Browser": "synthetic"})
+        with self.assertRaisesRegex(ExportError, "非本机"):
+            _MODULE._http_json("https://example.invalid/json/version")
 
     def test_rejects_path_escape_and_existing_output(self) -> None:
         args = type("Args", (), {
