@@ -14,7 +14,21 @@ from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 
+def _artifact_root(root: Path) -> Path:
+    """边界和目标统一使用物理绝对路径，避免把同一目录的别名误判为越界。
+
+    Windows 的 TEMP 可能是 8.3 短路径；目标 resolve 后会变成长路径。若根目录
+    仍用短路径或相对路径比较，合法文件也会被拒绝。先规范化两侧，仍然拒绝
+    素材符号链接逃出实际产物根，而不是通过放宽边界来兼容路径别名。
+    """
+    boundary = Path(root).resolve(strict=True)
+    if not boundary.is_dir():
+        raise ValueError("素材根必须是存在的目录")
+    return boundary
+
+
 def local_file(root: Path, relative: str) -> Path:
+    root = _artifact_root(root)
     if not isinstance(relative, str) or "\\" in relative or ":" in relative:
         raise ValueError("素材路径必须为使用 / 的相对路径")
     rel = PurePosixPath(relative)
@@ -85,6 +99,7 @@ def digest(path: Path) -> str:
 
 
 def register(root: Path, specification: dict) -> dict:
+    root = _artifact_root(root)
     assets = specification.get("assets")
     if not isinstance(assets, list) or not assets:
         raise ValueError("输入必须包含非空 assets 数组")
@@ -147,6 +162,7 @@ def validate(root: Path, record: dict) -> dict:
     if record.get("schema_version") != 1 or record.get("tool") != "html.source-assets":
         return {"status": "fail", "errors": ["不是 source-assets v1 记录"], "checked": 0}
     try:
+        root = _artifact_root(root)
         actual = register(root, record)
         for old, new in zip(record["assets"], actual["assets"]):
             for key in ("path", "sha256", "bytes", "content_type", "width", "height"):

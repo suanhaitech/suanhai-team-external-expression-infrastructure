@@ -48,6 +48,42 @@ class SourceAssetsTest(unittest.TestCase):
         (self.root / "original.svg").write_text("changed", encoding="utf-8")
         self.assertEqual(assets.validate(self.root, record)["status"], "fail")
 
+    def test_root_alias_and_relative_root_preserve_paths_and_boundary(self):
+        # 含 .. 的合法根别名在各平台都会复现“已resolve目标/未resolve根”的错误；
+        # 同时验证公开Python入口接受相对根，不依赖CLI先替它规范化。
+        alias = self.root / ".." / self.root.name
+        record = assets.register(alias, self.specification)
+        self.assertEqual([item["path"] for item in record["assets"]], ["original.svg", "derived.svg"])
+        self.assertEqual(assets.validate(alias, record)["status"], "pass")
+        self.assertEqual(assets.local_file(alias, "original.svg"), (self.root / "original.svg").resolve())
+        from contextlib import chdir
+        with chdir(self.root.parent):
+            relative = Path(self.root.name)
+            self.assertEqual(assets.register(relative, self.specification), record)
+            self.assertEqual(assets.validate(relative, record)["status"], "pass")
+            self.assertEqual(assets.local_file(relative, "original.svg"), (self.root / "original.svg").resolve())
+            with self.assertRaises(ValueError):
+                assets.local_file(relative, "../outside.svg")
+
+    @unittest.skipUnless(os.name == "nt", "Windows 8.3 路径别名专项")
+    def test_windows_short_root_resolves_to_same_registered_assets(self):
+        import ctypes
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        get_short_path = kernel32.GetShortPathNameW
+        get_short_path.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32]
+        get_short_path.restype = ctypes.c_uint32
+        buffer = ctypes.create_unicode_buffer(32768)
+        length = get_short_path(str(self.root.resolve()), buffer, len(buffer))
+        if not length or length >= len(buffer):
+            self.skipTest("测试卷未提供可用8.3短路径")
+        short = Path(buffer.value)
+        if os.path.normcase(str(short)) == os.path.normcase(str(self.root.resolve())):
+            self.skipTest("测试卷未生成不同形式的8.3短路径")
+        record = assets.register(short, self.specification)
+        self.assertEqual(record, assets.register(self.root.resolve(), self.specification))
+        self.assertEqual(assets.validate(short, record)["status"], "pass")
+        self.assertEqual(assets.local_file(short, "original.svg"), (self.root / "original.svg").resolve())
+
     def test_reject_escape_duplicate_missing_parent_cycle_and_credential_url(self):
         scenarios = [
             [{"id": "x", "path": "../outside.svg", "source": "test"}],
@@ -161,6 +197,28 @@ class CourseCheckTest(unittest.TestCase):
             self.assertIn("当前版", content)
             self.assertEqual(content.count('src="desktop-p001.png"'), 2)
             self.assertNotIn("https://", content)
+
+    @unittest.skipUnless(os.name == "nt", "Windows 8.3 路径兼容回归")
+    def test_gallery_short_directory_alias_keeps_local_image_url(self):
+        import ctypes
+        with tempfile.TemporaryDirectory(prefix="course-gallery-long-directory-") as folder:
+            root = Path(folder).resolve()
+            short_path = ctypes.windll.kernel32.GetShortPathNameW
+            short_path.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32]
+            short_path.restype = ctypes.c_uint32
+            buffer = ctypes.create_unicode_buffer(32768)
+            size = short_path(str(root), buffer, len(buffer))
+            self.assertTrue(0 < size < len(buffer), "无法读取临时目录的短路径")
+            alias = Path(buffer.value)
+            if alias == root:
+                self.skipTest("此文件系统未提供 8.3 别名")
+            image = root / "desktop-p001.png"
+            image.write_bytes(b"placeholder")
+            record = {"browser": {"viewports": [{"id": "desktop", "page": 1, "status": "pass", "screenshot": str(image)}]}}
+            target = alias / "comparison.html"
+            viewport.write_gallery(target, record, record)
+            content = target.read_text(encoding="utf-8")
+            self.assertEqual(content.count('src="desktop-p001.png"'), 2)
 
     def test_cdp_all_pages_detects_overlap_and_checks_viewer(self):
         from browser_support import find_browser

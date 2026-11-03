@@ -278,6 +278,8 @@ def browser_check(html_path, viewports, screenshot_dir, *, backend="auto", brows
 
 def write_gallery(path: Path, current: dict, baseline: dict | None = None) -> None:
     """以离线 HTML 联系表替代额外图像库；对比仅展示证据，不伪称视觉差异通过。"""
+    # Windows 临时目录可能使用 8.3 别名；根目录和截图须以相同规范路径计算相对引用。
+    path = path.resolve()
     rows = []
     previous = {(item["id"], item["page"]): item for item in (baseline or {}).get("browser", {}).get("viewports", [])}
     def figure(item, title):
