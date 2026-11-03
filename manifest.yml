@@ -216,6 +216,7 @@ capabilities:
       - html.presentation-foundation-v1
       - html.image-viewer-v1
       - html.source-assets
+      - consumer.asset-bytes
   - id: consumer.submodule-preflight
     kind: tool
     path: infrastructure/repository-management/tools/submodule-preflight
