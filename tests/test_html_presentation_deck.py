@@ -10,6 +10,7 @@ import importlib.util
 import json
 from pathlib import Path
 from pathlib import PurePosixPath
+import re
 import subprocess
 import sys
 import tempfile
@@ -30,6 +31,23 @@ def load_module(name: str, relative: str):
 
 PDF = load_module("presentation_deck_pdf_test", "infrastructure/html/tools/pdf-export/export_pdf.py")
 MATERIALIZE = load_module("presentation_deck_materialize_test", "infrastructure/html/tools/materialize/materialize_html.py")
+
+
+class HtmlPresentationDeckPrintCssContractTest(unittest.TestCase):
+    def test_print_stage_uses_available_width_in_container_and_preset(self):
+        selector = re.compile(
+            r"\.deck-stage,\s*html\.deck--ready\[data-layout-mode\]\s+\.deck-stage,"
+            r"\s*\.deck--ready\[data-deck-ratio\]\s+\.deck-stage\s*\{([^}]*)\}"
+        )
+        for relative in (
+            "infrastructure/html/templates/containers/presentation-deck-v1/deck.css",
+            "infrastructure/html/templates/presets/presentation-deck-v1/deck.css",
+        ):
+            with self.subTest(asset=relative):
+                css = (ROOT / relative).read_text(encoding="utf-8")
+                rule = selector.search(css)
+                self.assertIsNotNone(rule, f"缺少演示稿打印阶段规则：{relative}")
+                self.assertRegex(rule.group(1), r"(?m)^\s*width:\s*100%;\s*$")
 
 
 class HtmlPresentationDeckBrowserTest(unittest.TestCase):
@@ -248,6 +266,8 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
     def test_print_shows_all_pages_without_clipping(self):
         self.cdp.call("Emulation.setEmulatedMedia", {"media": "print"})
         self.settle()
+        stage_metrics = self.evaluate("(() => { const shell=document.querySelector('.deck-shell').getBoundingClientRect(); const stage=document.querySelector('[data-deck-stage]').getBoundingClientRect(); return {shellWidth:shell.width, stageWidth:stage.width}; })()")
+        self.assertGreaterEqual(stage_metrics["stageWidth"], stage_metrics["shellWidth"] * 0.9, stage_metrics)
         metrics = self.evaluate("[...document.querySelectorAll('[data-deck-page]')].map(page => ({id:page.id, display:getComputedStyle(page).display, overflow:getComputedStyle(page).overflow, height:page.clientHeight, scrollHeight:page.scrollHeight, breakAfter:getComputedStyle(page).breakAfter}))")
         for page in metrics:
             self.assertNotEqual(page["display"], "none", page)

@@ -1027,7 +1027,7 @@ html.deck--ready[data-layout-mode="desktop"] .deck-stage {
     aspect-ratio: auto;
     display: block;
     max-width: none;
-    width: auto;
+    width: 100%;
     container-type: normal;
   }
 
