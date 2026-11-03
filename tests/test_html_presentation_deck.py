@@ -86,6 +86,9 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
                 "html.single-page.content.method-v1",
                 "html.single-page.closing.action-v1",
                 "html.single-page.appendix.source-register-v1",
+                "html.single-page.content.project-overview-v1",
+                "html.single-page.content.workstream-update-v1",
+                "html.single-page.content.dependencies-v1",
             ],
         )
         index_path = PurePosixPath("index.html")

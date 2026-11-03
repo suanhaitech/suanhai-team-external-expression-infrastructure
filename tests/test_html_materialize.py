@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,9 @@ SINGLE_PAGE_IDS = (
     "html.single-page.content.method-v1",
     "html.single-page.closing.action-v1",
     "html.single-page.appendix.source-register-v1",
+    "html.single-page.content.project-overview-v1",
+    "html.single-page.content.workstream-update-v1",
+    "html.single-page.content.dependencies-v1",
 )
 COMPONENT_ID = "html.semantic-components-v1"
 RUNTIME_KIT_ID = "html.runtime-kit-v1"
@@ -142,6 +146,9 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
             "html.single-page.transition.statement-v1": "transition/statement-v1",
             "html.single-page.content.evidence-v1": "content/evidence-v1",
             "html.single-page.content.method-v1": "content/method-v1",
+            "html.single-page.content.project-overview-v1": "content/project-overview-v1",
+            "html.single-page.content.workstream-update-v1": "content/workstream-update-v1",
+            "html.single-page.content.dependencies-v1": "content/dependencies-v1",
             "html.single-page.closing.action-v1": "closing/action-v1",
             "html.single-page.appendix.source-register-v1": "appendix/source-register-v1",
         }
@@ -356,6 +363,98 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertIn(f'"{page_ids[0]}"', report)
         self.assertIn("components: []", report)
         self.assertIn("semantic_components: []", report)
+
+    def test_project_report_composition_preserves_provenance_and_repeated_page_references(self):
+        scenario_id = "expression.scenario.project-progress-communication-v1"
+        page_ids = [
+            "html.single-page.cover.editorial-v1",
+            "html.single-page.content.project-overview-v1",
+            "html.single-page.content.workstream-update-v1",
+            "html.single-page.content.workstream-update-v1",
+            "html.single-page.content.dependencies-v1",
+            "html.single-page.closing.action-v1",
+            "html.single-page.appendix.source-register-v1",
+        ]
+        arguments = ["--container-id", PRESENTATION_CONTAINER_ID, "--scenario-id", scenario_id]
+        for page_id in page_ids:
+            arguments.extend(("--page-id", page_id))
+        arguments.extend(("--source-id", "synthetic-project-report"))
+
+        preview = self.cli(*arguments, template_id=None)
+        self.assertFalse(self.output.exists())
+        self.assertEqual([page["id"] for page in preview["pages"]], page_ids)
+        self.assertEqual(preview["scenario"]["id"], scenario_id)
+        self.assertEqual(preview["scenario"]["version"], "1.1.0")
+        applied = self.cli(
+            *arguments,
+            "--apply", "--expect-plan-sha256", preview["plan_sha256"],
+            "--expect-task-version", str(preview["task_record_version"]),
+            template_id=None,
+        )
+        self.assertEqual(applied["pages"], preview["pages"])
+        self.assertEqual(applied["written"], preview["would_write"])
+        record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["scenario"], preview["scenario"])
+        self.assertEqual(record["infrastructure"]["commit"], self.source_commit)
+        self.assertEqual([page["id"] for page in record["pages"]], page_ids)
+        self.assertEqual([page["order"] for page in record["pages"]], list(range(1, len(page_ids) + 1)))
+
+        # 重复主线是两个内容实例，必须有各自的 ID 和标签引用；样式资源则仍共用一份。
+        class References(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.nodes = []
+
+            def handle_starttag(self, tag, attrs):
+                self.nodes.append((tag, dict(attrs)))
+
+        parser = References()
+        parser.feed((self.output / "index.html").read_text(encoding="utf-8"))
+        ids = [attrs["id"] for _, attrs in parser.nodes if "id" in attrs]
+        self.assertEqual(len(ids), len(set(ids)))
+        label_targets = [
+            target
+            for _, attrs in parser.nodes
+            for target in attrs.get("aria-labelledby", "").split()
+        ]
+        self.assertGreaterEqual(len(label_targets), len(page_ids))
+        self.assertTrue(set(label_targets).issubset(ids), set(label_targets) - set(ids))
+        self.assertEqual(
+            [attrs["id"] for _, attrs in parser.nodes if "data-deck-page" in attrs],
+            [f"slide-{order:02d}" for order in range(1, len(page_ids) + 1)],
+        )
+        self.assertEqual(
+            [attrs["data-single-page-role"] for _, attrs in parser.nodes if "data-single-page-role" in attrs],
+            [page["role"] for page in record["pages"]],
+        )
+        self.assertEqual(
+            [attrs["data-single-page-variant"] for _, attrs in parser.nodes if "data-single-page-variant" in attrs],
+            [page["variant"] for page in record["pages"] if page["role"] == "content"],
+        )
+        workstream_css = "assets/html-single-page-content-workstream-update-v1/styles.css"
+        self.assertEqual(
+            sum(attrs.get("href") == workstream_css for tag, attrs in parser.nodes if tag == "link"), 1
+        )
+        self.assertEqual(sum(item["path"] == workstream_css for item in record["files"]), 1)
+        self.assertTrue((self.output / workstream_css).is_file())
+        for page in record["pages"]:
+            with self.subTest(page=page["destination"]):
+                self.assertTrue((self.infrastructure / page["source"]).is_dir())
+                self.assertTrue((self.infrastructure / page["entrypoint"]).is_file())
+                self.assertEqual(page["entrypoint"], page["source"] + "/page.html")
+                self.assertEqual(page["destination"], f"index.html#slide-{page['order']:02d}")
+
+        report = (self.output / "report.yml").read_text(encoding="utf-8")
+        page_block = re.search(r"(?ms)^pages:\n(.*?)^components:", report)
+        self.assertIsNotNone(page_block)
+        self.assertEqual(
+            [json.loads(value) for value in re.findall(r"(?m)^  - (.+)$", page_block.group(1))], page_ids
+        )
+        self.assertIn(f'id: "{scenario_id}"', report)
+        self.assertIn('version: "1.1.0"', report)
+        self.assertIn('profile: "scenarios/project-progress-communication-v1/README.md"', report)
+        self.assertIn('  - "synthetic-project-report"', report)
+        self.assertIn(f'infrastructure_commit: "{self.source_commit}"', report)
 
     def test_single_page_selection_requires_a_container_and_old_preset_mode_stays_explicit(self):
         missing_container = self.cli("--page-id", SINGLE_PAGE_IDS[0], ok=False)

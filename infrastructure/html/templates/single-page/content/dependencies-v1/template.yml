@@ -1,0 +1,23 @@
+id: html.single-page.content.dependencies-v1
+kind: single-page-template
+version: 1.0.0
+role: content
+variant: dependencies
+label: 跨线依赖与协作
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - summary
+  - dependency-items
+  - collaboration-items
+  - source
+compatible_container_families:
+  - paged-deck

@@ -1,6 +1,6 @@
 # 单页模板契约
 
-单页模板是可嵌入 HTML 容器的逻辑页面。当前十四种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
+单页模板是可嵌入 HTML 容器的逻辑页面。当前十七种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
 
 ```text
 single-page/
@@ -58,6 +58,8 @@ compatible_container_families:
 当前只支持 `paged-deck` 容器。新正文页声明可选 `component_slots: [supporting]`（受限 YAML 中使用逐行列表）与 `<!-- SUANHAI_COMPONENTS:supporting -->` 标记；page-plan 为每页用 `components: [{slot: "supporting", id: "content.definition"}]` 显式分配组件。不声明槽的旧模板保持兼容，不允许把组件无差别插到所有页面。未用的槽不占版面。
 
 新模板的 `shared_styles` 指向 HTML 领域内的公共样式，例如 `styles/presentation-v1/styles.css`；工具复制到作品并保留来源记录，作品不依赖 submodule 路径。暖白主题 `editorial-warm` 可选择，不强制应用于所有课程。
+
+项目经理统一主讲的周期汇报可组合 `content/project-overview-v1`、可重复的 `content/workstream-update-v1` 和 `content/dependencies-v1`，再复用封面、行动页和来源附录。它们承载总体判断、各线证据与跨线影响，不限定主线数量或总页数。内容映射和试用方法见 [项目总汇报设计](../../../../docs/project-progress-report-design.md)。
 
 ## 本地预览
 

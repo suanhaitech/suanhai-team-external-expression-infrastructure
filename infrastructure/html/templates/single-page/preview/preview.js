@@ -11,6 +11,9 @@ const examples = [
   { role: "transition", variant: "statement-v1", title: "章节过渡 / Statement", description: "章节标题与关键问题" },
   { role: "content", variant: "evidence-v1", title: "正文 / Evidence", description: "判断、依据与表达边界" },
   { role: "content", variant: "method-v1", title: "正文 / Method", description: "问题、方法、证据与判断" },
+  { role: "content", variant: "project-overview-v1", title: "正文 / 项目总览", description: "总体判断、周期变化与里程碑影响" },
+  { role: "content", variant: "workstream-update-v1", title: "正文 / 主线更新", description: "目标、结果、证据条件与下期结果" },
+  { role: "content", variant: "dependencies-v1", title: "正文 / 跨线协作", description: "输入输出、项目影响与协作请求" },
   { role: "closing", variant: "action-v1", title: "结尾 / Action", description: "结论与后续行动" },
   { role: "appendix", variant: "source-register-v1", title: "附录 / Source Register", description: "来源、版本与引用范围" },
 ];
