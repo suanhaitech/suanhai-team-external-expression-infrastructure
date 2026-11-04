@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -78,6 +79,17 @@ class CiChecksTest(unittest.TestCase):
                 self.assertEqual(ci.main(), 0)
             self.assertEqual(output.read_text(encoding="utf-8"), "suite=quick\n")
             self.assertIn("develop PR", summary.read_text(encoding="utf-8"))
+
+    def test_plan_cli_prints_utf8_under_cp1252_console(self):
+        environment = os.environ.copy()
+        environment.update({"PYTHONIOENCODING": "cp1252", "GITHUB_EVENT_NAME": "workflow_dispatch"})
+        for name in ("GITHUB_EVENT_PATH", "GITHUB_OUTPUT", "GITHUB_STEP_SUMMARY"):
+            environment.pop(name, None)
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/ci_checks.py"), "plan"],
+            cwd=ROOT, env=environment, capture_output=True, check=True,
+        )
+        self.assertIn("手动完整回归", result.stdout.decode("utf-8"))
 
     def test_quick_filter_keeps_new_modules_and_load_failures(self):
         def case(module):

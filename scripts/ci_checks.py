@@ -101,6 +101,10 @@ def checks_passed(suite: str, results: dict[str, str]) -> bool:
 
 
 def main() -> int:
+    # Windows runner 可能使用 cp1252 控制台；计划原因含中文，CLI 输出统一为 UTF-8。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("plan", "run", "gate"))
     parser.add_argument("--suite", choices=("quick", "full"), default="full")
