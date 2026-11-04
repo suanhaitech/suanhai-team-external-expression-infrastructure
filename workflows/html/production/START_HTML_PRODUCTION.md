@@ -47,6 +47,7 @@
 - 对本版已经取得的原图和衍生素材，调用 `html.source-assets register` 默认预览，核对摘要后显式应用，并在评审前 `validate`。登记原始/衍生关系、转换和使用边界；工具不下载URL、不判断版权，素材规格和语义source-map分别保留；
 - 正文只呈现关键判断、帮助理解的解释和必要条件；串场和扩展说明可放默认隐藏备注，长证据与完整出处可放附录/source-map，不强制每页显示来源小字；隐藏备注也随文件交付，不能承载未授权信息；
 - 调用 `html.viewport-check` 做静态资源和默认多视口检查，演示稿用 `--all-pages --interactions --full-page --fail-on-overflow` 和 `--artifact-kind template|report` 检查整稿。`--backend auto` 可用Playwright或本机Chrome/Edge/Chromium CDP，不因为缺Playwright就直接判浏览器检查不可执行；如果要交付 PDF，在确认纸张、方向和页边距后调用 `html.pdf-export`；
+- 逐页查看 `pageVerticalOverflow` 与 `navigationOverlap`：前者表示内容超过当前可视画布，应调整信息密度、版式或拆页，后者表示正文与固定控制栏相交；不能靠隐藏溢出、删去必要事实或只保留页内滚动把失败写成通过；
 - 需要整稿评审时生成本轮截图与 `--contact-sheet` 离线图册；需要版本并排时用 `--compare-with <旧检查JSON>`，人工核对插页后的对应关系，不把联系表当作自动审美验收；
 - 进行可用的结构、资源、来源、响应式和打印检查；将浏览器缺失记录为 `not-run`，不把它写成通过；
 - 演示稿逐页检查底部翻页、页码跳转、首尾禁用、键盘导航、窄屏单栏和打印全部内容；要求一页一纸时先拆分过长页，再检查实际导出 PDF，不能靠隐藏溢出来保持比例；讲者备注随 HTML 文件一起交付，未获准对读者公开的信息不能放进备注；

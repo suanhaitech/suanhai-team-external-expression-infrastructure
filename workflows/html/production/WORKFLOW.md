@@ -116,7 +116,7 @@ HTML 和 CSS 使用相对路径，资源自包含，不依赖 CDN、远程字体
 
 ### 6. 响应式检查、预览与 PDF
 
-Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。浏览器后端可用 Playwright 或本机 Chrome、Edge、Chromium 的 CDP；`--backend auto` 优先尝试 Playwright，不可用时尝试 CDP。按交付类型显式传入 `--artifact-kind template|report`。演示稿传入 `--all-pages --interactions --full-page --fail-on-overflow`，遍历整稿并检查实际交互，不能用首张截图代替全部页面。浏览器均不可用时保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
+Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。浏览器后端可用 Playwright 或本机 Chrome、Edge、Chromium 的 CDP；`--backend auto` 优先尝试 Playwright，不可用时尝试 CDP。按交付类型显式传入 `--artifact-kind template|report`。演示稿传入 `--all-pages --interactions --full-page --fail-on-overflow`，遍历整稿并检查实际交互，不能用首张截图代替全部页面。逐页检查报告中的 `pageVerticalOverflow` 表示该页内容超过可视画布、需要在页内滚动；应压缩信息、调整版式或拆成多页后重检，不能隐藏溢出、删去必要事实或仅把页面滚动当作展示完成。`navigationOverlap` 表示可读内容与固定控制栏发生几何相交，必须先解决遮挡再评审。浏览器均不可用时保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
 
 需要整体审阅时用 `--screenshot-dir <本轮截图目录> --contact-sheet <本轮图册.html>` 生成离线截图联系表；可通过 `--compare-with <旧检查JSON>` 按视口与页序并排展示新旧截图。插页或重排后人工确认对应关系，工具不自动判断审美、内容等价或用户认可。长页也用 `--interactions --full-page` 检查锚点目标并保留全长截图；滚动定位与焦点仍人工核验。实际结果保存 HTML 摘要、实际引用资源集摘要、逐项状态、证据和限制；统一结果契约见 [check-result.schema.json](../../../infrastructure/html/schemas/check-result.schema.json)。
 

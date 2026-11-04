@@ -26,10 +26,14 @@
       var readable = element.tagName === "IMG" || (!element.children.length && element.textContent.trim());
       if (bar && !controls.contains(element) && readable && box.bottom > bar.top + 1 && box.top < bar.bottom - 1 && box.left < bar.right && box.right > bar.left) overlaps.push(element.tagName.toLowerCase() + (element.id ? "#" + element.id : ""));
     });
+    var pageOverflow = active.matches && active.matches("[data-deck-page]") && active.scrollHeight > active.clientHeight + 2
+      ? [{ id: active.id || active.getAttribute("data-page-id") || null, scrollHeight: active.scrollHeight, clientHeight: active.clientHeight }]
+      : [];
     var broken = Array.from(active.querySelectorAll("img")).filter(i => !i.complete || i.naturalWidth === 0).map(i => i.getAttribute("src"));
     var ids = Array.from(document.querySelectorAll("[id]")).map(e => e.id);
     return { innerWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, innerHeight: innerHeight, scrollHeight: document.documentElement.scrollHeight,
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1, textOverflow: overflow,
+      pageVerticalOverflow: pageOverflow,
       navigationOverlap: overlaps, navigationCoverage: bar ? "visible-navigation" : "not-run",
       navigationReason: bar ? null : "没有可检查的底部翻页栏；顶部粘性导航的滚动定位遮挡需人工核对",
       brokenImages: broken, duplicateIds: ids.filter((id, i) => ids.indexOf(id) !== i),

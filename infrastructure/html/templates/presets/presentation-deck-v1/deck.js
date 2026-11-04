@@ -31,12 +31,12 @@
     return (found && found.textContent.trim()) || page.getAttribute("data-page-title") || "第 " + (index + 1) + " 页";
   }
   function measureControls() {
-    // 字体、手机换行、备注展开都会改变高度；用实测值保证最后一行正文可滚动到控件上方。
+    // 控件高度会随屏幕宽度与工具状态变化；画布用它计算控制栏上方的可用空间。
     var rect = controls.getBoundingClientRect();
     var height = Math.ceil(rect.height);
     var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
     root.style.setProperty("--deck-controls-height", height + "px");
-    root.style.setProperty("--deck-bottom-space", (height + notesHeight + Math.max(16, innerHeight - rect.bottom) + 16) + "px");
+    root.style.setProperty("--deck-notes-height", notesHeight + "px");
   }
   function setNotesOpen(open) {
     if (!notesPanel || !notesContent || !notesButton) return;

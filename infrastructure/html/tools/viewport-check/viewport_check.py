@@ -351,7 +351,7 @@ def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, inter
                 session.evaluate(f"SuanhaiPageChecks.choose({index})")
                 session.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
                 metrics = session.evaluate("SuanhaiPageChecks.inspect()")
-                failures = metrics["horizontalOverflow"] or metrics["textOverflow"] or metrics["navigationOverlap"] or metrics["brokenImages"] or metrics["duplicateIds"]
+                failures = metrics["horizontalOverflow"] or metrics["textOverflow"] or metrics["pageVerticalOverflow"] or metrics["navigationOverlap"] or metrics["brokenImages"] or metrics["duplicateIds"]
                 if metrics["pageOptions"] is not None and metrics["pageOptions"] != metrics["pageCount"]:
                     failures = True
                 item = {"id": name, "width": width, "height": height, "media": media, "page": index + 1, "status": "fail" if failures else "pass", "metrics": metrics}

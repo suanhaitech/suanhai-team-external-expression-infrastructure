@@ -232,8 +232,8 @@ class CourseCheckTest(unittest.TestCase):
             shutil.copy2(KIT / "runtime.css", root / "viewer.css")
             (root / "image.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600"><rect width="1200" height="600" fill="navy"/></svg>', encoding="utf-8")
             container = (CONTAINER / "index.html").read_text(encoding="utf-8")
-            container = container.replace('<link rel="stylesheet" href="styles.css" />', '<link rel="stylesheet" href="viewer.css" /><style>[hidden]{display:none!important} [data-deck-controls]{position:fixed;bottom:0;left:0;right:0;height:60px;background:white} [data-deck-page]{min-height:300px} .blocked{position:fixed;bottom:10px}</style>').replace('<link rel="stylesheet" href="deck.css" />', '')
-            container = container.replace('<!-- SUANHAI_DECK_PAGES -->', '<section id="page-one" data-deck-page data-speaker-note="中性备注"><h1>图解</h1><a href="image.svg" data-source-image="image.svg" data-source-caption="中性结构图">查看完整原图</a></section><section id="page-two" data-deck-page><h1>第二页</h1><p class="blocked">故意被导航遮挡</p></section>')
+            container = container.replace('<link rel="stylesheet" href="styles.css" />', '<link rel="stylesheet" href="viewer.css" /><style>[hidden]{display:none!important} [data-deck-controls]{position:fixed;bottom:0;left:0;right:0;height:60px;background:white} [data-deck-page]{min-height:300px} #page-two{height:140px;min-height:0;overflow:auto} .blocked{position:fixed;bottom:10px} .too-tall{height:300px}</style>').replace('<link rel="stylesheet" href="deck.css" />', '')
+            container = container.replace('<!-- SUANHAI_DECK_PAGES -->', '<section id="page-one" data-deck-page data-speaker-note="中性备注"><h1>图解</h1><a href="image.svg" data-source-image="image.svg" data-source-caption="中性结构图">查看完整原图</a></section><section id="page-two" data-deck-page><h1>第二页</h1><p class="blocked">故意被导航遮挡</p><div class="too-tall">超过单页可视高度</div></section>')
             container = container.replace('<script src="deck.js"></script>', '<script src="deck.js"></script><script src="viewer.js"></script>')
             path = root / "index.html"
             path.write_text(container, encoding="utf-8")
@@ -246,11 +246,12 @@ class CourseCheckTest(unittest.TestCase):
             self.assertEqual(len(report["viewports"]), 4, report)
             self.assertEqual(report["status"], "fail", report)
             self.assertTrue(report["viewports"][1]["metrics"]["navigationOverlap"], report)
+            self.assertTrue(report["viewports"][1]["metrics"]["pageVerticalOverflow"], report)
             for interaction in report["interactions"]:
                 self.assertEqual(interaction["status"], "not-run" if interaction["id"] in {"report-anchors", "display-modes", "fullscreen", "pdf-dialog"} else "pass", interaction)
             self.assertEqual(len(list((root / "shots").glob("*.png"))), 4)
             # 同一成品移除故意缺陷后必须通过，证明检查不是永远报错的测试替身。
-            path.write_text(container.replace('class="blocked"', 'class="readable"'), encoding="utf-8")
+            path.write_text(container.replace('class="blocked"', 'class="readable"').replace('<div class="too-tall">超过单页可视高度</div>', ''), encoding="utf-8")
             passing = viewport.browser_check(path, [("desktop", 1366, 768, "screen"), ("phone", 390, 844, "screen")], None, backend="cdp", all_pages=True, interactions=True, sandbox=ci_sandbox)
             self.assertEqual(passing["status"], "pass", passing)
 
