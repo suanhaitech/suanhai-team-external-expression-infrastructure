@@ -1,10 +1,178 @@
-.source-viewer { box-sizing: border-box; width: min(96vw, 1440px); max-width: 96vw; max-height: 94dvh; padding: 1rem; border: 1px solid var(--line, #cbd5e1); border-radius: 1rem; background: var(--surface, #fff); color: var(--ink, #172033); box-shadow: 0 24px 90px #0005; }
-.source-viewer::backdrop { background: #0b1220b8; }
-.source-viewer__bar { display: flex; gap: 1rem; align-items: start; justify-content: space-between; }
-.source-viewer__bar p { margin: 0; line-height: 1.5; }
-.source-viewer__bar button { flex: none; min-height: 44px; padding: .4rem .9rem; border: 1px solid currentColor; border-radius: .5rem; color: inherit; background: transparent; cursor: pointer; }
-.source-viewer__image { overflow: auto; max-height: 76dvh; overscroll-behavior: contain; }
-.source-viewer__image img { display: block; width: 100%; height: auto; object-fit: contain; }
-.source-viewer [data-source-viewer-status]:empty { display: none; }
-.source-viewer :focus-visible { outline: 3px solid var(--accent, #2563eb); outline-offset: 3px; }
-@media print { .source-viewer { display: none !important; } }
+.source-viewer {
+  box-sizing: border-box;
+  width: min(96vw, 1440px);
+  max-width: 96vw;
+  height: min(90dvh, 1000px);
+  max-height: 94dvh;
+  padding: 0;
+  border: 1px solid #dce4de;
+  border-radius: 1rem;
+  background: #fff;
+  color: #27352f;
+  box-shadow: 0 24px 90px #0004;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+.source-viewer[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.source-viewer::backdrop {
+  background: #14251ee0;
+}
+
+.source-viewer__bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem 1rem;
+  border-bottom: 1px solid #e0e5e2;
+}
+
+.source-viewer__bar p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: .95rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.source-viewer button, .source-viewer__tools a {
+  flex: none;
+  min-height: 44px;
+  padding: .5rem .7rem;
+  border: 1px solid transparent;
+  border-radius: .5rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: .8rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+
+.source-viewer button:hover, .source-viewer__tools a:hover {
+  background: #f1f4f2;
+}
+
+.source-viewer button[aria-pressed="true"] {
+  background: #eaf3ed;
+  color: #176854;
+}
+
+.source-viewer button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.source-viewer__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .2rem;
+  padding: .35rem .5rem;
+  border-bottom: 1px solid #e0e5e2;
+}
+
+.source-viewer__tools output {
+  width: 3.5rem;
+  text-align: center;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.source-viewer__tools [data-source-zoom-in], .source-viewer__tools [data-source-zoom-out] {
+  min-width: 44px;
+  font-size: 1.1rem;
+}
+
+.source-viewer__separator {
+  height: 1.3rem;
+  width: 1px;
+  background: #e0e5e2;
+  margin: 0 .3rem;
+}
+
+.source-viewer__image {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #f2f4f3;
+  cursor: grab;
+}
+
+.source-viewer__image.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* 同时解除物理/逻辑宽度上限，避免模板的 img { max-inline-size:100% } 让缩放只有数字变化。 */
+.source-viewer__image img {
+  display: block;
+  max-width: none;
+  max-inline-size: none;
+  height: auto;
+  margin: auto;
+  object-fit: contain;
+}
+
+.source-viewer__image img[hidden] {
+  display: none;
+}
+
+.source-viewer [data-source-viewer-status] {
+  margin: 0;
+  padding: .7rem 1rem;
+  color: #8c4b1f;
+  font-size: .85rem;
+}
+
+.source-viewer [data-source-viewer-status]:empty {
+  display: none;
+}
+
+.source-viewer__hint {
+  text-align: center;
+  font-size: .72rem;
+  color: #6b7771;
+  margin: 0;
+  padding: .6rem;
+}
+
+.source-viewer :focus-visible {
+  outline: 2px solid #247cba;
+  outline-offset: -2px;
+}
+
+@media (max-width: 560px) {
+  .source-viewer {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .source-viewer__separator {
+    display: none;
+  }
+  .source-viewer__hint {
+    padding-bottom: max(.6rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media print {
+  .source-viewer {
+    display: none !important;
+  }
+  html, body {
+    overflow: visible !important;
+  }
+}

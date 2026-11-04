@@ -135,6 +135,11 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
             "    path: infrastructure/html/runtime-kits/runtime-kit-v1\n"
             "    entrypoint: infrastructure/html/runtime-kits/runtime-kit-v1/runtime.js\n"
             "    purpose: test\n"
+            "  - id: html.image-viewer-v1\n"
+            "    kind: template\n"
+            "    path: infrastructure/html/runtime-kits/image-viewer-v1\n"
+            "    entrypoint: infrastructure/html/runtime-kits/image-viewer-v1/runtime.js\n"
+            "    purpose: test\n"
             "  - id: html.materialize\n"
             "    kind: tool\n"
             "    path: infrastructure/html/tools/materialize\n"
@@ -290,7 +295,9 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertIn('template: "html.project-report-v1"', report)
         self.assertIn('audience: "内部评审者"', report)
         self.assertIn("layouts: []", report)
-        self.assertIn("runtime_kits: []", report)
+        self.assertIn('"html.runtime-kit-v1"', report)
+        self.assertIn('"html.image-viewer-v1"', report)
+        self.assertEqual([kit["id"] for kit in record["runtime_kits"]], ["html.runtime-kit-v1", "html.image-viewer-v1"])
         self.assertIn('tool: html.materialize', report)
 
     def test_presentation_deck_template_is_materialized_as_a_self_contained_deck(self):
@@ -655,7 +662,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertTrue((self.output / "assets/html-runtime-kit-v1/math/fonts/KaTeX_Main-Regular.woff2").is_file())
         record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
         self.assertEqual(record["runtime_kits"][0]["id"], RUNTIME_KIT_ID)
-        self.assertEqual(record["runtime_kits"][0]["version"], "1.0.0")
+        self.assertEqual(record["runtime_kits"][0]["version"], "1.1.0")
         report = (self.output / "report.yml").read_text(encoding="utf-8")
         self.assertIn('runtime_kits:', report)
         self.assertIn('"html.runtime-kit-v1"', report)

@@ -129,7 +129,7 @@ capabilities:
     kind: template
     path: infrastructure/html/runtime-kits/runtime-kit-v1
     entrypoint: infrastructure/html/runtime-kits/runtime-kit-v1/runtime.js
-    purpose: 可物料化到 HTML 页面中的离线运行时包，提供本地 KaTeX 公式渲染、自动或手动显示模式、全屏入口和浏览器保存 PDF 入口；不替代确定性 PDF 导出工具
+    purpose: 默认物料化到 HTML 页面的离线交互运行时，提供本地 KaTeX 公式渲染、自动或手动显示模式、全屏入口和浏览器保存 PDF 入口；不替代确定性 PDF 导出工具
     inputs:
       - 页面中的 data-math 公式标记和可选的无障碍替代文本
       - 页面模板声明的运行时 CSS、工具栏和脚本插槽
@@ -141,10 +141,10 @@ capabilities:
     kind: tool
     path: infrastructure/html/tools/materialize
     entrypoint: infrastructure/html/tools/materialize/materialize_html.py
-    purpose: 从固定 submodule 按完整页面计划或有序单页 ID 装配容器、主题、具名组件和可选运行时；支持同任务只读基线的局部修订；默认预览，应用绑定摘要和任务版本
+    purpose: 从固定 submodule 按完整页面计划或有序单页 ID 装配容器、主题、具名组件和默认交互运行时；支持同任务只读基线的局部修订；默认预览，应用绑定摘要和任务版本
     inputs:
       - 消费端根目录、已进入 working 状态的任务编号及固定 submodule gitlink
-      - Manifest 中已登记的完整预设 ID，或容器 ID 与有序单页 ID；可选布局/运行时包 ID、组件包 ID 和语义组件 ID
+      - Manifest 中已登记的完整预设 ID，或容器 ID 与有序单页 ID；可选布局 ID、增量运行时包 ID、组件包 ID 和语义组件 ID
       - 可选的 scenarios/catalog.json 场景画像 ID
       - dry-run 返回的计划摘要与任务记录版本
     outputs:
@@ -356,7 +356,7 @@ capabilities:
     kind: template
     path: infrastructure/html/runtime-kits/image-viewer-v1
     entrypoint: infrastructure/html/runtime-kits/image-viewer-v1/runtime.js
-    purpose: 离线原图阅读器，支持键盘与焦点恢复
+    purpose: 默认离线原图阅读器，支持适应窗口、原始尺寸、缩放、拖动、键盘隔离与焦点恢复
   - id: html.source-assets
     kind: tool
     path: infrastructure/html/tools/source-assets

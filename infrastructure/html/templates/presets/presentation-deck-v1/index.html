@@ -20,8 +20,8 @@
 
       <div class="deck-tools" data-deck-tools hidden>
         <label class="deck-ratio-control" for="deck-ratio">
-          <span>页面比例</span>
-          <select id="deck-ratio" data-deck-ratio-select>
+          <span>画布</span>
+          <select id="deck-ratio" data-deck-ratio-select aria-label="页面比例">
             <option value="auto">自动适配</option>
             <option value="wide">16:9 横屏</option>
             <option value="classic">4:3 标准</option>
@@ -263,8 +263,8 @@
         <p data-deck-notes-content></p>
       </aside>
 
-      <nav class="deck-controls" data-deck-controls aria-label="演示文稿翻页" hidden>
-        <button class="deck-control-button" type="button" data-page-prev disabled>
+      <nav class="deck-controls" data-deck-controls aria-label="演示文稿控制" hidden>
+        <button class="deck-control-button" type="button" data-page-prev aria-label="上一页" disabled>
           <span aria-hidden="true">←</span><span>上一页</span>
         </button>
         <div class="deck-page-picker">
@@ -275,7 +275,7 @@
         <button class="deck-control-button deck-control-button--notes" type="button" data-notes-toggle aria-expanded="false" aria-controls="deck-notes-panel">
           <span>备注</span>
         </button>
-        <button class="deck-control-button" type="button" data-page-next>
+        <button class="deck-control-button" type="button" data-page-next aria-label="下一页">
           <span>下一页</span><span aria-hidden="true">→</span>
         </button>
         <div class="deck-progress" data-page-progress role="progressbar" aria-label="演示进度" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1">

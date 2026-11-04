@@ -37,6 +37,7 @@ RUNTIME_TOOLBAR_MARKER = "<!-- SUANHAI_RUNTIME_TOOLBAR -->"
 DECK_PAGES_MARKER = "<!-- SUANHAI_DECK_PAGES -->"
 PAGE_STYLESHEETS_MARKER = "<!-- SUANHAI_PAGE_STYLESHEETS -->"
 PAGE_NUMBER_MARKER = "<!-- SUANHAI_PAGE_NUMBER -->"
+DEFAULT_RUNTIME_KITS = ("html.runtime-kit-v1", "html.image-viewer-v1")
 
 
 class PageFragmentParser(HTMLParser):
@@ -1475,7 +1476,9 @@ def build_plan(
             "destination": layout_target.as_posix(),
         })
 
-    runtime_ids = [runtime_kit_id] if isinstance(runtime_kit_id, str) else list(runtime_kit_id or [])
+    # 默认交互与页面模板解耦；显式选择是增量扩展，来源记录包含最终完整集合。
+    runtime_ids = list(DEFAULT_RUNTIME_KITS)
+    runtime_ids.extend([runtime_kit_id] if isinstance(runtime_kit_id, str) else list(runtime_kit_id or []))
     for selected_runtime_id in dict.fromkeys(runtime_ids):
         runtime_capability = manifest.get(selected_runtime_id)
         if runtime_capability is None:
@@ -1704,7 +1707,7 @@ def main() -> int:
     parser.add_argument("--component-package-id", help="Manifest 中登记的 HTML 组件包能力 ID")
     parser.add_argument("--component-id", action="append", default=[], help="组件包 index.yml 中登记的语义组件 ID，可重复指定")
     parser.add_argument("--layout-id", action="append", default=[], help="Manifest 中登记的 HTML 布局包能力 ID，可重复选择")
-    parser.add_argument("--runtime-kit-id", action="append", default=[], help="Manifest 中登记的 HTML 页面运行时包能力 ID，可重复选择")
+    parser.add_argument("--runtime-kit-id", action="append", default=[], help="增量添加 Manifest 中的运行时包，可重复；默认已包含工具栏/公式和原图阅读器")
     parser.add_argument("--scenario-id", help="scenarios/catalog.json 中登记的场景画像 ID")
     parser.add_argument("--apply", action="store_true", help="写入文件；未指定时只输出 dry-run 计划")
     parser.add_argument("--expect-plan-sha256", help="必须与最近一次 dry-run 的 plan_sha256 一致，防止应用不同计划")

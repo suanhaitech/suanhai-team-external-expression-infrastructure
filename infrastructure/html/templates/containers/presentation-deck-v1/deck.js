@@ -1,12 +1,11 @@
 (function () {
   "use strict";
-
   var root = document.documentElement;
   var pages = Array.prototype.slice.call(document.querySelectorAll("[data-deck-page]"));
   var stage = document.querySelector("[data-deck-stage]");
   var controls = document.querySelector("[data-deck-controls]");
   var tools = document.querySelector("[data-deck-tools]");
-  if (!pages.length || !stage || !controls || !tools) return;
+  if (!pages.length || !stage || !controls || controls.hasAttribute("data-deck-ready")) return;
 
   var previousButton = controls.querySelector("[data-page-prev]");
   var nextButton = controls.querySelector("[data-page-next]");
@@ -17,101 +16,108 @@
   var notesButton = controls.querySelector("[data-notes-toggle]");
   var notesPanel = document.querySelector("[data-deck-notes-panel]");
   var notesContent = document.querySelector("[data-deck-notes-content]");
-  var ratioSelect = tools.querySelector("[data-deck-ratio-select]");
-  var currentPage = 0;
-  var notesOpen = false;
-
-  if (!previousButton || !nextButton || !pageSelect || !position || !progress || !progressValue || !notesButton || !notesPanel || !notesContent || !ratioSelect) return;
-  if (controls.getAttribute("data-deck-ready") === "true") return;
+  var ratioSelect = document.querySelector("[data-deck-ratio-select]");
+  var currentPage = 0, notesOpen = false;
+  if (notesPanel) {
+    notesPanel.tabIndex = 0;
+    notesPanel.setAttribute("aria-label", "当前页讲者备注");
+  }
+  // 翻页只依赖自己的必需控件。缺少备注或比例不应该拖垮阅读导航。
+  if (!previousButton || !nextButton || !pageSelect) return;
 
   function pageTitle(page, index) {
-    var titleSlot = page.getAttribute("data-page-title-slot");
-    if (titleSlot) {
-      var slots = page.querySelectorAll("[data-slot]");
-      for (var slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
-        if (slots[slotIndex].getAttribute("data-slot") === titleSlot) {
-          var title = slots[slotIndex].textContent.trim();
-          if (title) return title;
-        }
-      }
-    }
-    return page.getAttribute("data-page-title") || "第 " + (index + 1) + " 页";
+    var slot = page.getAttribute("data-page-title-slot");
+    var found = slot && Array.from(page.querySelectorAll("[data-slot]")).find(function (node) { return node.getAttribute("data-slot") === slot; });
+    return (found && found.textContent.trim()) || page.getAttribute("data-page-title") || "第 " + (index + 1) + " 页";
   }
-
-  pages.forEach(function (page, index) {
-    var number = page.querySelector(".deck-page-number");
-    if (number) number.textContent = String(index + 1).padStart(2, "0");
-  });
-
+  function measureControls() {
+    // 字体、手机换行、备注展开都会改变高度；用实测值保证最后一行正文可滚动到控件上方。
+    var rect = controls.getBoundingClientRect();
+    var height = Math.ceil(rect.height);
+    var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
+    root.style.setProperty("--deck-controls-height", height + "px");
+    root.style.setProperty("--deck-bottom-space", (height + notesHeight + Math.max(16, innerHeight - rect.bottom) + 16) + "px");
+  }
   function setNotesOpen(open) {
-    notesOpen = open;
-    notesPanel.hidden = !open;
-    notesButton.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!notesPanel || !notesContent || !notesButton) return;
+    notesOpen = open; notesPanel.hidden = !open;
+    notesButton.setAttribute("aria-expanded", String(open));
     notesButton.textContent = open ? "收起备注" : "备注";
     notesContent.textContent = pages[currentPage].getAttribute("data-speaker-note") || "本页没有讲者备注。";
+    measureControls();
   }
-
   function showPage(index, returnToTop) {
     currentPage = Math.max(0, Math.min(pages.length - 1, index));
     pages.forEach(function (page, pageIndex) {
-      var active = pageIndex === currentPage;
-      page.hidden = !active;
-      page.setAttribute("aria-hidden", active ? "false" : "true");
+      page.hidden = pageIndex !== currentPage;
+      page.setAttribute("aria-hidden", String(page.hidden));
       page.setAttribute("aria-label", "第 " + (pageIndex + 1) + " 页：" + pageTitle(page, pageIndex));
     });
-
-    previousButton.disabled = currentPage === 0;
-    nextButton.disabled = currentPage === pages.length - 1;
+    previousButton.disabled = currentPage === 0; nextButton.disabled = currentPage === pages.length - 1;
     pageSelect.value = String(currentPage);
-    position.value = String(currentPage + 1).padStart(2, "0") + " / " + String(pages.length).padStart(2, "0");
-    progress.setAttribute("aria-valuemax", String(pages.length));
-    progress.setAttribute("aria-valuenow", String(currentPage + 1));
-    progress.setAttribute("aria-valuetext", "第 " + (currentPage + 1) + " 页，共 " + pages.length + " 页");
-    progressValue.style.width = ((currentPage + 1) / pages.length) * 100 + "%";
+    if (position) position.value = String(currentPage + 1).padStart(2, "0") + " / " + String(pages.length).padStart(2, "0");
+    if (progress) {
+      progress.setAttribute("aria-valuemax", String(pages.length));
+      progress.setAttribute("aria-valuenow", String(currentPage + 1));
+      progress.setAttribute("aria-valuetext", "第 " + (currentPage + 1) + " 页，共 " + pages.length + " 页");
+    }
+    if (progressValue) progressValue.style.width = ((currentPage + 1) / pages.length) * 100 + "%";
     if (notesOpen) setNotesOpen(true);
-    // 用户可能在长页末尾点击底部控件；新页应从开头阅读，不能继承旧页滚动位置。
     if (returnToTop) stage.scrollIntoView({ block: "start", behavior: "instant" });
   }
-
   pages.forEach(function (page, index) {
+    var number = page.querySelector(".deck-page-number");
+    if (number) number.textContent = String(index + 1).padStart(2, "0");
     var option = document.createElement("option");
     option.value = String(index);
     option.textContent = String(index + 1).padStart(2, "0") + " · " + pageTitle(page, index);
     pageSelect.appendChild(option);
   });
-
   previousButton.addEventListener("click", function () { showPage(currentPage - 1, true); });
   nextButton.addEventListener("click", function () { showPage(currentPage + 1, true); });
-  pageSelect.addEventListener("change", function () { showPage(Number(pageSelect.value), true); });
-  notesButton.addEventListener("click", function () { setNotesOpen(!notesOpen); });
-  ratioSelect.addEventListener("change", function () {
-    root.setAttribute("data-deck-ratio", ratioSelect.value);
-  });
-
-  document.addEventListener("keydown", function (event) {
-    if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.target instanceof Element && (event.target.isContentEditable || event.target.closest("input, select, textarea, button, a, [role='textbox']"))) return;
-
-    if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
-      event.preventDefault();
-      showPage(currentPage + 1, true);
-    } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
-      event.preventDefault();
-      showPage(currentPage - 1, true);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      showPage(0, true);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      showPage(pages.length - 1, true);
+  pageSelect.addEventListener("change", function () { showPage(Number(pageSelect.value) || 0, true); });
+  previousButton.title = "上一页（← / PageUp）"; nextButton.title = "下一页（→ / PageDown / 空格）";
+  if (notesButton && notesPanel && notesContent) notesButton.addEventListener("click", function () { setNotesOpen(!notesOpen); });
+  else if (notesButton) notesButton.hidden = true;
+  if (ratioSelect) {
+    ratioSelect.value = root.getAttribute("data-deck-ratio") || "auto";
+    ratioSelect.addEventListener("change", function () { root.setAttribute("data-deck-ratio", ratioSelect.value); });
+  }
+  // 容器组合现有控件而不重写运行时动作；长页仍可单独使用同一运行时。
+  if (tools) {
+    tools.hidden = false;
+    if (notesButton) tools.insertBefore(notesButton, tools.querySelector("[data-runtime-toolbar]"));
+    controls.appendChild(tools);
+  }
+  function arrangeTools() {
+    if (!tools) return;
+    var inner = tools.querySelector(".runtime-toolbar__inner");
+    if (inner) {
+      var modes = inner.querySelector(".runtime-toolbar__group--modes");
+      var ratio = tools.querySelector(".deck-ratio-control");
+      if (ratio) inner.insertBefore(ratio, modes);
+      if (notesButton) inner.insertBefore(notesButton, inner.querySelector(".runtime-toolbar__group--view"));
     }
+    measureControls();
+  }
+  arrangeTools();
+  document.addEventListener("suanhai:runtime-ready", arrangeTools);
+  document.addEventListener("keydown", function (event) {
+    if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || document.querySelector("dialog[open]")) return;
+    if (event.key === "Escape" && notesOpen) { setNotesOpen(false); if (notesButton) notesButton.focus(); return; }
+    if (event.target instanceof Element && (event.target.isContentEditable || event.target.closest("input, select, textarea, button, a, [role='textbox']"))) return;
+    if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") { event.preventDefault(); showPage(currentPage + (event.key === " " && event.shiftKey ? -1 : 1), true); }
+    else if (event.key === "ArrowLeft" || event.key === "PageUp") { event.preventDefault(); showPage(currentPage - 1, true); }
+    else if (event.key === "Home") { event.preventDefault(); showPage(0, true); }
+    else if (event.key === "End") { event.preventDefault(); showPage(pages.length - 1, true); }
   });
-
-  // 在所有依赖都找到后才启用分页；脚本缺失或结构不完整时保留完整长文档。
-  ratioSelect.value = root.getAttribute("data-deck-ratio") || "auto";
-  tools.hidden = false;
-  controls.hidden = false;
-  root.classList.add("deck--ready");
-  controls.setAttribute("data-deck-ready", "true");
-  showPage(0);
+  controls.hidden = false; root.classList.add("deck--ready"); controls.setAttribute("data-deck-ready", "true");
+  if (window.ResizeObserver) {
+    var observer = new ResizeObserver(measureControls);
+    observer.observe(controls);
+    if (notesPanel) observer.observe(notesPanel);
+  }
+  window.addEventListener("resize", measureControls);
+  document.addEventListener("suanhai:runtime-ready", measureControls);
+  showPage(0); measureControls();
 }());
