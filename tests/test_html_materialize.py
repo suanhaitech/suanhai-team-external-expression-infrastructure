@@ -755,7 +755,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         task["infrastructure_commit"] = "0" * 40
         task_path.write_text(json.dumps(task), encoding="utf-8")
         mismatch = self.cli(ok=False)
-        self.assertIn("任务创建时固定", mismatch["error"])
+        self.assertIn("任务当前修订固定", mismatch["error"])
 
 
 if __name__ == "__main__":
