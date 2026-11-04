@@ -11,7 +11,7 @@
 - `tasks/<任务编号>/task.json` 已进入 `working`，且任务当前修订固定的基础设施 commit 与当前 gitlink 一致（创建时或授权换版 feedback 后记录）；
 - `brief.output` 已明确为稳定的 `<输出根>/<任务编号>`；工具按当前任务修订生成 `vNNN` 目录，也兼容旧记录中已经写入的 `<输出根>/<任务编号>/vNNN`；
 - 页面模板、可选响应式布局包和组件包均已在当前 Manifest 注册。
-- 如需页面内公式、显示模式、全屏和浏览器保存 PDF 入口，运行时包 `html.runtime-kit-v1` 也必须在当前 Manifest 注册；它会连同本地 KaTeX 资源一起复制。
+- 默认运行时 `html.runtime-kit-v1` 与 `html.image-viewer-v1` 必须在 Manifest 注册；工具自动复制完整交互与本地 KaTeX。显式 `--runtime-kit-id` 是增量，重复 ID 去重；不扫描目录自动启用未知包。
 
 ## 两阶段操作
 
@@ -86,7 +86,7 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
 python materialize_html.py --root . --task-id <任务号> --container-id html.container.presentation-deck-v1 --page-plan tasks/<任务号>/page-plan.json --theme editorial-warm --layout-id html.responsive-layout-v1 --layout-id html.presentation-foundation-v1 --runtime-kit-id html.runtime-kit-v1 --runtime-kit-id html.image-viewer-v1
 ```
 
-以上仍为预览，应用必须追加匹配的 `--apply --expect-plan-sha256 ... --expect-task-version ...`。主题为组件包中的可选令牌覆盖；布局包和运行时包可重复选择。原图阅读器独立于全屏/PDF/公式工具包，只有显式选择才装配。
+以上仍为预览，应用必须追加匹配的 `--apply --expect-plan-sha256 ... --expect-task-version ...`。主题为组件包中的可选令牌覆盖；布局包和运行时包可重复选择。原图阅读器与工具栏保持独立实现，默认同时装配；默认集合也写入预览、报告与物料化来源记录。底层 `inject_runtime_kit(None)` 保留兼容语义，不能代表新任务的默认策略。
 
 单页 `template.yml` 可声明 `component_slots: [supporting]`（YAML列表写法）及 `<!-- SUANHAI_COMPONENTS:supporting -->` 插槽。页面计划使用 `components: [{"slot":"supporting","id":"content.definition"}]` 把包内已登记组件放入指定页。工具拒绝未声明插槽、未登记组件和不兼容白名单；不会猜测任意 HTML 的插入位置。组合模式不接受缺少目标页面的 `--component-id`。
 

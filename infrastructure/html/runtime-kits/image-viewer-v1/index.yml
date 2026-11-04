@@ -1,7 +1,7 @@
 schema_version: 1
 id: html.image-viewer-v1
-version: 1.0.0
+version: 1.1.0
 components:
   - id: source-image-viewer
-    purpose: 不裁切阅读本地原图；支持关闭、焦点返回及演示稿键盘隔离
+    purpose: 不裁切阅读本地原图；支持适应窗口、原始尺寸、缩放、拖动、关闭、焦点返回及演示稿键盘隔离
     marker: data-source-image

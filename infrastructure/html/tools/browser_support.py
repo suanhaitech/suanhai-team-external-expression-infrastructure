@@ -143,8 +143,22 @@ class ChromiumSession:
         path.write_bytes(base64.b64decode(result["data"]))
 
     def key(self, key: str) -> None:
+        # 原生滚动/焦点行为依赖虚拟键码；只传 key 字符串只能触发 JS 监听。
+        codes = {"ArrowLeft": 37, "ArrowUp": 38, "ArrowRight": 39, "ArrowDown": 40,
+                 "PageUp": 33, "PageDown": 34, "Home": 36, "End": 35, "Escape": 27,
+                 "Tab": 9, "Enter": 13, " ": 32}
         for event_type in ("keyDown", "keyUp"):
-            self.cdp.call("Input.dispatchKeyEvent", {"type": event_type, "key": key, "code": key})
+            self.cdp.call("Input.dispatchKeyEvent", {"type": event_type, "key": key, "code": key,
+                          **({"windowsVirtualKeyCode": codes[key]} if key in codes else {})})
+
+    def click(self, selector: str) -> None:
+        """真实鼠标事件提供用户激活；DOM click 不能验证全屏这类受手势限制的 API。"""
+        point = self.evaluate("(() => {const e=document.querySelector(" + json.dumps(selector) + "); if(!e)return null; e.scrollIntoView({block:'nearest'}); const r=e.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2};})()")
+        if point is None:
+            raise RuntimeError(f"点击目标不存在：{selector}")
+        for kind in ("mousePressed", "mouseReleased"):
+            self.cdp.call("Input.dispatchMouseEvent", {"type": kind, **point, "button": "left", "clickCount": 1})
+        self.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
 
     def __exit__(self, *_exc: Any) -> None:
         if self.cdp:

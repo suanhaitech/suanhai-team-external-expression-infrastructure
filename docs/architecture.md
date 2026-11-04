@@ -103,3 +103,5 @@ HTML 主工作流当前读取 [`scenarios/`](../scenarios/README.md) 中的“�
 - 对小组资产仓库的强制模板和内容同步。
 
 新 HTML 任务默认采用分页组合（`html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*`），服务现场逐页讲解。用户明确要求连续阅读、传阅或查阅时采用长页；既有长页保持兼容。容器选择与空白模板/完整报告是独立维度；Agent 主动推荐资产，记录候选与选用资产、定制理由和验收信号。
+
+HTML 交互组件与单页模板分别维护，物料化器默认装配工具栏/公式和原图阅读器；分页容器负责组合控件，运行时负责动作。默认集合是明确列举的已注册能力，新增组件必须先实现、验证再增量加入。详见 [交互组件边界](html-interaction-components.md)。

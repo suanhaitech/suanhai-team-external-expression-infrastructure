@@ -20,7 +20,7 @@ py -3 infrastructure/html/tools/viewport-check/viewport_check.py `
 
 默认检查首屏；`--all-pages` 遍历演示稿每一页，记录文档水平溢出、可见文字容器溢出、导航遮挡、未加载图片、重复 ID 与页数选项一致性。导航遮挡在滚动到底后测量，以免将手机上可通过滚动阅读的正文误认为永久被挡。自定义容器应使用标准 `data-deck-page`、`data-page-select` 标记。
 
-`--interactions` 验证首尾禁用、前后翻页、备注默认隐藏及内容、原图阅读器打开/Escape关闭/焦点返回/方向键隔离。未选择的可选组件记为 `not-run`。不自动验收全屏、浏览器打印对话框或完整无障碍。
+`--interactions` 验证首尾禁用、前后翻页、备注默认隐藏及内容、原图阅读器打开/Escape关闭/焦点返回/方向键隔离与缩放，以及四种显示模式状态、真实鼠标全屏进入/退出。控件缺失或浏览器没有开放能力时明确记为 `not-run`；全屏 API 开放但操作失败记为 `fail`。不自动操作系统打印对话框或进行完整无障碍验收。
 
 ```powershell
 python infrastructure/html/tools/viewport-check/viewport_check.py --html '<产物目录>/index.html' --all-pages --interactions --backend cdp --viewport desktop=1366x768 --viewport phone=390x844 --screenshot-dir '<产物目录>/checks/screenshots' --contact-sheet '<产物目录>/checks/contact-sheet.html' --output '<产物目录>/checks/viewport-check.json' --fail-on-overflow

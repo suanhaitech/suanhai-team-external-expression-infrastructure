@@ -21,6 +21,11 @@ screenshots/
 !infrastructure/html/templates/single-page/preview/
 !infrastructure/html/templates/single-page/preview/**
 
+# 交互体验页同样是引用真实组件的文档资产，截图和浏览器缓存仍放仓外
+!infrastructure/html/runtime-kits/
+!infrastructure/html/runtime-kits/preview/
+!infrastructure/html/runtime-kits/preview/**
+
 # 凭据和本地配置
 .env
 .env.*

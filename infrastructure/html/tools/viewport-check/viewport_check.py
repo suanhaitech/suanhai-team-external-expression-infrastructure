@@ -237,6 +237,9 @@ class PlaywrightSession:
     def key(self, key):
         self.page.keyboard.press(key)
 
+    def click(self, selector):
+        self.page.locator(selector).click()
+
 
 def interaction_check(session) -> list[dict[str, object]]:
     """验证用户实际产物的交互；没有对应控件的项目明确为 not-run。"""
@@ -259,7 +262,7 @@ def interaction_check(session) -> list[dict[str, object]]:
         session.evaluate(f"SuanhaiPageChecks.choose({count - 1})")
         checks.append({"id": "deck-last-boundary", "status": "pass" if session.evaluate("document.querySelector('[data-page-next]').disabled") else "fail"})
         session.evaluate("SuanhaiPageChecks.choose(0)")
-        notes = session.evaluate("!!document.querySelector('[data-notes-toggle]')")
+        notes = session.evaluate("!!document.querySelector('[data-notes-toggle]') && !!document.querySelector('[data-deck-notes-panel]') && !!document.querySelector('[data-deck-notes-content]')")
         if notes:
             initial_hidden = session.evaluate("document.querySelector('[data-deck-notes-panel]').hidden")
             session.evaluate("document.querySelector('[data-notes-toggle]').click()")
@@ -270,6 +273,27 @@ def interaction_check(session) -> list[dict[str, object]]:
         checks.append({"id": "deck-navigation", "status": "not-run", "reason": "产物不包含演示稿导航"})
     anchors = session.evaluate("SuanhaiPageChecks.anchors()")
     checks.append({"id": "report-anchors", **anchors})
+    if session.evaluate("!!document.querySelector('[data-runtime-mode-select]')"):
+        result = session.evaluate("(() => {const s=document.querySelector('[data-runtime-mode-select]'), initial=s.value; let ok=true; for(const value of ['narrow','tablet','desktop','auto']) {s.value=value;s.dispatchEvent(new Event('change',{bubbles:true}));ok=ok && (document.documentElement.getAttribute('data-layout-mode') || 'auto')===value;}s.value=initial;s.dispatchEvent(new Event('change',{bubbles:true}));return ok;})()")
+        checks.append({"id": "display-modes", "status": "pass" if result else "fail", "scope": "验证四种模式状态切换并恢复；布局由多视口检查覆盖"})
+    else:
+        checks.append({"id": "display-modes", "status": "not-run", "reason": "没有显示模式控件"})
+    if session.evaluate("!!document.querySelector('[data-runtime-fullscreen]')"):
+        supported = session.evaluate("!!document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === 'function'")
+        if supported:
+            session.click("[data-runtime-fullscreen]")
+            session.evaluate("new Promise(r => setTimeout(r, 200))")
+            entered = session.evaluate("!!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'true'")
+            if session.evaluate("!!document.fullscreenElement"):
+                session.click("[data-runtime-fullscreen]")
+                session.evaluate("new Promise(r => setTimeout(r, 200))")
+            exited = session.evaluate("!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'false'")
+            checks.append({"id": "fullscreen", "status": "pass" if entered and exited else "fail", "entered": entered, "exited": exited, "scope": "本次浏览器会话的真实鼠标操作；其他浏览器仍需核验"})
+        else:
+            checks.append({"id": "fullscreen", "status": "not-run", "reason": "本次浏览器未开放 Fullscreen API"})
+    else:
+        checks.append({"id": "fullscreen", "status": "not-run", "reason": "没有全屏控件"})
+    checks.append({"id": "pdf-dialog", "status": "not-run", "reason": "浏览器打印对话框需人工选择保存位置；确定性文件使用 html.pdf-export 核验"})
     trigger = session.evaluate("(() => {let t=document.querySelector('[data-source-image]'); if(!t)return null;let p=t.closest('[data-deck-page]');return {page:p ? Array.from(document.querySelectorAll('[data-deck-page]')).indexOf(p) : 0};})()")
     if trigger:
         session.evaluate(f"SuanhaiPageChecks.choose({trigger['page']})")
@@ -277,6 +301,27 @@ def interaction_check(session) -> list[dict[str, object]]:
         opened = session.evaluate("!!document.querySelector('[data-source-viewer][open]')")
         if opened:
             loaded = session.evaluate("(() => {let i=document.querySelector('[data-source-viewer-image]');return new Promise(r=>{let done=()=>r(i.complete && i.naturalWidth>0);if(i.complete)done();else{i.addEventListener('load',done,{once:true});i.addEventListener('error',done,{once:true});setTimeout(done,3000);}});})()")
+            if loaded and session.evaluate("!!document.querySelector('[data-source-zoom-in]')"):
+                zoomed = session.evaluate("""(async () => {
+                    const image = document.querySelector('[data-source-viewer-image]');
+                    const area = document.querySelector('.source-viewer__image');
+                    const fit = document.querySelector('[data-source-fit]');
+                    async function waitFor(predicate) {
+                        const end = performance.now() + 1500;
+                        while (!predicate() && performance.now() < end) await new Promise(r => requestAnimationFrame(r));
+                        return predicate();
+                    }
+                    // 先回到全图状态，避免初始 min-width 已在缩放上限而误判按钮失效。
+                    fit.click();
+                    await waitFor(() => image.getBoundingClientRect().width <= area.clientWidth + 1);
+                    const width = image.getBoundingClientRect().width;
+                    document.querySelector('[data-source-zoom-in]').click();
+                    const grew = await waitFor(() => image.getBoundingClientRect().width > width);
+                    fit.click();
+                    const fitted = await waitFor(() => image.getBoundingClientRect().width <= area.clientWidth + 1);
+                    return grew && fitted && fit.getAttribute('aria-pressed') === 'true';
+                })()""")
+                checks.append({"id": "source-image-zoom", "status": "pass" if zoomed else "fail"})
             before = session.evaluate("document.querySelector('[data-page-select]')?.value || null")
             session.key("ArrowRight")
             after = session.evaluate("document.querySelector('[data-page-select]')?.value || null")
