@@ -64,9 +64,14 @@ class InteractionControlsBrowserTest(unittest.TestCase):
     def test_dock_visible_controls_and_readable_bottom_on_small_screens(self):
         for width in (320, 390, 768, 1366, 1920):
             self.s.viewport(width, 844, "screen")
-            self.s.evaluate("document.querySelector('[data-notes-toggle]').click()")
+            self.s.evaluate("if (document.querySelector('[data-deck-notes-panel]').hidden) document.querySelector('[data-notes-toggle]').click()")
             self.settle()
-            self.s.evaluate("window.scrollTo(0,document.documentElement.scrollHeight)")
+            self.assertNotEqual(
+                self.s.evaluate("document.documentElement.style.getPropertyValue('--deck-notes-height')"),
+                "0px",
+                self.s.evaluate("JSON.stringify({hidden:document.querySelector('[data-deck-notes-panel]').hidden,pressed:document.querySelector('[data-notes-toggle]').getAttribute('aria-expanded'),height:document.querySelector('[data-deck-notes-panel]').getBoundingClientRect().height,deckScript:document.querySelector('script[src*=deck]')?.src})"),
+            )
+            self.s.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); page.scrollTop=page.scrollHeight; })()")
             self.settle()
             metrics = self.s.evaluate("""(() => {
                 let controls = [...document.querySelectorAll('[data-deck-controls] button, [data-deck-controls] select')].filter(e=>e.getBoundingClientRect().width>0);
@@ -77,6 +82,7 @@ class InteractionControlsBrowserTest(unittest.TestCase):
                   clipped:controls.filter(e=>{let r=e.getBoundingClientRect();return r.left<0||r.right>innerWidth+1||r.height<43||r.top<bar.top||r.bottom>bar.bottom+1;}).length,
                   barInView:bar.top>=0&&bar.bottom<=innerHeight,
                   bottomReadable:content.bottom <= (notes.hidden?bar.top:notes.getBoundingClientRect().top)+1,
+                  contentBottom:content.bottom, notesTop:notes.hidden?null:notes.getBoundingClientRect().top, barTop:bar.top,
                   labels:[...document.querySelectorAll('.runtime-toolbar__button-label')].every(e=>getComputedStyle(e).display!=='none')};
             })()""")
             with self.subTest(width=width):

@@ -49,6 +49,17 @@ class HtmlPresentationDeckPrintCssContractTest(unittest.TestCase):
                 self.assertIsNotNone(rule, f"缺少演示稿打印阶段规则：{relative}")
                 self.assertRegex(rule.group(1), r"(?m)^\s*width:\s*100%;\s*$")
 
+    def test_screen_pages_reserve_space_above_fixed_controls(self):
+        for relative in (
+            "infrastructure/html/templates/containers/presentation-deck-v1/deck.css",
+            "infrastructure/html/templates/presets/presentation-deck-v1/deck.css",
+        ):
+            with self.subTest(asset=relative):
+                css = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn("max-height: calc(100svh - var(--deck-controls-height, 80px) - var(--deck-notes-height, 0px) - 5rem)", css)
+                self.assertIn("overflow-y: auto", css)
+                self.assertIn("padding-bottom: 1rem", css)
+
 
 class HtmlPresentationDeckBrowserTest(unittest.TestCase):
     @classmethod
@@ -216,15 +227,15 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         self.assertEqual(self.evaluate("document.querySelector('[data-page-select]').value"), "1")
         self.click("[data-page-prev]")
         self.assertEqual(self.evaluate("document.querySelector('[data-page-select]').value"), "0")
-        # 短屏让前后两页均高于可视区，避免浏览器因文档变短自动夹取滚动位置而误通过。
+        # 演示容器在短屏内限制页面高度；验证超出部分可在当前页内部访问。
         self.viewport(390, 600)
         self.select_page(1)
-        self.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+        self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); page.scrollTop=page.scrollHeight; })()")
         self.settle()
-        self.assertGreater(self.evaluate("window.scrollY"), 0)
+        self.assertGreater(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').scrollTop"), 0)
         self.click("[data-page-next]")
         self.assertEqual(self.evaluate("document.querySelector('[data-page-select]').value"), "2")
-        self.assertLessEqual(abs(self.evaluate("document.querySelector('[data-deck-stage]').getBoundingClientRect().top")), 2)
+        self.assertGreaterEqual(self.evaluate("document.querySelector('[data-deck-stage]').getBoundingClientRect().top"), 0)
         self.assertTrue(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().top >= -2"))
         self.viewport(1366, 768)
         self.select_page(count - 1)
@@ -265,10 +276,14 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
                     self.assertLess(self.evaluate("document.querySelector('[data-deck-stage]').clientWidth"), width / 2)
                 for index in range(count):
                     self.select_page(index)
-                    metrics = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); return {rootWidth:document.documentElement.scrollWidth, viewport:innerWidth, pageWidth:page.clientWidth, scrollWidth:page.scrollWidth, pageHeight:page.clientHeight, scrollHeight:page.scrollHeight, page:page.id}; })()")
+                    metrics = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); const pageRect=page.getBoundingClientRect(); const controls=document.querySelector('[data-deck-controls]').getBoundingClientRect(); return {rootWidth:document.documentElement.scrollWidth, viewport:innerWidth, pageWidth:page.clientWidth, scrollWidth:page.scrollWidth, pageHeight:page.clientHeight, scrollHeight:page.scrollHeight, pageBottom:pageRect.bottom, controlsTop:controls.top, overflowY:getComputedStyle(page).overflowY, page:page.id}; })()")
                     self.assertLessEqual(metrics["rootWidth"], metrics["viewport"] + 2, metrics)
                     self.assertLessEqual(metrics["scrollWidth"], metrics["pageWidth"] + 2, metrics)
-                    self.assertLessEqual(metrics["scrollHeight"], metrics["pageHeight"] + 2, metrics)
+                    self.assertLessEqual(metrics["pageBottom"], metrics["controlsTop"] + 2, metrics)
+                    if metrics["scrollHeight"] > metrics["pageHeight"] + 2:
+                        self.assertIn(metrics["overflowY"], {"auto", "scroll"}, metrics)
+                        self.assertGreater(self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); page.scrollTop=page.scrollHeight; return page.scrollTop; })()"), 0, metrics)
+                        self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').scrollTop=0")
 
     def test_print_shows_all_pages_without_clipping(self):
         self.cdp.call("Emulation.setEmulatedMedia", {"media": "print"})
