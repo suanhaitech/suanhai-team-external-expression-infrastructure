@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -12,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -363,6 +365,107 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertIn(f'"{page_ids[0]}"', report)
         self.assertIn("components: []", report)
         self.assertIn("semantic_components: []", report)
+
+    def test_write_failure_reports_exception_type_phase_and_target(self):
+        module_path = REPO_ROOT / TOOL
+        spec = importlib.util.spec_from_file_location("materialize_html_under_test", module_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        materializer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(materializer)
+
+        with tempfile.TemporaryDirectory(prefix="html-materialize-write-error-") as temporary:
+            root = Path(temporary)
+            destination = root / "reports" / "v001" / "broken.html"
+            original_open = Path.open
+
+            def fail_destination(path: Path, mode: str = "r", *args, **kwargs):
+                if path == destination and mode == "xb":
+                    raise MemoryError()
+                return original_open(path, mode, *args, **kwargs)
+
+            with patch.object(Path, "open", fail_destination):
+                with self.assertRaises(materializer.MaterializeError) as raised:
+                    materializer.apply_files(root, [(destination, b"content")])
+
+            message = str(raised.exception)
+            self.assertIn("创建目标文件：reports/v001/broken.html", message)
+            self.assertIn("MemoryError", message)
+            self.assertIn("MemoryError()", message)
+            self.assertIn("本次写入已回滚", message)
+            self.assertFalse(destination.exists())
+            self.assertEqual(list(root.glob(".html-materialize-*")), [])
+
+    def test_repeated_single_page_apply_rolls_back_and_can_retry_after_write_failure(self):
+        page_ids = [
+            SINGLE_PAGE_IDS[0],
+            SINGLE_PAGE_IDS[3],
+            SINGLE_PAGE_IDS[3],
+            SINGLE_PAGE_IDS[5],
+        ]
+        arguments = ["--container-id", PRESENTATION_CONTAINER_ID]
+        for page_id in page_ids:
+            arguments.extend(("--page-id", page_id))
+        preview = self.cli(*arguments, template_id=None)
+        self.assertGreater(len(preview["would_write"]), 1)
+
+        module_path = REPO_ROOT / TOOL
+        spec = importlib.util.spec_from_file_location("materialize_html_cli_under_test", module_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        materializer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(materializer)
+        manifest = materializer.parse_manifest(self.infrastructure / "manifest.yml")
+        commit = git(self.infrastructure, "rev-parse", "HEAD")
+        task = materializer.read_task_context(self.root, TASK_ID, commit)
+        package, _ = materializer.build_plan(
+            self.infrastructure,
+            manifest,
+            None,
+            COMPONENT_ID,
+            [],
+            None,
+            [],
+            TASK_ID,
+            task["version_name"],
+            task["revision"],
+            task["version"],
+            commit,
+            task,
+            [],
+            PRESENTATION_CONTAINER_ID,
+            page_ids,
+            None,
+            None,
+            None,
+        )
+        writes, unchanged, conflicts = materializer.plan_materialization(self.root, self.output, package)
+        self.assertFalse(unchanged)
+        self.assertFalse(conflicts)
+        self.assertEqual(len(writes), len(preview["would_write"]))
+        failing_relative = writes[-1][0].relative_to(self.root).as_posix()
+        failing_path = self.root / failing_relative
+        original_copyfileobj = materializer.shutil.copyfileobj
+
+        def fail_one_target(source, destination, length=0):
+            if Path(destination.name) == failing_path:
+                raise MemoryError()
+            return original_copyfileobj(source, destination, length)
+
+        with patch.object(materializer.shutil, "copyfileobj", fail_one_target):
+            with self.assertRaises(materializer.MaterializeError) as raised:
+                materializer.apply_files(self.root, writes)
+
+        error = str(raised.exception)
+        self.assertIn("复制暂存文件", error)
+        self.assertIn(failing_relative, error)
+        self.assertIn("MemoryError", error)
+        self.assertFalse(self.output.exists())
+        self.assertEqual(list(self.root.glob(".html-materialize-*")), [])
+
+        materializer.apply_files(self.root, writes)
+        self.assertEqual(len(writes), len(preview["would_write"]))
+        self.assertTrue(self.output.joinpath("index.html").is_file())
 
     def test_project_report_composition_preserves_provenance_and_repeated_page_references(self):
         scenario_id = "expression.scenario.project-progress-communication-v1"
