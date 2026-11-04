@@ -1,6 +1,7 @@
 name: Validate manifest
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -13,12 +14,30 @@ on:
 permissions:
   contents: read
 
+# 同一 PR 的旧运行可取消；已经进入分支的集成提交保留完整验证记录。
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  manifest:
+  validation:
     runs-on: ubuntu-latest
+    outputs:
+      suite: ${{ steps.plan.outputs.suite }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Select validation scope
+        id: plan
+        run: python scripts/ci_checks.py plan
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -45,7 +64,23 @@ jobs:
             fi
           done
 
+  quick:
+    needs: validation
+    if: needs.validation.outputs.suite == 'quick'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate contracts and components
+        run: python scripts/ci_checks.py run --suite quick
+
   task-loop:
+    needs: validation
+    if: needs.validation.outputs.suite == 'full'
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -60,4 +95,24 @@ jobs:
           python-version: "3.12"
 
       - name: Validate task lifecycle, submodule protocol and repository bootstrap
-        run: python -m unittest discover -s tests -p "test_*.py" -v
+        run: python scripts/ci_checks.py run --suite full
+
+  # main 已要求 manifest 检查；保留名称作为最终门槛，不让必需测试被跳过后仍亮绿灯。
+  manifest:
+    if: always()
+    needs: [validation, quick, task-loop]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require selected checks to pass
+        env:
+          CI_SUITE: ${{ needs.validation.outputs.suite }}
+          CI_VALIDATION: ${{ needs.validation.result }}
+          CI_QUICK: ${{ needs.quick.result }}
+          CI_FULL: ${{ needs.task-loop.result }}
+        run: python scripts/ci_checks.py gate

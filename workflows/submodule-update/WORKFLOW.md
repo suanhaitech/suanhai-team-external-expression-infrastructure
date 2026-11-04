@@ -32,9 +32,11 @@
 6. 更新父仓 gitlink，只暂存 submodule 路径；
 7. 在父仓提交前，核验 submodule HEAD、父仓 index 中 `160000` gitlink 和目标 SHA 一致，确认 submodule 自身干净，并运行可在当前环境执行的目标 Manifest 校验与消费端冒烟测试；
 8. 记录版本、测试和待解决问题；按用户授权提交、推送和创建 PR；
-9. 在父仓提交完成且工作区干净后，因 gitlink 已发生变化而重新运行完整 `consumer.submodule-preflight` 做更新后验证；CI 也应对包含新 gitlink 的提交执行新 clone 检查；
+9. 在父仓提交完成且工作区干净后，因 gitlink 已发生变化而重新运行完整 `consumer.submodule-preflight` 做更新后验证；若消费端已有 CI，等待其对新 gitlink 的递归 clone/接入检查，未配置时如实记录并保留本地验证；
 10. 只有提交已获授权且更新后 preflight 通过，才恢复触发更新的原顶层能力；若提交未获授权，保留现场并暂停原能力，等待后续授权提交和预检；
 11. 报告最终 gitlink、测试证据和未执行的外部动作。
+
+本地切分支或 checkout 不触发基础设施 CI。升级复用目标完整 SHA 已有的共享能力验证，消费端执行自己的 Manifest、预检和受影响能力冒烟，不重复基础设施全量回归；快速检查不能替代功能提交的完整回归。详见 [CI 与消费端验证](../../docs/ci-validation.md)。
 
 ## 禁止事项
 
