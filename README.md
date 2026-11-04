@@ -102,7 +102,7 @@ Bootstrap 必须由消费端显式写入根 `AGENTS.md` 才会生效；文档存
 
 - `main`：稳定、可被 submodule 固定引用的版本；
 - `develop`：日常集成分支；
-- `codex/*`：从 `develop` 创建的短期开发分支。
+- `codex/*`：从 `develop` 创建的短期开发分支，任务合入并通过最终检查后应按仓库 Harness 清理本次分支及安全可移除的 worktree；不顺手批量删除无关历史分支。
 
 当前仓库由 Chaos 全权维护。开发过程中不自动提交、推送、部署或发布；GitHub Actions 校验 Manifest，并在 Windows 与 Linux 运行任务循环、submodule 预检和模板铺设行为测试。
 
