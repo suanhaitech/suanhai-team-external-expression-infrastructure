@@ -286,6 +286,10 @@ html[data-layout-mode="desktop"] .report-card {
   padding: 2rem 0 3rem;
 }
 
+@media print {
+  .report-nav { display: none; }
+}
+
 @media (max-width: 760px) {
   .report-nav {
     align-items: flex-start;

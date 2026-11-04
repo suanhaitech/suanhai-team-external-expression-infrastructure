@@ -26,6 +26,6 @@ py -3 infrastructure/html/tools/viewport-check/viewport_check.py `
 python infrastructure/html/tools/viewport-check/viewport_check.py --html '<产物目录>/index.html' --all-pages --interactions --backend cdp --viewport desktop=1366x768 --viewport phone=390x844 --screenshot-dir '<产物目录>/checks/screenshots' --contact-sheet '<产物目录>/checks/contact-sheet.html' --output '<产物目录>/checks/viewport-check.json' --fail-on-overflow
 ```
 
-`--contact-sheet` 生成离线 HTML 联系表，不依赖 Pillow。再传 `--compare-with '<上一版检查.json>'` 按视口和页序生成并排截图，供人工评审；它不自动声称视觉差异正确，增删页后应人工核对对应关系。截图保留实际控件，记录当前视口，使用 `--full-page` 包含完整滚动区域，并记录 screenshot_scope；仍须人工审阅截图。长页 .report-nav / data-report-nav 纳入可见导航遮挡检测，--interactions 核对本页锚点存在；实际滚动定位与焦点未自动检查，无导航时记录 not-run。
+`--contact-sheet` 生成离线 HTML 联系表，不依赖 Pillow。再传 `--compare-with '<上一版检查.json>'` 按视口和页序生成并排截图，供人工评审；它不自动声称视觉差异正确，增删页后应人工核对对应关系。截图保留实际控件，记录当前视口，使用 `--full-page` 包含完整滚动区域，并记录 screenshot_scope；仍须人工审阅截图。长页 .report-nav / data-report-nav 由 --interactions 核对本页锚点存在；顶部粘性导航的滚动定位与焦点未自动检查，navigationCoverage 明确为 not-run，避免把正常滚动相交误判为永久遮挡。无长页导航时锚点检查记为 not-run。
 
 报告含统一 `checks[]`、HTML SHA-256、环境、指标和限制，Schema 见 `../../schemas/check-result.schema.json`。静态通过但浏览器不可用时，总状态为 `not-run`；浏览器运行后出现页面异常为 `fail`。默认退出码兼容旧行为，静态失败返回 1；加 `--fail-on-overflow` 让所有浏览器布局/交互失败返回 1。`not-run` 返回 0 也不表示视觉验收通过。输出/截图目录应为本次新版本的专用目录，工具会写入这些明确指定的证据文件。

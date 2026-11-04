@@ -14,7 +14,10 @@
     var active = pages().find(p => !p.hidden) || document.body;
     var elements = Array.from(active.querySelectorAll("*"));
     var controls = document.querySelector("[data-deck-controls], .report-nav, [data-report-nav]");
-    var bar = controls && visible(controls) ? controls.getBoundingClientRect() : null;
+    // 底部翻页栏可在滚动到底后检查最终内容是否仍被挡住。
+    // 顶部粘性导航在滚动途中覆盖正文是正常行为，不能据一次相交判为永久遮挡；
+    // 长页只自动核对锚点存在，定位与焦点检查明确留给人工。
+    var bar = controls && controls.matches("[data-deck-controls]") && visible(controls) ? controls.getBoundingClientRect() : null;
     var overlaps = [], overflow = [];
     elements.filter(visible).forEach(function (element) {
       var style = getComputedStyle(element), box = element.getBoundingClientRect();
@@ -27,7 +30,9 @@
     var ids = Array.from(document.querySelectorAll("[id]")).map(e => e.id);
     return { innerWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, innerHeight: innerHeight, scrollHeight: document.documentElement.scrollHeight,
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1, textOverflow: overflow,
-      navigationOverlap: overlaps, navigationCoverage: bar ? "visible-navigation" : "not-run", brokenImages: broken, duplicateIds: ids.filter((id, i) => ids.indexOf(id) !== i),
+      navigationOverlap: overlaps, navigationCoverage: bar ? "visible-navigation" : "not-run",
+      navigationReason: bar ? null : "没有可检查的底部翻页栏；顶部粘性导航的滚动定位遮挡需人工核对",
+      brokenImages: broken, duplicateIds: ids.filter((id, i) => ids.indexOf(id) !== i),
       pageId: active.id || null, pageCount: pages().length || 1,
       pageOptions: document.querySelector("[data-page-select]") ? document.querySelector("[data-page-select]").options.length : null };
   }

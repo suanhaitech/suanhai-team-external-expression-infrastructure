@@ -73,6 +73,20 @@ class FillingAndResourcesTest(unittest.TestCase):
         self.assertTrue((self.root / "styles.css").exists())
         self.assertNotIn("styles.css", {item["path"] for item in report["resources"]})
 
+    def test_stock_long_page_sticky_navigation_is_not_a_permanent_overlap(self):
+        from browser_support import find_browser
+        if not find_browser():
+            self.skipTest("本机无 Chromium")
+        shutil.copytree(ROOT / "infrastructure/html/templates/presets/project-report-v1", self.root, dirs_exist_ok=True)
+        report = viewport.browser_check(self.html, list(viewport.DEFAULT_VIEWPORTS), None, backend="cdp", interactions=True, sandbox=not sys.platform.startswith("linux"))
+        self.assertEqual(report["status"], "pass", report)
+        for item in report["viewports"]:
+            self.assertEqual(item["metrics"]["navigationCoverage"], "not-run")
+            self.assertTrue(item["metrics"]["navigationReason"])
+        anchors = next(item for item in report["interactions"] if item["id"] == "report-anchors")
+        self.assertEqual(anchors["status"], "pass")
+        self.assertEqual(anchors["tested"], 5)
+
     def test_cdp_full_document_and_missing_long_page_anchor(self):
         from browser_support import find_browser
         if not find_browser():
