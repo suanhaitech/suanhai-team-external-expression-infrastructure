@@ -1146,27 +1146,43 @@ def apply_files(root: Path, writes: list[tuple[Path, bytes]]) -> None:
     installed: list[Path] = []
     created_directories: list[Path] = []
     failure: Exception | None = None
+    failure_operation = "开始写入"
+    failure_path = staging
     cleanup_errors: list[str] = []
     try:
         staged_files: list[tuple[Path, Path]] = []
         for destination, content in writes:
             relative = destination.relative_to(root)
             staged = staging / relative
+            failure_operation = "创建暂存目录"
+            failure_path = staged.parent
             staged.parent.mkdir(parents=True, exist_ok=True)
+            failure_operation = "写入暂存文件"
+            failure_path = staged
             staged.write_bytes(content)
             staged_files.append((staged, destination))
         for staged, destination in staged_files:
             missing: list[Path] = []
             parent = destination.parent
+            failure_operation = "检查目标目录"
+            failure_path = parent
             while parent != root and not parent.exists():
                 missing.append(parent)
                 parent = parent.parent
             for directory in reversed(missing):
+                failure_operation = "创建目标目录"
+                failure_path = directory
                 directory.mkdir()
                 created_directories.append(directory)
+            failure_operation = "创建目标文件"
+            failure_path = destination
             with destination.open("xb") as output:
                 installed.append(destination)
+                failure_operation = "读取暂存文件"
+                failure_path = staged
                 with staged.open("rb") as source:
+                    failure_operation = "复制暂存文件"
+                    failure_path = destination
                     shutil.copyfileobj(source, output)
     except Exception as error:
         failure = error
@@ -1186,7 +1202,24 @@ def apply_files(root: Path, writes: list[tuple[Path, bytes]]) -> None:
         cleanup_errors.append(str(cleanup_error))
     if failure is not None:
         detail = "；清理未完成：" + "; ".join(cleanup_errors) if cleanup_errors else "；本次写入已回滚"
-        raise MaterializeError(f"物料化写入失败：{failure}{detail}") from failure
+        try:
+            relative_failure_path = failure_path.relative_to(root).as_posix()
+        except ValueError:
+            relative_failure_path = str(failure_path)
+        system_error = ""
+        if isinstance(failure, OSError):
+            codes = []
+            if failure.errno is not None:
+                codes.append(f"errno={failure.errno}")
+            if getattr(failure, "winerror", None) is not None:
+                codes.append(f"winerror={failure.winerror}")
+            if codes:
+                system_error = "，" + ", ".join(codes)
+        # Exception.__str__ 可为空（例如 MemoryError）；repr 和类型能保留排查线索。
+        failure_detail = f"{type(failure).__name__}: {failure!r}{system_error}"
+        raise MaterializeError(
+            f"物料化写入失败（{failure_operation}：{relative_failure_path}）：{failure_detail}{detail}"
+        ) from failure
     if cleanup_errors:
         raise MaterializeError("物料化完成，但临时文件清理未完成：" + "; ".join(cleanup_errors))
 
