@@ -26,3 +26,5 @@ templates/
 页面模板只在固定 submodule commit 中可用；消费端应复制到自己的作品版本目录，不要修改 submodule 内的文件。内容、来源、事实核对和发布授权仍由消费端维护。
 
 新小组模板的报告类任务默认使用 `reports/<任务编号>/v001/`；旧消费端仍可使用 `works/`。系列、课程和书籍保持各自归档，不统一移入 `reports/`。
+
+新 HTML 任务默认采用分页组合（`html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*`），服务现场逐页讲解。用户明确要求连续阅读、传阅或查阅时采用长页；既有长页保持兼容。容器选择与空白模板/完整报告是独立维度；Agent 主动推荐资产，记录候选与选用资产、定制理由和验收信号。

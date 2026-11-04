@@ -101,3 +101,5 @@ HTML 主工作流当前读取 [`scenarios/`](../scenarios/README.md) 中的“�
 - 统一审批状态机；
 - 项目、科研、客户和成员数据存储；
 - 对小组资产仓库的强制模板和内容同步。
+
+新 HTML 任务默认采用分页组合（`html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*`），服务现场逐页讲解。用户明确要求连续阅读、传阅或查阅时采用长页；既有长页保持兼容。容器选择与空白模板/完整报告是独立维度；Agent 主动推荐资产，记录候选与选用资产、定制理由和验收信号。

@@ -43,7 +43,7 @@ Agent 先使用 `expression.task-record` 创建任务，不直接写 HTML。任�
 
 ### 2. 对齐简报
 
-Agent 读取来源清单，提出会改变页面方向的问题，并把用户实际确认原话记录到任务历史。至少需要对齐：
+Agent 主动推荐容器、页面职责和可复用资产，只就现有材料无法确定且会改变用途、范围或授权的问题提问；已认可方案直接执行，不重复确认。Agent 读取来源清单，提出会改变页面方向的问题，并把用户实际确认原话记录到任务历史。至少需要对齐：
 
 - 页面面向谁、用于什么场景；
 - 页面要促成读者理解、决定或行动的结果；
@@ -69,7 +69,7 @@ Agent 为候选来源建立 `sources.yml`，记录路径或 URL、版本/日期�
 
 对已登记场景，Agent 必须读取其场景画像，并在选择页面资产前形成一份消费端可审阅的逐页计划。计划应覆盖当前整稿，而不是只列本轮新做的页面；至少列出稳定页面 ID、页面目标、核心信息、来源/证据、候选页面职责或资产、场景验收信号。页序、目录与显示页码从当前页面顺序派生，插页时不手工在多处维护序号。场景画像提供决策要求，逐页计划说明本任务如何应用这些要求；不得只设置场景 ID 后直接制作。
 
-使用单页组合时，以 `page-plan.json` 保存可执行的整稿清单，并可另附面向人的 `page-plan.md`。JSON 按 [页面计划样例](../../../infrastructure/html/examples/records/page-plan.json) 和固定版本的 Schema 填写：`pages[].id` 不随页序变化；`template_id` 选择实际资产；`source_ids` 关联已登记来源；需要回应前文时用 `responds_to` 关联已存在的问题页。实际内容填在已声明的 `slots`，不把演示页码写进页面 ID。人读视图与可执行清单应一致，不能出现 HTML 已有某页而清单漏页的状态。
+使用单页组合时，以 `page-plan.json` 保存可执行的整稿清单，并可另附面向人的 `page-plan.md`。JSON 按 [页面计划样例](../../../infrastructure/html/examples/records/page-plan.json) 和固定版本的 Schema 填写：`pages[].id` 不随页序变化；`template_id` 选择实际资产；`source_ids` 关联已登记来源；需要回应前文时用 `responds_to` 关联已存在的问题页。实际内容填在已声明的 `slots`，不把演示页码写进页面 ID。`artifact_kind` 记录模板或报告；各页用 `candidate_assets`、实际 `template_id/components`、`customization_reason` 和 `acceptance_signals` 记录候选/选用资产、定制理由与验收信号。无需定制时写明复用，无匹配资产时记录缺口。人读视图与可执行清单应一致，不能出现 HTML 已有某页而清单漏页的状态。
 
 逐页来源记录可使用 [source-map.json 样例](../../../infrastructure/html/examples/records/source-map.json)，区分原文定义、来源观察、讲者归纳、教学构造和团队判断，记录具体段落/图号、允许用途、核对状态及待确认项。来源 ID 闭合只证明文件间引用一致，不证明论断正确或获得引用授权。
 
@@ -78,6 +78,8 @@ Agent 为候选来源建立 `sources.yml`，记录路径或 URL、版本/日期�
 逐页计划应区分画像中的“必须”“默认建议”和“按需选择”。偏离必须项时先回到简报澄清并记录理由；遇到没有对应模板、组件或交互能力时标记为基础设施缺口，允许在用户知情并确认后采用已有资产完成，但不得把缺口说成已支持能力。逐页计划需在用户确认内容方向后再进入页面资产选择和物料化。
 
 ### 4. 选择页面与组件
+
+新任务默认采用分页：`html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*`，服务现场逐页讲解。用户明确要求连续阅读、传阅或查阅时选择长页；既有长页版本继续兼容，不自动改版。容器与内容完成度独立：分页或长页都可以交付空白模板（`template`）或已填写报告（`report`）。Agent 应说明推荐理由，不默认要求用户自行选择技术组件。
 
 Agent 从当前 Manifest 选择已实现的页面模板和组件包，读取其入口文档与元数据。选择依据是任务的受众、用途和内容结构，不根据模板名称猜测能力。
 
@@ -108,17 +110,19 @@ Agent 在消费端任务目录创建 `v001`，至少包含：
 └── README.md
 ```
 
-HTML 和 CSS 使用相对路径，资源自包含，不依赖 CDN、远程字体、远程图片或运行时网络服务。物料化结果中的 `materialization.json` 保留共享资产来源 commit 与文件哈希；模板占位内容必须被真实内容替换，不能把占位文字当作项目事实。
+HTML 和 CSS 使用相对路径，资源自包含，不依赖 CDN、远程字体、远程图片或运行时网络服务。物料化结果中的 `materialization.json` 保留共享资产来源 commit 与文件哈希；完整报告必须用有来源的内容替换模板占位；空白模板保留明确占位，不把占位文字当作项目事实。两者均遵守[模板填写与复用协议](../../../infrastructure/html/templates/FILLING.md)，清理对读者无用的作者提示，填写正文、状态属性和可见标签，并提供重复单元与隔离合成填写验证。
 
 选择 `html.runtime-kit-v1` 后，页面可用 `<span data-math="...">` 或带 `data-math-display="block"` 的元素表达公式；运行时使用随包锁定的 KaTeX，失败时保留 TeX 源文本。页面工具栏可切换自动、窄屏、平板和桌面模式，可进入/退出全屏，也可打开浏览器打印对话框保存 PDF。手动模式只改变页面 CSS，不模拟 viewport；确定性 PDF 仍必须调用 `html.pdf-export`。
 
 ### 6. 响应式检查、预览与 PDF
 
-Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。浏览器后端可用 Playwright 或本机 Chrome、Edge、Chromium 的 CDP；`--backend auto` 优先尝试 Playwright，不可用时尝试 CDP。演示稿传入 `--all-pages --interactions --fail-on-overflow`，遍历整稿并检查实际交互，不能用首张截图代替全部页面。浏览器均不可用时保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
+Agent 在首版生成后调用 Manifest 中的 `html.viewport-check`，执行默认的窄竖屏、平板、桌面、宽屏和 A4 检查。浏览器后端可用 Playwright 或本机 Chrome、Edge、Chromium 的 CDP；`--backend auto` 优先尝试 Playwright，不可用时尝试 CDP。按交付类型显式传入 `--artifact-kind template|report`。演示稿传入 `--all-pages --interactions --full-page --fail-on-overflow`，遍历整稿并检查实际交互，不能用首张截图代替全部页面。浏览器均不可用时保留 `not-run`，不能把静态检查写成视觉通过。用户需要交付 PDF 时，在 viewport 检查完成且用户确认导出参数后调用 `html.pdf-export`，生成 `pdf-export.json` 和 PDF；找不到 Chrome、Edge 或 Chromium 时明确停在 `not-run`。
 
-需要整体审阅时用 `--screenshot-dir <本轮截图目录> --contact-sheet <本轮图册.html>` 生成离线截图联系表；可通过 `--compare-with <旧检查JSON>` 按视口与页序并排展示新旧截图。插页或重排后人工确认对应关系，工具不自动判断审美、内容等价或用户认可。实际结果保存 HTML 摘要、逐项状态、证据和限制；统一结果契约见 [check-result.schema.json](../../../infrastructure/html/schemas/check-result.schema.json)。
+需要整体审阅时用 `--screenshot-dir <本轮截图目录> --contact-sheet <本轮图册.html>` 生成离线截图联系表；可通过 `--compare-with <旧检查JSON>` 按视口与页序并排展示新旧截图。插页或重排后人工确认对应关系，工具不自动判断审美、内容等价或用户认可。长页也用 `--interactions --full-page` 检查锚点目标并保留全长截图；滚动定位与焦点仍人工核验。实际结果保存 HTML 摘要、实际引用资源集摘要、逐项状态、证据和限制；统一结果契约见 [check-result.schema.json](../../../infrastructure/html/schemas/check-result.schema.json)。
 
 Agent 生成本地预览或截图，至少检查桌面、手机和打印视图。用户反馈按以下类别记录：内容、事实/来源、结构、视觉、屏幕适配、打印/无障碍和范围变化。
+
+经授权升级基础设施后，已在 review/ready 的旧任务可用 `event --type feedback --infrastructure-commit <新SHA> --user-quote <真实原话>` 开始新修订；先提交父仓 gitlink，工具核对当前 submodule 干净且一致，历史作品保留原来源。不得直接编辑 task.json 或在同一修订中换版。
 
 局部反馈生成新版本目录，例如 `v002`，不得覆盖旧版本；范围变化必须回到澄清阶段。反馈记录应列出目标页面稳定 ID、基线版本、允许改变的内容或样式，以及要求保留的认可范围，可参考 [revision.json 样例](../../../infrastructure/html/examples/records/revision.json)。实际用户原话保存到任务事件，示例文案不能当作真实认可。
 

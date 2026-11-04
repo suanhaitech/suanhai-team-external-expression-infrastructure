@@ -98,6 +98,23 @@
                 }
               }
             }
+          },
+          "candidate_assets": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "customization_reason": {
+            "type": "string"
+          },
+          "acceptance_signals": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       }
@@ -114,6 +131,12 @@
       "items": {
         "type": "string"
       }
+    },
+    "artifact_kind": {
+      "enum": [
+        "template",
+        "report"
+      ]
     }
   }
 }

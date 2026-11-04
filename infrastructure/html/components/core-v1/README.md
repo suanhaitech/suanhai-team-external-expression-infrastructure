@@ -58,3 +58,5 @@ Agent 调用顺序固定为：读取 `package.yml` → 读取 `index.yml` → �
 `themes/editorial-warm.css` 为暖纸白、墨蓝与橙色强调的可选主题；放在总样式之后加载，或在物料化时选择 `--theme editorial-warm`。它不强制应用于课程，原有主题仍可使用。
 
 单页组合可在页面声明的具名槽中选用组件，组件仍由核心包统一提供。`content.mapping` 必须保留目标/事实的性质；`evidence.observation` 保留口径和来源状态；`evidence.figure-analysis` 保留图注和图像替代文本。详尽来源可放默认隐藏备注，必要事实限定不能因此隐藏。
+
+组件填写遵循[模板填写与复用协议](../../templates/FILLING.md)。带状态片段默认使用合法的待核验/拟议状态；填写时同步 `data-state` 与可见 `data-slot="state"` 标签，不能把候选列表写入属性。

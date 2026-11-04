@@ -398,6 +398,8 @@ def validate_page_plan(plan: Any) -> dict[str, Any]:
     """校验跨 Agent 的最小页面协议；事实和用户认可仍由工作流负责。"""
     if not isinstance(plan, dict) or type(plan.get("schema_version")) is not int or plan["schema_version"] != 1:
         raise MaterializeError("page-plan 必须是 schema_version: 1 的对象")
+    if plan.get("artifact_kind", "template") not in ("template", "report"):
+        raise MaterializeError("page-plan artifact_kind 必须是 template 或 report")
     pages = plan.get("pages")
     if not isinstance(pages, list) or not pages:
         raise MaterializeError("page-plan 必须覆盖全稿，pages 不能为空")
@@ -425,6 +427,12 @@ def validate_page_plan(plan: Any) -> dict[str, Any]:
             raise MaterializeError(f"页面引用未登记来源：{page['id']}")
         if not isinstance(page.get("slots", {}), dict) or any(not isinstance(key, str) or not isinstance(value, str) for key, value in page.get("slots", {}).items()):
             raise MaterializeError("page-plan slots 必须是纯文本键值，不接受任意 HTML")
+        for field in ("candidate_assets", "acceptance_signals"):
+            values = page.get(field, [])
+            if not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values):
+                raise MaterializeError(f"page-plan {field} 必须是非空字符串列表")
+        if not isinstance(page.get("customization_reason", ""), str):
+            raise MaterializeError("page-plan customization_reason 必须是字符串")
         if not isinstance(page.get("notes", ""), str):
             raise MaterializeError("page-plan notes 必须是字符串")
         if not isinstance(page.get("components", []), list):
@@ -823,7 +831,7 @@ def read_task_context(root: Path, task_id: str, infrastructure_commit: str) -> d
     if type(task.get("revision")) is not int or task["revision"] < 1 or type(task.get("version")) is not int or task["version"] < 1:
         raise MaterializeError("task.json 的 revision 或 version 无效")
     if task.get("infrastructure_commit") != infrastructure_commit:
-        raise MaterializeError("任务创建时固定的基础设施 commit 与当前 submodule 不一致")
+        raise MaterializeError("任务当前修订固定的基础设施 commit 与当前 submodule 不一致；授权升级后请用任务 feedback 显式换版")
     brief = task.get("brief")
     if (
         not isinstance(brief, dict)

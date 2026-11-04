@@ -247,7 +247,7 @@ class CourseCheckTest(unittest.TestCase):
             self.assertEqual(report["status"], "fail", report)
             self.assertTrue(report["viewports"][1]["metrics"]["navigationOverlap"], report)
             for interaction in report["interactions"]:
-                self.assertEqual(interaction["status"], "pass", interaction)
+                self.assertEqual(interaction["status"], "not-run" if interaction["id"] == "report-anchors" else "pass", interaction)
             self.assertEqual(len(list((root / "shots").glob("*.png"))), 4)
             # 同一成品移除故意缺陷后必须通过，证明检查不是永远报错的测试替身。
             path.write_text(container.replace('class="blocked"', 'class="readable"'), encoding="utf-8")

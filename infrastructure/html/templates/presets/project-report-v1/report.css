@@ -1,3 +1,9 @@
+/* 长页使用自身基线，避免为少量报告类名加载旧版完整主题。 */
+* { box-sizing: border-box; }
+body { margin: 0; line-height: 1.5; }
+img { max-width: 100%; height: auto; }
+[id] { scroll-margin-top: 7rem; }
+
 :root {
   --report-ink: #1f2933;
   --report-muted: #66737f;

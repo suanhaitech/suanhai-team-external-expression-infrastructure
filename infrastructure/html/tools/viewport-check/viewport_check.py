@@ -12,7 +12,7 @@ from pathlib import Path
 import re
 import sys
 import os
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from browser_support import BrowserUnavailable, ChromiumSession, LocalArtifactServer
@@ -34,9 +34,34 @@ class ReferenceParser(HTMLParser):
         self.references: list[str] = []
         self.viewport_meta = False
         self.page_ids: list[str | None] = []
+        self.stylesheets: list[str] = []
+        self.inline_css: list[str] = []
+        self.components: list[dict] = []
+        self.placeholders: list[str] = []
+        self.author_hints = 0
+        self._style = False
+
+    def handle_data(self, value):
+        if self._style:
+            self.inline_css.append(value)
+        elif re.search(r"\[[^\]\n]+\]", value):
+            self.placeholders.append(value.strip()[:160])
+
+    def handle_endtag(self, tag):
+        if tag.lower() == "style":
+            self._style = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         data = dict(attrs)
+        self._style = self._style or tag.lower() == "style"
+        if data.get("style"):
+            self.inline_css.append(data["style"])
+        if tag.lower() == "link" and "stylesheet" in data.get("rel", "").lower().split() and data.get("href"):
+            self.stylesheets.append(data["href"])
+        if data.get("data-component"):
+            self.components.append(data)
+        if "data-author-hint" in data:
+            self.author_hints += 1
         if "data-deck-page" in data:
             self.page_ids.append(data.get("data-page-id") or data.get("id"))
         if tag.lower() == "meta" and data.get("name", "").lower() == "viewport":
@@ -76,42 +101,83 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def static_check(html_path: Path) -> dict[str, object]:
+def static_check(html_path: Path, artifact_kind="template") -> dict[str, object]:
+    """沿实际引用收集资源；不把物料化时复制的兼容文件当作运行依赖。
+
+    摘要只覆盖 HTML 显式引用与 CSS url/@import 图，不分析 JS 动态加载。
+    路径统一 URL 解码后 resolve，避免 CSS 或编码路径绕过作品目录边界。
+    """
+    html_path = html_path.resolve()
+    root = html_path.parent
     parser = ReferenceParser()
     text = html_path.read_text(encoding="utf-8")
     parser.feed(text)
-    errors: list[str] = []
-    warnings: list[str] = []
+    errors, warnings = [], []
+    files = {html_path}
+    visited_css = set()
     if not parser.viewport_meta:
         errors.append("缺少 name=viewport 的 meta 标签")
-    for reference in parser.references:
-        if REMOTE_RE.search(reference):
+
+    def resolve(reference, base):
+        if reference.startswith(("#", "mailto:")):
+            return None
+        parsed = urlsplit(reference)
+        if parsed.scheme or parsed.netloc:
             errors.append(f"发现远程或 data 运行时资源：{reference}")
-            continue
-        if reference.startswith("#") or reference.startswith("mailto:"):
-            continue
-        target = (html_path.parent / reference.split("#", 1)[0].split("?", 1)[0]).resolve()
-        try:
-            target.relative_to(html_path.parent.resolve())
-        except ValueError:
+            return None
+        target = (base / unquote(parsed.path)).resolve()
+        if not target.is_relative_to(root):
             errors.append(f"资源路径越出 HTML 目录：{reference}")
-            continue
-        if not target.is_file():
+        elif not target.is_file():
             errors.append(f"资源文件不存在：{reference}")
-    for css in html_path.parent.rglob("*.css"):
-        css_text = css.read_text(encoding="utf-8")
-        for raw in re.findall(r"url\(\s*['\"]?([^)'\"]+)", css_text, flags=re.IGNORECASE):
-            if REMOTE_RE.search(raw):
-                errors.append(f"CSS 远程或 data 资源：{css.relative_to(html_path.parent)} -> {raw}")
-                continue
-            if raw.startswith("#"):
-                continue
-            target = (css.parent / raw.split("?", 1)[0]).resolve()
-            if not target.is_file():
-                errors.append(f"CSS 资源文件不存在：{css.relative_to(html_path.parent)} -> {raw}")
-    if not re.search(r"<html\b", text, flags=re.IGNORECASE):
+        else:
+            files.add(target)
+            return target
+        return None
+
+    def css_references(content, base):
+        # 去掉注释以免把说明示例识别为运行资源；同时覆盖 @import "x.css"。
+        content = re.sub(r"/\*.*?\*/", "", content, flags=re.S)
+        urls = re.findall(r"url\(\s*['\"]?([^)'\"]+)", content, flags=re.I)
+        imports = re.findall(r"@import\s+['\"]([^'\"]+)", content, flags=re.I)
+        for reference in urls + imports:
+            target = resolve(reference.strip(), base)
+            if target and (target.suffix.lower() == ".css" or reference in imports):
+                visit_css(target)
+
+    def visit_css(path):
+        if path in visited_css:
+            return
+        visited_css.add(path)
+        css_references(path.read_text(encoding="utf-8"), path.parent)
+
+    for reference in parser.references:
+        resolve(reference, root)
+    for reference in parser.stylesheets:
+        target = resolve(reference, root)
+        if target:
+            visit_css(target)
+    for content in parser.inline_css:
+        css_references(content, root)
+    if not re.search(r"<html\b", text, flags=re.I):
         warnings.append("页面没有显式 html 根标签")
-    plan_path = html_path.parent / "page-plan.json"
+    # 使用现有组件契约中的状态枚举，避免在检查器维护第二套业务状态。
+    component_root = Path(__file__).resolve().parents[2] / "components/core-v1/semantic"
+    state_contracts = {}
+    for contract in (component_root / "contracts").glob("*.json"):
+        definition = json.loads(contract.read_text(encoding="utf-8"))
+        if definition.get("states"):
+            state_contracts[definition["id"]] = definition
+    for component in parser.components:
+        name, state = component["data-component"], component.get("data-state")
+        contract = state_contracts.get(name)
+        if contract and (state is not None or "state" in contract["required_slots"]) and state not in contract["states"]:
+            errors.append(f"组件状态不在契约枚举中：{name} -> {state}")
+    if artifact_kind == "report" and (parser.placeholders or parser.author_hints):
+        errors.append("完整报告仍有方括号候选占位或 data-author-hint 编写提示，请人工核对并清理")
+    if parser.placeholders:
+        warnings.append(f"发现 {len(parser.placeholders)} 处方括号候选占位；模板允许，报告须核对")
+    plan_path = root / "page-plan.json"
     if plan_path.exists():
         try:
             document = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -120,13 +186,15 @@ def static_check(html_path: Path) -> dict[str, object]:
                 errors.append("page-plan 与 HTML 的页面 ID、数量或顺序不一致")
         except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
             errors.append(f"page-plan 无法核对：{exc}")
+    resources = [{"path": path.relative_to(root).as_posix(), "sha256": sha256(path)} for path in sorted(files)]
     return {
-        "status": "fail" if errors else "pass",
-        "errors": errors,
-        "warnings": warnings,
-        "viewport_meta": parser.viewport_meta,
-        "references": len(parser.references),
+        "status": "fail" if errors else "pass", "errors": errors, "warnings": warnings,
+        "viewport_meta": parser.viewport_meta, "references": len(parser.references),
         "planned_pages": len(parser.page_ids) if plan_path.exists() else None,
+        "artifact_kind": artifact_kind, "placeholder_candidates": parser.placeholders,
+        "resources": resources,
+        "resources_sha256": hashlib.sha256(json.dumps(resources, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
+        "resource_scope": "HTML 显式引用与 CSS url/@import；不含 JS 动态依赖和来源真实性验证",
     }
 
 
@@ -163,8 +231,8 @@ class PlaywrightSession:
     def evaluate(self, expression):
         return self.page.evaluate(expression)
 
-    def screenshot(self, path):
-        self.page.screenshot(path=str(path), full_page=False)
+    def screenshot(self, path, *, full_page=False):
+        self.page.screenshot(path=str(path), full_page=full_page)
 
     def key(self, key):
         self.page.keyboard.press(key)
@@ -200,6 +268,8 @@ def interaction_check(session) -> list[dict[str, object]]:
             checks.append({"id": "speaker-notes", "status": "pass" if initial_hidden and correct else "fail"})
     else:
         checks.append({"id": "deck-navigation", "status": "not-run", "reason": "产物不包含演示稿导航"})
+    anchors = session.evaluate("SuanhaiPageChecks.anchors()")
+    checks.append({"id": "report-anchors", **anchors})
     trigger = session.evaluate("(() => {let t=document.querySelector('[data-source-image]'); if(!t)return null;let p=t.closest('[data-deck-page]');return {page:p ? Array.from(document.querySelectorAll('[data-deck-page]')).indexOf(p) : 0};})()")
     if trigger:
         session.evaluate(f"SuanhaiPageChecks.choose({trigger['page']})")
@@ -223,7 +293,7 @@ def interaction_check(session) -> list[dict[str, object]]:
     return checks
 
 
-def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, interactions):
+def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, interactions, full_page=False):
     results = []
     script = Path(__file__).with_name("page_checks.js").read_text(encoding="utf-8")
     with LocalArtifactServer(html_path.parent) as origin:
@@ -244,7 +314,8 @@ def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, inter
                 if screenshot_dir:
                     screenshot_dir.mkdir(parents=True, exist_ok=True)
                     target = screenshot_dir / f"{name}-p{index + 1:03d}.png"
-                    session.screenshot(target)
+                    session.screenshot(target, full_page=full_page)
+                    item["screenshot_scope"] = "full-document" if full_page else "viewport"
                     item["screenshot"] = str(target.resolve())
                 results.append(item)
         # 在屏幕媒体下独立检查按钮，避免打印媒体展示所有页导致误判。
@@ -258,14 +329,14 @@ def _run_browser(session, html_path, viewports, screenshot_dir, all_pages, inter
     return {"status": "fail" if failed else "pass", "version": session.version, "viewports": results, "interactions": action_results}
 
 
-def browser_check(html_path, viewports, screenshot_dir, *, backend="auto", browser=None, all_pages=False, interactions=False, sandbox=True):
+def browser_check(html_path, viewports, screenshot_dir, *, backend="auto", browser=None, all_pages=False, interactions=False, sandbox=True, full_page=False):
     if backend == "none":
         return {"status": "not-run", "reason": "调用方选择 --backend none", "viewports": [], "interactions": []}
     reasons = []
     for choice in (["playwright", "cdp"] if backend == "auto" else [backend]):
         try:
             with (PlaywrightSession() if choice == "playwright" else ChromiumSession(browser, sandbox=sandbox)) as session:
-                result = _run_browser(session, html_path, viewports, screenshot_dir, all_pages, interactions)
+                result = _run_browser(session, html_path, viewports, screenshot_dir, all_pages, interactions, full_page)
                 result["backend"] = choice
                 return result
         except BrowserUnavailable as exc:
@@ -303,6 +374,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--viewport", action="append", type=parse_viewport)
     parser.add_argument("--screenshot-dir", type=Path)
+    parser.add_argument("--full-page", action="store_true", help="截图包含整页滚动区域；不等于 PDF 分页检查")
+    parser.add_argument("--artifact-kind", choices=("template", "report"), default="template", help="模板允许内容占位；完整报告拒绝候选占位与编写提示")
     parser.add_argument("--fail-on-overflow", action="store_true")
     parser.add_argument("--backend", choices=("auto", "playwright", "cdp", "none"), default="auto")
     parser.add_argument("--browser", help="CDP 后端使用的本机 Chromium 可执行文件")
@@ -330,13 +403,13 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "fail", "error": f"HTML 文件不存在或扩展名不正确：{html_path}"}, ensure_ascii=False))
         return 2
     viewports = args.viewport or list(DEFAULT_VIEWPORTS)
-    static = static_check(html_path)
-    browser = browser_check(html_path, viewports, args.screenshot_dir, backend=args.backend, browser=args.browser, all_pages=args.all_pages, interactions=args.interactions) if static["status"] == "pass" else {"status": "not-run", "reason": "静态检查失败，未打开含缺失或远程资源的页面", "viewports": [], "interactions": []}
+    static = static_check(html_path, args.artifact_kind)
+    browser = browser_check(html_path, viewports, args.screenshot_dir, backend=args.backend, browser=args.browser, all_pages=args.all_pages, interactions=args.interactions, full_page=args.full_page) if static["status"] == "pass" else {"status": "not-run", "reason": "静态检查失败，未打开含缺失或远程资源的页面", "viewports": [], "interactions": []}
     # 总结状态如实反映浏览器未执行；退出码兼容原先的 --fail-on-overflow 开关。
     status = "fail" if static["status"] == "fail" or browser["status"] == "fail" else browser["status"]
     result = {"schema_version": 1, "tool": "html.viewport-check", "created_at": datetime.now(timezone.utc).isoformat(), "html": str(html_path), "html_sha256": sha256(html_path), "viewports": [{"id": n, "width": w, "height": h, "media": m} for n, w, h, m in viewports], "static": static, "browser": browser, "status": status,
               "checks": [{"id": "static-resources", "status": static["status"], "evidence": static}, {"id": "browser-layout-and-interaction", "status": browser["status"], "evidence": browser}],
-              "limits": ["自动几何/交互检查不等于人工视觉、专业内容或发布验收", "打印媒体几何检查不证明 PDF 页数或分页正确", "截图记录当前视口；长页面需人工滚动检查或另行扩展截图"]}
+              "limits": ["自动几何/交互检查不等于人工视觉、专业内容或发布验收", "打印媒体几何检查不证明 PDF 页数或分页正确", "截图范围由 screenshot_scope 记录；未启用 --full-page 时只记录当前视口", "未自动执行完整无障碍、JS 动态依赖或专业事实核验", "方括号仅为占位候选检测，可能误报文献编号；须人工核对"]}
     try:
         if args.contact_sheet:
             baseline = json.loads(args.compare_with.read_text(encoding="utf-8")) if args.compare_with else None

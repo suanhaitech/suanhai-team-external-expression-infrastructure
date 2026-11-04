@@ -18,7 +18,9 @@ Agent 应把这段请求解释为“启动工作流”，而不是用户已经�
 
 项目周期汇报默认由项目经理统一主讲。读取各线授权材料和上期计划，先组织项目总体变化，再组织主线结果/证据/限制、跨线影响、协作请求和下期目标。各主线负责人核验专业事实，项目经理检查整体叙事与口径；缺少基线、未收到更新或未核验的内容显式标注。页面映射和验收要求以项目场景画像为准，不固定三条主线或总页数。
 
-选择页面资产时，连续阅读型长页优先考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；只有在还需要公式、显示模式、全屏或浏览器打印入口时，才额外物料化 `html.runtime-kit-v1`。
+新任务默认采用 `html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*` 分页组合，服务现场逐页讲解；用户明确要求连续阅读、传阅或查阅时考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；只有在还需要公式、显示模式、全屏或浏览器打印入口时，才额外物料化 `html.runtime-kit-v1`。
+
+Agent 主动推荐资产，只提影响用途、范围或授权的关键问题，复用本轮已有认可。分页/长页与空白模板/已填写报告分别对齐；填写规则见[模板填写与复用协议](../../../infrastructure/html/templates/FILLING.md)。计划记录候选与选用资产、定制理由和验收信号。
 
 整稿制作优先使用 `--page-plan <相对路径>`，与 `--page-id` 互斥。局部修订使用完整清单及 `--baseline-version v001 --replace-page <稳定 ID>`，先预览差异再应用；非目标页继承并检查，基线不能改写。局部认可不等于全稿验收；未制作内容明确占位，暂停复用任务循环的 `pause` / `resume`。
 
@@ -74,7 +76,7 @@ complete or pause for later
 - 组件包必须通过 `index.yml` 按稳定组件 ID 发现，Agent 不得扫描 CSS 猜测组件语义；
 - 组件包可被模板复制到消费端报告目录，也可由已有仓库按相对路径引用，但交付页面必须自包含；
 - 不能把 Manifest 未列出的交互式预览器或其他检查器当作已经可调用能力；已列出的 `html.runtime-kit-v1` 只提供页面内运行时，不替代浏览器视觉检查；`html.viewport-check` 与 `html.pdf-export` 仍须按其 `not-run` 语义执行。
-- `html.viewport-check` 支持 Playwright 或本机 Chrome/Edge/Chromium 的 CDP 后端；整稿检查用 `--all-pages --interactions --fail-on-overflow`，需要时输出截图和联系表。返回 `not-run` 时必须如实保留，不能宣称通过。
+- `html.viewport-check` 支持 Playwright 或本机 Chrome/Edge/Chromium 的 CDP 后端；整稿检查用 `--all-pages --interactions --full-page --fail-on-overflow` 并明确 `--artifact-kind template|report`，需要时输出截图和联系表。返回 `not-run` 时必须如实保留，不能宣称通过。
 - `html.pdf-export` 只在用户确认纸张、方向和输出路径后调用；浏览器不可用时不伪造 PDF 或完成状态。
 
 ## 停止条件

@@ -8,7 +8,7 @@
 
 - 从消费端仓库内固定的基础设施 submodule 运行；默认从当前脚本位置推导路径，自建仓也可用 `--submodule-path` 显式指定；
 - 父仓 HEAD 与 index 中的 submodule gitlink 一致，submodule 干净；
-- `tasks/<任务编号>/task.json` 已进入 `working`，且创建任务时记录的基础设施 commit 与当前 gitlink 一致；
+- `tasks/<任务编号>/task.json` 已进入 `working`，且任务当前修订固定的基础设施 commit 与当前 gitlink 一致（创建时或授权换版 feedback 后记录）；
 - `brief.output` 已明确为稳定的 `<输出根>/<任务编号>`；工具按当前任务修订生成 `vNNN` 目录，也兼容旧记录中已经写入的 `<输出根>/<任务编号>/vNNN`；
 - 页面模板、可选响应式布局包和组件包均已在当前 Manifest 注册。
 - 如需页面内公式、显示模式、全屏和浏览器保存 PDF 入口，运行时包 `html.runtime-kit-v1` 也必须在当前 Manifest 注册；它会连同本地 KaTeX 资源一起复制。

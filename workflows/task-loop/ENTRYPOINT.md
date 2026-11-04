@@ -103,3 +103,7 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 JSON 使用版本冲突检查、写锁和原子替换，生成阅读视图失败时应报告 JSON 与视图各自的状态。不要删除不明锁文件或自动回滚用户文件；保留错误并说明人工恢复方式。多个文件、多个仓库的写入不构成分布式事务。
 
 通用工具回归与跨会话验证见 [任务循环验证流程](../../docs/task-loop-validation.md)。测试数据只放隔离临时仓库，并明确 `mode: test`，不进入真实任务列表或项目事实。
+
+## 授权升级后的任务续作
+
+任务仍固定创建/最近修订时的基础设施 SHA。负责人授权换版、父仓 gitlink 已提交且 submodule 干净后，从新固定版本工具执行 `event <ID> --type feedback --infrastructure-commit <完整新SHA> --user-quote <真实授权原话> --note <原因> --expect-version <show版本>`。仅 review/ready 可换版，并新建修订；历史产物和来源不改写，事件记录旧、新 SHA。改变用途/范围时另传 `--scope scope` 回到澄清。不得直接改 task.json 绕过固定版本。

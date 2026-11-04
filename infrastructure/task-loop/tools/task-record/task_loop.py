@@ -433,6 +433,36 @@ def apply_event(root: Path, task: dict[str, Any], args: argparse.Namespace) -> N
         raise LoopError("事件 --note 不能为空，应说明本次决定、进度或停止原因")
     quote = args.user_quote
     following = args.next_action
+    new_commit = getattr(args, "infrastructure_commit", None)
+    change = None
+    if new_commit:
+        # 换版只能作为新修订的起点，不能在正在制作的同一版本里静默漂移。
+        # 用户原话仅供追溯；真实权限仍由消费端 Harness 和操作者负责。
+        if event != "feedback":
+            raise LoopError("--infrastructure-commit 只允许用于 feedback 新修订")
+        require_status(task, "review", "ready")
+        quote = require_quote(args)
+        if not re.fullmatch(r"[0-9a-f]{40}", new_commit) or new_commit == task["infrastructure_commit"]:
+            raise LoopError("换版需要不同于当前任务的完整 40 位提交 SHA")
+
+        def git_at(directory, *arguments):
+            result = subprocess.run(["git", "-C", str(directory), *arguments], capture_output=True, text=True, encoding="utf-8", timeout=10)
+            if result.returncode:
+                raise LoopError("无法核验任务换版的 Git 固定依赖")
+            return result.stdout.strip()
+
+        infrastructure = Path(git_at(Path(__file__).parent, "rev-parse", "--show-toplevel")).resolve()
+        if not infrastructure.is_relative_to(root.resolve()) or infrastructure == root.resolve():
+            raise LoopError("换版必须从本消费端已固定 submodule 内运行")
+        relative = infrastructure.relative_to(root.resolve()).as_posix()
+        head = git_at(root, "ls-tree", "HEAD", "--", relative)
+        index = git_at(root, "ls-files", "--stage", "--", relative)
+        if (not head.startswith(f"160000 commit {new_commit}\t")
+                or not index.startswith(f"160000 {new_commit} 0\t")
+                or git_at(infrastructure, "rev-parse", "HEAD") != new_commit
+                or git_at(infrastructure, "status", "--porcelain")):
+            raise LoopError("换版前须提交父仓 gitlink，且 submodule HEAD 一致、工作区干净")
+        change = {"from": task["infrastructure_commit"], "to": new_commit}
     if event == "align":
         require_status(task, "clarifying")
         quote = require_quote(args)
@@ -489,6 +519,10 @@ def apply_event(root: Path, task: dict[str, Any], args: argparse.Namespace) -> N
         if not following or not following.strip():
             raise LoopError("检查点需要 --next-action 保存下一步")
     add_history(task, event, args.note, following, quote)
+    if change:
+        task["infrastructure_commit"] = new_commit
+        task["history"][-1]["infrastructure_change"] = change
+        task["history"][-1]["note"] += f"；基础设施由 {change['from']} 换为 {change['to']}，历史作品保留原来源"
 
 
 def update_task(root: Path, args: argparse.Namespace) -> dict[str, Any]:
@@ -551,6 +585,7 @@ def parser() -> argparse.ArgumentParser:
             command.add_argument("--artifact")
             command.add_argument("--scope", choices=("minor", "scope"), default="minor")
             command.add_argument("--user-quote")
+            command.add_argument("--infrastructure-commit", help="仅 feedback：显式以父仓已提交的新 gitlink 开始修订，保留历史版本")
     return result
 
 

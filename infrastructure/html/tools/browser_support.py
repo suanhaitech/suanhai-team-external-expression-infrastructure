@@ -134,8 +134,12 @@ class ChromiumSession:
         self.cdp.call("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": False})
         self.cdp.call("Emulation.setEmulatedMedia", {"media": media})
 
-    def screenshot(self, path: Path) -> None:
-        result = self.cdp.call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})
+    def screenshot(self, path: Path, *, full_page: bool = False) -> None:
+        options = {"format": "png", "captureBeyondViewport": full_page}
+        if full_page:
+            size = self.cdp.call("Page.getLayoutMetrics")["cssContentSize"]
+            options["clip"] = {"x": 0, "y": 0, "width": size["width"], "height": size["height"], "scale": 1}
+        result = self.cdp.call("Page.captureScreenshot", options)
         path.write_bytes(base64.b64decode(result["data"]))
 
     def key(self, key: str) -> None:

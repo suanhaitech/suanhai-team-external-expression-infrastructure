@@ -165,7 +165,7 @@ capabilities:
     kind: tool
     path: infrastructure/html/tools/viewport-check
     entrypoint: infrastructure/html/tools/viewport-check/viewport_check.py
-    purpose: 检查自包含 HTML 本地资源和整稿逐页布局，可用 Playwright 或本机 CDP 检查翻页、备注和原图交互并生成截图联系表；缺浏览器明确返回 not-run
+    purpose: 区分模板与报告，检查实际引用资源集及其摘要；检查自包含 HTML 本地资源和整稿逐页布局，可用 Playwright 或本机 CDP 检查翻页、备注和原图交互并生成截图联系表；缺浏览器明确返回 not-run
     inputs:
       - 消费端任务版本目录中的 index.html 和本地资源
       - 默认或自定义视口尺寸
@@ -176,7 +176,7 @@ capabilities:
     kind: workflow
     path: workflows/html/production
     entrypoint: workflows/html/production/ENTRYPOINT.md
-    purpose: 跨消费端目录约定的 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、响应式检查、PDF 导出、反馈和人工收口；浏览器能力按本机可用性报告
+    purpose: 默认分页组合、明确连续阅读时选长页的跨消费端 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、响应式检查、PDF 导出、反馈和人工收口；浏览器能力按本机可用性报告
     inputs:
       - 用户提出的 HTML 目标、受众、用途、范围和完成标准
       - 消费端项目上下文及用户提供的候选文档、链接和素材
