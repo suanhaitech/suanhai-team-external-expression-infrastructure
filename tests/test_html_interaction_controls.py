@@ -106,15 +106,62 @@ class InteractionControlsBrowserTest(unittest.TestCase):
     def test_fullscreen_with_trusted_mouse_and_rejection_feedback(self):
         if not self.s.evaluate("!!document.fullscreenEnabled"):
             self.skipTest("本次浏览器未开放全屏，不能视为通过")
+        for path in ("/infrastructure/html/runtime-kits/preview/index.html", "/html.presentation-deck-v1/index.html"):
+            for width, height in ((1366, 900), (390, 844)):
+                with self.subTest(path=path, width=width):
+                    self.s.viewport(width, height, "screen")
+                    self.s.navigate(self.origin + path)
+                    self.settle()
+                    self.s.click("[data-notes-toggle]")
+                    self.assertFalse(self.s.evaluate("document.querySelector('[data-deck-notes-panel]').hidden"))
+                    self.s.click("[data-runtime-fullscreen]")
+                    self.wait_for("!!document.fullscreenElement && document.documentElement.classList.contains('deck-fullscreen') && document.querySelector('[data-deck-controls]').inert && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')==='true'")
+                    self.settle()
+                    self.assertEqual(self.s.evaluate("document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')"), "true")
+                    initial = self.s.evaluate("document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().toJSON()")
+                    self.s.move_pointer(self.s.evaluate("innerWidth/2"), self.s.evaluate("innerHeight-5"))
+                    # 触摸和程序聚焦也不能重新打开底栏；Tab不能走进不可见控件。
+                    self.s.evaluate("window.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'touch',clientY:innerHeight-5}));document.querySelector('[data-runtime-fullscreen]').focus()")
+                    for _ in range(3):
+                        self.s.key("Tab")
+                    self.settle()
+                    state = self.s.evaluate("""(() => {const c=document.querySelector('[data-deck-controls]');return {
+                      visibility:getComputedStyle(c).visibility,opacity:getComputedStyle(c).opacity,inert:c.inert,
+                      focused:c.contains(document.activeElement),notesHidden:document.querySelector('[data-deck-notes-panel]').hidden,
+                      page:document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().toJSON()};})()""")
+                    self.assertEqual(state["visibility"], "hidden", state)
+                    self.assertEqual(state["opacity"], "0", state)
+                    self.assertTrue(state["inert"] and state["notesHidden"], state)
+                    self.assertFalse(state["focused"], state)
+                    for field in ("width", "height", "x", "y"):
+                        self.assertAlmostEqual(state["page"][field], initial[field], delta=1, msg=state)
+                    self.s.evaluate("document.activeElement.blur()")
+                    self.s.key("ArrowRight")
+                    self.assertEqual(self.s.evaluate("document.querySelector('[data-page-select]').value"), "1")
+                    self.assertTrue(self.s.evaluate("!!document.fullscreenElement"))
+                    self.s.key("Escape")
+                    self.wait_for("!document.fullscreenElement && !document.documentElement.classList.contains('deck-fullscreen') && !document.querySelector('[data-deck-controls]').inert && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')==='false'")
+                    self.settle()
+                    self.assertEqual(self.s.evaluate("document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')"), "false")
+                    self.assertFalse(self.s.evaluate("document.querySelector('[data-deck-controls]').inert"))
+                    self.assertEqual(self.s.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).visibility"), "visible")
+                    self.s.click("[data-page-prev]")
+                    self.assertEqual(self.s.evaluate("document.querySelector('[data-page-select]').value"), "0")
+
+        # 图片模态框先消费Esc；关闭图片后再次按Esc才退出网页全屏。
+        self.s.viewport(1366, 900, "screen")
+        self.s.navigate(self.origin + "/infrastructure/html/runtime-kits/preview/index.html")
+        self.settle()
+        self.s.click("[data-page-next]")
         self.s.click("[data-runtime-fullscreen]")
-        self.s.evaluate("new Promise(r=>setTimeout(r,200))")
+        self.wait_for("!!document.fullscreenElement")
+        self.s.click("[data-source-image]")
+        self.wait_for("!!document.querySelector('[data-source-viewer][open]')")
+        self.s.key("Escape")
+        self.assertFalse(self.s.evaluate("!!document.querySelector('[data-source-viewer][open]')"))
         self.assertTrue(self.s.evaluate("!!document.fullscreenElement"))
-        self.assertEqual(self.s.evaluate("document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')"), "true")
-        self.s.cdp.call("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": 680, "y": 895})
-        self.s.evaluate("new Promise(r=>setTimeout(r,250))")
-        self.s.click("[data-runtime-fullscreen]")
-        self.s.evaluate("new Promise(r=>setTimeout(r,200))")
-        self.assertFalse(self.s.evaluate("!!document.fullscreenElement"))
+        self.s.key("Escape")
+        self.wait_for("!document.fullscreenElement && !document.querySelector('[data-deck-controls]').inert")
         # 单独注入拒绝模拟权限失败，验证错误反馈；不将此段称为真实权限测试。
         self.s.evaluate("document.documentElement.requestFullscreen=()=>Promise.reject(new Error('denied'));document.querySelector('[data-runtime-fullscreen]').click()")
         self.settle()

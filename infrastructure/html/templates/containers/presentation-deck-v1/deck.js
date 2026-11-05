@@ -19,7 +19,6 @@
   var ratioSelect = document.querySelector("[data-deck-ratio-select]");
   var currentPage = 0, notesOpen = false;
   var normalPageSize = {width: 0, height: 0, paddingTop: "", paddingRight: "", paddingBottom: "", paddingLeft: ""};
-  var controlsHideTimer = 0;
   if (notesPanel) {
     notesPanel.tabIndex = 0;
     notesPanel.setAttribute("aria-label", "当前页讲者备注");
@@ -49,13 +48,9 @@
   }
   function updateFullscreenScale() {
     if (document.fullscreenElement !== root) return;
-    var visible = root.classList.contains("deck-controls-visible");
-    var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
-    var reserved = visible || notesHeight ? Math.ceil(controls.getBoundingClientRect().height) + 32 + notesHeight : 0;
-    // 手机不缩放文字，而是缩短可滚动的阅读区；底栏出现也不能盖住最后一行。
-    root.style.setProperty("--deck-fullscreen-reserved", reserved + "px");
+    // 全屏专用于演示：底栏和备注均收起，页面始终使用完整视口，不随指针移动缩放。
     if (window.innerWidth <= 760 || !normalPageSize.width || !normalPageSize.height) return;
-    var availableHeight = Math.max(1, window.innerHeight - reserved);
+    var availableHeight = Math.max(1, window.innerHeight);
     var scale = Math.min(window.innerWidth / normalPageSize.width, availableHeight / normalPageSize.height);
     var left = Math.max(0, (window.innerWidth - normalPageSize.width * scale) / 2);
     var top = Math.max(0, (availableHeight - normalPageSize.height * scale) / 2);
@@ -168,48 +163,21 @@
   }
   arrangeTools();
   document.addEventListener("suanhai:runtime-ready", arrangeTools);
-  function controlsAreHeldOpen() {
-    return controls.matches(":hover") || controls.contains(document.activeElement);
-  }
-  function hideControlsSoon(delay) {
-    window.clearTimeout(controlsHideTimer);
-    controlsHideTimer = window.setTimeout(function () {
-      if (document.fullscreenElement === root && !controlsAreHeldOpen()) {
-        root.classList.remove("deck-controls-visible");
-        updateFullscreenScale();
-      }
-    }, delay);
-  }
-  function revealControls() {
-    if (document.fullscreenElement !== root) return;
-    window.clearTimeout(controlsHideTimer);
-    root.classList.add("deck-controls-visible");
-    updateFullscreenScale();
-    hideControlsSoon(1800);
-  }
   document.addEventListener("fullscreenchange", function () {
     var active = document.fullscreenElement === root;
     root.classList.toggle("deck-fullscreen", active);
-    window.clearTimeout(controlsHideTimer);
-    root.classList.remove("deck-controls-visible");
-    if (active && controls.contains(document.activeElement)) document.activeElement.blur();
+    // 只做视觉隐藏会留下不可见的 Tab 焦点；inert 同时移除键盘和辅助技术入口。
+    // 退出全屏后恢复普通窗口控件；Esc退出交给共享运行时及浏览器，不另建全屏动作。
+    if (active) {
+      if (controls.contains(document.activeElement)) document.activeElement.blur();
+      controls.setAttribute("inert", "");
+      setNotesOpen(false);
+    } else controls.removeAttribute("inert");
     measureControls();
   });
   root.addEventListener("click", function (event) {
     if (event.target.closest && event.target.closest("[data-runtime-fullscreen]") && document.fullscreenElement !== root) rememberNormalPageSize();
   }, true);
-  controls.addEventListener("pointerenter", function () { window.clearTimeout(controlsHideTimer); });
-  controls.addEventListener("pointerleave", function () { hideControlsSoon(700); });
-  controls.addEventListener("focusin", function () { root.classList.add("deck-controls-visible"); updateFullscreenScale(); });
-  controls.addEventListener("focusout", function () { hideControlsSoon(1800); });
-  window.addEventListener("pointermove", function (event) {
-    if (document.fullscreenElement !== root) return;
-    if (event.clientY >= window.innerHeight - 110) revealControls();
-    else hideControlsSoon(1800);
-  });
-  window.addEventListener("pointerdown", function (event) {
-    if (event.pointerType === "touch" && event.clientY >= window.innerHeight - 140) revealControls();
-  });
   document.addEventListener("keydown", function (event) {
     if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || document.querySelector("dialog[open]")) return;
     if (event.key === "Escape" && notesOpen) { setNotesOpen(false); if (notesButton) notesButton.focus(); return; }

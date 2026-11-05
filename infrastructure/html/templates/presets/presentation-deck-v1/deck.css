@@ -1094,20 +1094,12 @@ html.deck-fullscreen.deck--ready .deck-page:not([hidden]) {
 html.deck-fullscreen .deck-controls:not([hidden]) {
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, calc(100% + 16px));
-  transition: opacity 180ms ease, transform 180ms ease;
-}
-
-html.deck-fullscreen.deck-controls-visible .deck-controls:not([hidden]),
-html.deck-fullscreen .deck-controls:not([hidden]):focus-within {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%);
+  visibility: hidden;
 }
 
 @media (max-width: 760px) {
   html.deck-fullscreen.deck--ready .deck-page:not([hidden]) {
-    height: calc(100svh - var(--deck-fullscreen-reserved, 0px));
+    height: 100svh;
     left: 0;
     overflow: auto;
     padding: 1.55rem 1.25rem 1rem;
@@ -1120,9 +1112,4 @@ html.deck-fullscreen .deck-controls:not([hidden]):focus-within {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html.deck-fullscreen .deck-controls:not([hidden]) {
-    transition: none;
-  }
-}
 }

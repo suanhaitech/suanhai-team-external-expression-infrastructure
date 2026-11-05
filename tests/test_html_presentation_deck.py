@@ -69,7 +69,6 @@ class HtmlPresentationDeckPrintCssContractTest(unittest.TestCase):
                 css = (ROOT / relative).read_text(encoding="utf-8")
                 self.assertIn("transform: scale(var(--deck-content-scale, 1))", css)
                 self.assertIn("height: var(--deck-design-height, 100svh)", css)
-                self.assertIn("html.deck-fullscreen.deck-controls-visible .deck-controls", css)
         for relative in (
             "infrastructure/html/styles/presentation-v1/styles.css",
             "infrastructure/html/templates/single-page/cover/technical-editorial-v1/styles.css",
@@ -370,7 +369,7 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         self.settle()
         self.assertTrue(self.evaluate("document.querySelector('#reading-end').getBoundingClientRect().bottom <= document.querySelector('[data-deck-page]:not([hidden]) .deck-page-folio').getBoundingClientRect().top + 1"))
 
-    def test_fullscreen_scales_the_whole_page_and_reserves_space_for_controls(self):
+    def test_fullscreen_scales_the_whole_page_without_hover_changing_canvas(self):
         self.viewport(1180, 805)
         self.select_page(0)
         normal = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); const title=page.querySelector('h1,h2,h3'); return {page:page.getBoundingClientRect().toJSON(), title:title.getBoundingClientRect().toJSON()}; })()")
@@ -393,14 +392,13 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
 
         self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:innerHeight-5}))")
         self.settle()
-        controls = self.evaluate("(() => { const bar=document.querySelector('[data-deck-controls]').getBoundingClientRect(); const page=document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect(); return {visible:document.documentElement.classList.contains('deck-controls-visible'),barTop:bar.top,pageBottom:page.bottom}; })()")
-        self.assertTrue(controls["visible"])
-        visible_scale = self.evaluate("Number(getComputedStyle(document.querySelector('[data-deck-page]:not([hidden])')).getPropertyValue('--deck-content-scale'))")
-        self.assertLess(visible_scale, full["scale"])
-        self.assertLess(controls["pageBottom"], controls["barTop"] + 2)
+        self.assertEqual(self.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).visibility"), "hidden")
+        self.assertEqual(self.evaluate("Number(getComputedStyle(document.querySelector('[data-deck-page]:not([hidden])')).getPropertyValue('--deck-content-scale'))"), full["scale"])
 
         self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:100}))")
-        self.click("[data-runtime-fullscreen]")
+        # 此段模拟全屏状态与尺寸，真实Esc退出在交互组件回归中独立验证。
+        self.evaluate("document.exitFullscreen()")
+        self.settle()
         self.assertFalse(self.evaluate("document.documentElement.classList.contains('deck-fullscreen')"))
 
         self.viewport(390, 844)
@@ -410,12 +408,13 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         self.assertEqual(phone["transform"], "none")
         self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:innerHeight-5}))")
         self.settle()
-        self.assertTrue(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().bottom <= document.querySelector('[data-deck-controls]').getBoundingClientRect().top"))
+        self.assertEqual(self.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).visibility"), "hidden")
+        self.assertAlmostEqual(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().height"), 844, delta=2)
         self.select_page(1)
         self.evaluate("(() => { const single=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]'); const tail=document.createElement('p');tail.id='fullscreen-tail';tail.textContent='最后一行';single.appendChild(tail);single.scrollTop=single.scrollHeight; })()")
-        self.assertTrue(self.evaluate("document.querySelector('[data-deck-page]:not([hidden]) .deck-page-number').getBoundingClientRect().bottom < document.querySelector('[data-deck-controls]').getBoundingClientRect().top"))
+        self.assertLessEqual(self.evaluate("document.querySelector('[data-deck-page]:not([hidden]) .deck-page-number').getBoundingClientRect().bottom"), 845)
         self.assertTrue(self.evaluate("document.querySelector('#fullscreen-tail').getBoundingClientRect().bottom <= document.querySelector('[data-deck-page]:not([hidden]) .deck-page-folio').getBoundingClientRect().top + 1"))
-        self.click("[data-runtime-fullscreen]")
+        self.evaluate("document.exitFullscreen()")
 
     def test_short_desktop_canvas_fits_definition_and_figure_without_changing_fonts(self):
         # 浏览器工具栏、缩放或分屏会减少可用高度，不能只测 1366×768。
@@ -469,7 +468,7 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         for index in (count-2, count-1):
             self.select_page(index)
             self.assertTrue(self.evaluate("(() => {const e=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]');return e.scrollHeight<=e.clientHeight+2;})()"))
-        self.click('[data-runtime-fullscreen]')
+        self.evaluate('document.exitFullscreen()')
 
     def test_print_from_fullscreen_releases_screen_coordinates(self):
         self.evaluate("document.documentElement.classList.add('deck-fullscreen')")
