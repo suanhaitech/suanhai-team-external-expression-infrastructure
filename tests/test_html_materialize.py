@@ -665,7 +665,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertTrue((self.output / "assets/html-runtime-kit-v1/math/fonts/KaTeX_Main-Regular.woff2").is_file())
         record = json.loads((self.output / "materialization.json").read_text(encoding="utf-8"))
         self.assertEqual(record["runtime_kits"][0]["id"], RUNTIME_KIT_ID)
-        self.assertEqual(record["runtime_kits"][0]["version"], "1.1.0")
+        self.assertEqual(record["runtime_kits"][0]["version"], "1.1.1")
         report = (self.output / "report.yml").read_text(encoding="utf-8")
         self.assertIn('runtime_kits:', report)
         self.assertIn('"html.runtime-kit-v1"', report)

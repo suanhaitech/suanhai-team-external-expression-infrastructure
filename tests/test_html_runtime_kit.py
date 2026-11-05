@@ -43,7 +43,7 @@ class HtmlRuntimeKitContractTest(unittest.TestCase):
         catalog_text = CATALOG.read_text(encoding="utf-8")
         self.assertEqual(package["id"], "html.runtime-kit-v1")
         self.assertEqual(package["kind"], "runtime-kit")
-        self.assertEqual(package["version"], "1.1.0")
+        self.assertEqual(package["version"], "1.1.1")
         self.assertEqual(package["offline"], "true")
         self.assertIn("name: KaTeX", package_text)
         self.assertIn("id: html.runtime-kit-v1", catalog_text)

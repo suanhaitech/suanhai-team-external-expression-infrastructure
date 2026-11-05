@@ -64,7 +64,7 @@
     fullscreenButton.setAttribute("aria-pressed", String(active));
     fullscreenButton.setAttribute("aria-label", active ? "退出全屏模式" : "进入全屏模式");
     fullscreenButton.querySelector(".runtime-toolbar__button-label").textContent = active ? "退出全屏" : "全屏";
-    fullscreenButton.title = fullscreenSupported() ? (active ? "退出全屏（Esc）" : "进入全屏") : "当前浏览器不支持全屏，可使用浏览器的全屏功能";
+    fullscreenButton.title = fullscreenSupported() ? (active ? "退出全屏（Esc）" : "进入全屏（Esc退出）") : "当前浏览器不支持全屏，可使用浏览器的全屏功能";
   }
   function toggleFullscreen() {
     if (!fullscreenSupported()) { announce("当前浏览器不支持全屏，可使用浏览器的全屏功能。"); return; }
@@ -107,6 +107,12 @@
       status.setAttribute("data-runtime-status", ""); status.setAttribute("role", "status"); status.hidden = true;
       document.body.appendChild(status);
       document.addEventListener("fullscreenchange", updateFullscreenState);
+      document.addEventListener("keydown", function (event) {
+        // 浏览器原生退出仍保留；显式处理也让嵌入式/无界面浏览器收到Esc时能退出。
+        // 模态图片阅读器先处理自己的关闭，避免同一次按键同时退出阅读器和全屏。
+        if (event.key === "Escape" && !event.defaultPrevented && !event.isComposing &&
+            document.fullscreenElement === root && !document.querySelector("dialog[open]")) toggleFullscreen();
+      });
       updateFullscreenState(); setMode(root.getAttribute("data-layout-mode") || "auto");
       document.dispatchEvent(new CustomEvent("suanhai:runtime-ready"));
     }

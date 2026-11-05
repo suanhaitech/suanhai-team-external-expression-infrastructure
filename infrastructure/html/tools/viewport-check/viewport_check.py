@@ -284,19 +284,15 @@ def interaction_check(session) -> list[dict[str, object]]:
     if session.evaluate("!!document.querySelector('[data-runtime-fullscreen]')"):
         supported = session.evaluate("!!document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === 'function'")
         if supported:
-            # 演示稿会把控制栏收进屏幕下沿；先移动指针唤出可见按钮再做真实点击。
-            session.move_pointer(session.evaluate("innerWidth / 2"), session.evaluate("innerHeight - 5"))
-            session.evaluate("new Promise(r => setTimeout(r, 250))")
+            # 全屏演示中底栏不再唤出；验证真实鼠标进入、Esc退出，不点击隐藏按钮。
             session.click("[data-runtime-fullscreen]")
             session.evaluate("new Promise(r => setTimeout(r, 200))")
             entered = session.evaluate("!!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'true'")
             if session.evaluate("!!document.fullscreenElement"):
-                session.move_pointer(session.evaluate("innerWidth / 2"), session.evaluate("innerHeight - 5"))
-                session.evaluate("new Promise(r => setTimeout(r, 250))")
-                session.click("[data-runtime-fullscreen]")
+                session.key("Escape")
                 session.evaluate("new Promise(r => setTimeout(r, 200))")
             exited = session.evaluate("!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'false'")
-            checks.append({"id": "fullscreen", "status": "pass" if entered and exited else "fail", "entered": entered, "exited": exited, "scope": "本次浏览器会话的真实鼠标操作；其他浏览器仍需核验"})
+            checks.append({"id": "fullscreen", "status": "pass" if entered and exited else "fail", "entered": entered, "exited": exited, "scope": "本次浏览器会话的真实鼠标进入与Esc退出；其他浏览器仍需核验"})
         else:
             checks.append({"id": "fullscreen", "status": "not-run", "reason": "本次浏览器未开放 Fullscreen API"})
     else:
