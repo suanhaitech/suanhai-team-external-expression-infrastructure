@@ -476,6 +476,9 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
 
     def test_project_report_composition_preserves_provenance_and_repeated_page_references(self):
         scenario_id = "expression.scenario.project-progress-communication-v1"
+        # 验证物料化记录追溯到固定基础设施的实际版本，正常升版不应让断言失效。
+        catalog = json.loads((self.infrastructure / "scenarios/catalog.json").read_text(encoding="utf-8"))
+        scenario_version = next(item["version"] for item in catalog["scenarios"] if item["id"] == scenario_id)
         page_ids = [
             "html.single-page.cover.editorial-v1",
             "html.single-page.content.project-overview-v1",
@@ -494,7 +497,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
         self.assertFalse(self.output.exists())
         self.assertEqual([page["id"] for page in preview["pages"]], page_ids)
         self.assertEqual(preview["scenario"]["id"], scenario_id)
-        self.assertEqual(preview["scenario"]["version"], "1.1.0")
+        self.assertEqual(preview["scenario"]["version"], scenario_version)
         applied = self.cli(
             *arguments,
             "--apply", "--expect-plan-sha256", preview["plan_sha256"],
@@ -561,7 +564,7 @@ class HtmlMaterializeIntegrationTest(unittest.TestCase):
             [json.loads(value) for value in re.findall(r"(?m)^  - (.+)$", page_block.group(1))], page_ids
         )
         self.assertIn(f'id: "{scenario_id}"', report)
-        self.assertIn('version: "1.1.0"', report)
+        self.assertIn(f'version: "{scenario_version}"', report)
         self.assertIn('profile: "scenarios/project-progress-communication-v1/README.md"', report)
         self.assertIn('  - "synthetic-project-report"', report)
         self.assertIn(f'infrastructure_commit: "{self.source_commit}"', report)
