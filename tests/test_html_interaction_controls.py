@@ -110,6 +110,8 @@ class InteractionControlsBrowserTest(unittest.TestCase):
         self.s.evaluate("new Promise(r=>setTimeout(r,200))")
         self.assertTrue(self.s.evaluate("!!document.fullscreenElement"))
         self.assertEqual(self.s.evaluate("document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed')"), "true")
+        self.s.cdp.call("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": 680, "y": 895})
+        self.s.evaluate("new Promise(r=>setTimeout(r,250))")
         self.s.click("[data-runtime-fullscreen]")
         self.s.evaluate("new Promise(r=>setTimeout(r,200))")
         self.assertFalse(self.s.evaluate("!!document.fullscreenElement"))

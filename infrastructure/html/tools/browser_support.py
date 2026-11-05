@@ -160,6 +160,9 @@ class ChromiumSession:
             self.cdp.call("Input.dispatchMouseEvent", {"type": kind, **point, "button": "left", "clickCount": 1})
         self.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
 
+    def move_pointer(self, x: float, y: float) -> None:
+        self.cdp.call("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": x, "y": y})
+
     def __exit__(self, *_exc: Any) -> None:
         if self.cdp:
             try:

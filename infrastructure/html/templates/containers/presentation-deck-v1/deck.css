@@ -992,3 +992,89 @@ html.deck--ready[data-layout-mode="desktop"] .deck-stage {
     display: none;
   }
 }
+
+/* 全屏是屏幕显示状态；打印必须沿用逐页展开规则，不能继承绝对定位与缩放。 */
+@media screen {
+/* 全屏时按普通窗口中的页面盒子等比放大，保留整页构图而非只放大部分内容。 */
+html.deck-fullscreen,
+html.deck-fullscreen body.deck-page-root {
+  background: var(--deck-ground);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+html.deck-fullscreen .deck-shell {
+  display: block;
+  height: 100svh;
+  margin: 0;
+  max-width: none;
+  min-height: 0;
+  padding: 0;
+  width: 100vw;
+}
+
+html.deck-fullscreen .deck-header {
+  display: none !important;
+}
+
+html.deck-fullscreen.deck--ready .deck-stage {
+  background: var(--deck-ground);
+  container-type: inline-size;
+  display: block;
+  height: 100svh;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+}
+
+html.deck-fullscreen.deck--ready .deck-page:not([hidden]) {
+  height: var(--deck-design-height, 100svh);
+  left: var(--deck-content-left, 0px);
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--deck-source-padding-top, 1.5rem) var(--deck-source-padding-right, 1.25rem) var(--deck-source-padding-bottom, 1.5rem) var(--deck-source-padding-left, 1.25rem);
+  position: absolute;
+  top: var(--deck-content-top, 0px);
+  transform: scale(var(--deck-content-scale, 1));
+  transform-origin: top left;
+  width: var(--deck-design-width, 100vw);
+}
+
+html.deck-fullscreen .deck-controls:not([hidden]) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(100% + 16px));
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+html.deck-fullscreen.deck-controls-visible .deck-controls:not([hidden]),
+html.deck-fullscreen .deck-controls:not([hidden]):focus-within {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 760px) {
+  html.deck-fullscreen.deck--ready .deck-page:not([hidden]) {
+    height: 100svh;
+    left: 0;
+    overflow: auto;
+    padding: 1.55rem 1.25rem 1rem;
+    top: 0;
+    transform: none;
+    width: 100vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.deck-fullscreen .deck-controls:not([hidden]) {
+    transition: none;
+  }
+}
+}
