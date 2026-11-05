@@ -1,6 +1,6 @@
 id: html.single-page.content.evidence-v1
 kind: single-page-template
-version: 1.0.0
+version: 1.0.1
 role: content
 variant: evidence
 label: 证据与边界

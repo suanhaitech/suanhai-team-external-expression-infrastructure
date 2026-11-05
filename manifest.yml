@@ -196,6 +196,10 @@ capabilities:
       - html.single-page.content.evidence-v1
       - html.single-page.content.method-v1
       - html.single-page.content.project-overview-v1
+      - html.single-page.content.project-status-v1
+      - html.single-page.content.workstream-research-v1
+      - html.single-page.content.conclusion-evidence-v1
+      - html.single-page.content.workstream-plan-v1
       - html.single-page.content.workstream-update-v1
       - html.single-page.content.dependencies-v1
       - html.single-page.closing.action-v1
@@ -367,3 +371,23 @@ capabilities:
     path: infrastructure/repository-management/tools/asset-bytes
     entrypoint: infrastructure/repository-management/tools/asset-bytes/protect_asset_bytes.py
     purpose: 预览并增补资产字节保护规则，不修改历史文件或Git历史
+  - id: html.single-page.content.project-status-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/project-status-v1
+    entrypoint: infrastructure/html/templates/single-page/content/project-status-v1/page.html
+    purpose: 阶段、计划和进度的三栏总览；不替代上期变化和风险说明。
+  - id: html.single-page.content.workstream-research-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/workstream-research-v1
+    entrypoint: infrastructure/html/templates/single-page/content/workstream-research-v1/page.html
+    purpose: 研究对象与本期进展分别呈现，再说明回答了哪些问题。
+  - id: html.single-page.content.conclusion-evidence-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/conclusion-evidence-v1
+    entrypoint: infrastructure/html/templates/single-page/content/conclusion-evidence-v1/page.html
+    purpose: 逐条判断、证据入口及限制；适合工作主线的第二层讲述。
+  - id: html.single-page.content.workstream-plan-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/workstream-plan-v1
+    entrypoint: infrastructure/html/templates/single-page/content/workstream-plan-v1/page.html
+    purpose: 任务、交付和核对方式对应；周期与任务数量由消费端决定。

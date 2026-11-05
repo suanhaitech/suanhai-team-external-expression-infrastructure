@@ -113,3 +113,7 @@
 - [HTML 制作工作流](../workflows/html/production/WORKFLOW.md)
 - [单页模板契约](../infrastructure/html/templates/single-page/README.md)
 - [HTML 物料化工具](../infrastructure/html/tools/materialize/README.md)
+
+## 展开型模板与填写增量
+
+周期计划进度型总览可选project-status-v1；需要较多专业证据时，将workstream-update-v1展开为研究主题与进展、当前结论与证据、下周期计划三个可独立组合的页面。继续使用既有HTML工作流，不生成固定三主线、固定页数的成套预设。阶段、计划、进度的层次、证据口径与完整匿名例子见[周期汇报可复用资产](project-report-reusable-assets.md)。

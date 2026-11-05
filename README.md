@@ -143,3 +143,7 @@ HTML 网页制作工作流、语义组件包、响应式样式包、离线运行
 新 HTML 任务默认采用分页组合（`html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*`），服务现场逐页讲解。用户明确要求连续阅读、传阅或查阅时采用长页；既有长页保持兼容。容器选择与空白模板/完整报告是独立维度；Agent 主动推荐资产，记录候选与选用资产、定制理由和验收信号。
 
 交互组件现已统一控制栏与原图缩放体验，新任务默认配齐。参见 [交互组件与验收边界](docs/html-interaction-components.md)，或打开 [交互体验页](infrastructure/html/runtime-kits/preview/index.html)。
+
+## 周期汇报展开资产
+
+新增状态面板、研究主题与进展、当前结论与证据、下周期计划4种单页，及进度/证据/计划3种组件展示与可选浅绿主题。场景负责内容选择，HTML工作流负责制作与核验，页数和周期由消费端任务决定。固定设计画布仍未在本次正式化。可调用入口、匿名预览和填写边界见[周期汇报可复用资产](docs/project-report-reusable-assets.md)。

@@ -6,8 +6,8 @@
 .sp-workstream-update {
   min-height: 34rem;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #f7f8f5;
-  color: #202b36;
+  background: var(--ex-color-page, #f7f8f5);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
   overflow-wrap: anywhere;
@@ -20,7 +20,7 @@
 
 .sp-workstream-update__eyebrow {
   margin: 0 0 0.75rem;
-  color: #286747;
+  color: var(--ex-color-accent, #286747);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -35,7 +35,7 @@
 .sp-workstream-update__summary {
   max-width: 54rem;
   margin: 1rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-workstream-update__meta {
@@ -43,7 +43,7 @@
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
   margin-top: 1rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.8125rem;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .sp-workstream-update__facts > section {
-  border-top: 1px solid #d5dde5;
+  border-top: 1px solid var(--ex-color-line, #d5dde5);
   padding-top: 0.85rem;
 }
 
@@ -74,27 +74,27 @@
 .sp-workstream-update__body p,
 .sp-workstream-update__next p {
   margin: 0.6rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.9375rem;
 }
 
 .sp-workstream-update small {
   display: block;
   margin-top: 0.6rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.75rem;
 }
 
 .sp-workstream-update__interpretation {
-  border-left: 3px solid #bf6244;
+  border-left: 3px solid var(--ex-color-highlight, #bf6244);
   padding: 0.25rem 0 0.25rem 1.25rem;
 }
 
 .sp-workstream-update__next {
   margin-top: 1.5rem;
   padding: 1rem 1.25rem;
-  background: #eaf0eb;
-  border-left: 3px solid #286747;
+  background: var(--ex-color-surface, #eaf0eb);
+  border-left: 3px solid var(--ex-color-accent, #286747);
 }
 
 .sp-workstream-update__footer {
@@ -103,7 +103,7 @@
   align-items: baseline;
   gap: 1rem;
   margin-top: 1rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.75rem;
 }
 

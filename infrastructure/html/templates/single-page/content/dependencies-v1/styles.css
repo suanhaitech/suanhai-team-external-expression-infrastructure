@@ -4,8 +4,8 @@
 }
 
 .sp-dependencies {
-  background: #f7f8f5;
-  color: #202b36;
+  background: var(--ex-color-page, #f7f8f5);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
   min-width: 0;
@@ -19,7 +19,7 @@
 }
 
 .sp-dependencies__eyebrow {
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
   font-size: 0.8125rem;
   font-weight: 700;
   margin: 0 0 0.75rem;
@@ -32,7 +32,7 @@
 }
 
 .sp-dependencies__heading > p:last-child {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   margin: 1rem 0 0;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .sp-dependencies h3 {
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
   font-size: 0.9375rem;
   margin: 0 0 0.75rem;
 }
@@ -69,34 +69,34 @@
 }
 
 .sp-dependencies__list li {
-  border-top: 2px solid #d5dde5;
+  border-top: 2px solid var(--ex-color-line, #d5dde5);
   padding: 1rem 0;
 }
 
 .sp-dependencies__list p,
 .sp-dependencies__collaboration p {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   margin: 0.5rem 0;
 }
 
 .sp-dependencies__list .sp-dependencies__condition {
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
 }
 
 .sp-dependencies__collaboration {
-  background: #fff;
-  border-left: 3px solid #bf6244;
+  background: var(--ex-color-surface, #fff);
+  border-left: 3px solid var(--ex-color-highlight, #bf6244);
   padding: 1.25rem;
 }
 
 .sp-dependencies__collaboration article + article {
-  border-top: 1px solid #d5dde5;
+  border-top: 1px solid var(--ex-color-line, #d5dde5);
   margin-top: 1rem;
   padding-top: 1rem;
 }
 
 .sp-dependencies__footer {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   display: flex;
   font-size: 0.75rem;
   gap: 1rem;

@@ -1,0 +1,43 @@
+/* 周期汇报页只负责内容布局；共享容器负责导航、页码与安全区。 */
+.ex-report-page, .ex-report-page * { box-sizing: border-box; }
+.ex-report-page { display: flex; flex-direction: column; gap: 1rem; min-width: 0; min-height: 32rem; padding: 1.5rem 2rem 1rem; background: var(--ex-color-page,#fff); color: var(--ex-color-ink,#20352e); font-family: var(--ex-font-body,"Segoe UI","Microsoft YaHei",sans-serif); font-size: 1rem; line-height: 1.55; overflow-wrap: anywhere; }
+.ex-report-page :is(h2,h3,h4,p) { margin: 0; }
+.ex-report-page__header { min-width: 0; }
+.ex-report-page__eyebrow { margin-bottom: .65rem !important; color: var(--ex-color-accent); font-size: 1.125rem; font-weight: 750; }
+.ex-report-page h2 { max-width: none; font-size: 2rem; line-height: 1.3; font-weight: 700; }
+.ex-report-page__label { margin-bottom: .35rem !important; color: var(--ex-color-muted); font-size: .875rem; font-weight: 700; }
+.ex-report-page__body { display: flex; flex-direction: column; gap: 1rem; flex: 1 0 auto; min-width: 0; }
+.ex-report-page__boundary { color: var(--ex-color-muted); font-size: .875rem; }
+.ex-report-page__footer { display: flex; justify-content: space-between; gap: 1rem; margin-top: auto; color: var(--ex-color-muted); font-size: .875rem; }
+.ex-report-page__supporting:empty { display: none; }
+.ex-report-status__columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr); gap: 1.5rem; }
+.ex-report-status__columns > section { min-width: 0; border-top: 2px solid var(--ex-color-accent); padding-top: .75rem; }
+.ex-report-status__columns h3 { font-size: 1.125rem; margin-bottom: 1rem; }
+.ex-report-status__columns ul { padding-left: 1.1rem; margin: 0; }
+.ex-report-status__columns li + li { margin-top: .75rem; }
+.ex-report-status__columns li p { margin-top: .2rem; color: var(--ex-color-muted); }
+.ex-report-status__judgment { margin-top: auto !important; padding-top: 1rem; border-top: 1px solid var(--ex-color-line); color: var(--ex-color-accent); font-size: 1.375rem; font-weight: 700; }
+/* 同等层级的主题和本期结果共用字号、字重与左边线。 */
+.ex-report-research__progress { padding-block: .75rem; border-block: 1px solid var(--ex-color-line); }
+.ex-report-page.sp-workstream-research h2, .ex-report-research__result { font-size: 1.875rem; line-height: 1.35; font-weight: 700; }
+.ex-report-research__questions { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap: 1.5rem; padding: 0; margin: .65rem 0 0; list-style: none; }
+.ex-report-research__questions li { min-width: 0; border-top: 1px solid var(--ex-color-line); padding-top: .65rem; }
+.ex-report-research__questions h4 { font-size: 1.25rem; margin-bottom: .35rem; }
+.ex-report-conclusions .ex-claim-source:first-child { padding-top: .75rem; }
+@media (max-width: 760px) {
+ .ex-report-page { min-height: 0; padding: 1.25rem; }
+ .ex-report-status__columns { grid-template-columns: minmax(0,1fr); }
+ .ex-report-page h2, .ex-report-page.sp-workstream-research h2, .ex-report-research__result { font-size: 1.75rem; }
+ .ex-report-page__eyebrow { font-size: 1.0625rem; }
+}
+@container (max-width: 760px) {
+ .ex-report-page { min-height: 0; padding: 1.25rem; }
+ .ex-report-status__columns { grid-template-columns: minmax(0,1fr); }
+ .ex-report-page h2, .ex-report-page.sp-workstream-research h2, .ex-report-research__result { font-size: 1.75rem; }
+ .ex-report-page__eyebrow { font-size: 1.0625rem; }
+}
+@media print {
+ .ex-report-page { min-height: 0; height: auto; padding: 1rem; overflow: visible; print-color-adjust: exact; }
+ .ex-report-page__header { break-after: avoid; }
+ .ex-report-status__columns > section, .ex-report-research__questions li { break-inside: avoid; }
+}

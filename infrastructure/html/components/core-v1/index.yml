@@ -56,3 +56,18 @@ components:
     contract: semantic/contracts/evidence.figure-analysis.json
     definition: semantic/evidence/figure-analysis/component.yml
     template: semantic/evidence/figure-analysis/template.html
+  - id: status.progress
+    category: status
+    contract: semantic/contracts/status.progress.json
+    definition: semantic/status/progress/component.yml
+    template: semantic/status/progress/template.html
+  - id: evidence.claim-source
+    category: evidence
+    contract: semantic/contracts/evidence.claim-source.json
+    definition: semantic/evidence/claim-source/component.yml
+    template: semantic/evidence/claim-source/template.html
+  - id: action.plan-table
+    category: action
+    contract: semantic/contracts/action.plan-table.json
+    definition: semantic/action/plan-table/component.yml
+    template: semantic/action/plan-table/template.html

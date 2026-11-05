@@ -1,6 +1,6 @@
 id: html.single-page.content.project-overview-v1
 kind: single-page-template
-version: 1.0.0
+version: 1.0.1
 role: content
 variant: project-overview
 label: 项目总体判断与本期变化

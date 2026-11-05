@@ -6,8 +6,8 @@
 .sp-content-evidence {
   min-height: 34rem;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #f7f8f5;
-  color: #202b36;
+  background: var(--ex-color-page, #f7f8f5);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
 }
@@ -19,7 +19,7 @@
 
 .sp-content-evidence__eyebrow {
   margin: 0 0 0.75rem;
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -35,7 +35,7 @@
 .sp-content-evidence__heading > p:last-child {
   max-width: 46rem;
   margin: 1rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-content-evidence__body {
@@ -54,19 +54,19 @@
   width: 100%;
   min-width: 36rem;
   border-collapse: collapse;
-  background: #ffffff;
+  background: var(--ex-color-page, #ffffff);
 }
 
 .sp-content-evidence th,
 .sp-content-evidence td {
-  border-bottom: 1px solid #d5dde5;
+  border-bottom: 1px solid var(--ex-color-line, #d5dde5);
   padding: 1rem;
   text-align: left;
   vertical-align: top;
 }
 
 .sp-content-evidence th {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -77,22 +77,22 @@
 }
 
 .sp-content-evidence__status {
-  color: #286747;
+  color: var(--ex-color-accent, #286747);
   font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .sp-content-evidence__status--pending {
-  color: #875916;
+  color: var(--ex-color-highlight, #875916);
 }
 
 .sp-content-evidence__boundary {
-  border-left: 3px solid #bf6244;
+  border-left: 3px solid var(--ex-color-highlight, #bf6244);
   padding: 0.25rem 0 0.25rem 1rem;
 }
 
 .sp-content-evidence__boundary span {
-  color: #a14f37;
+  color: var(--ex-color-highlight, #a14f37);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -102,7 +102,7 @@
 }
 
 .sp-content-evidence__boundary small {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 @media (max-width: 820px) {

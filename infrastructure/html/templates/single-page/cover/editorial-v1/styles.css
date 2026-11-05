@@ -9,8 +9,8 @@
   flex-direction: column;
   justify-content: space-between;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #edf4f1;
-  color: #182e31;
+  background: var(--ex-color-page, #edf4f1);
+  color: var(--ex-color-ink, #182e31);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
 }
@@ -22,7 +22,7 @@
   justify-content: space-between;
   gap: 1rem;
   margin: 0;
-  color: #45605e;
+  color: var(--ex-color-muted, #45605e);
   font-size: 0.875rem;
 }
 
@@ -44,7 +44,7 @@
 
 .sp-cover-editorial__scenario {
   margin: 0 0 1rem;
-  color: #a14f37;
+  color: var(--ex-color-highlight, #a14f37);
   font-size: 0.875rem;
   font-weight: 700;
 }
@@ -61,7 +61,7 @@
 .sp-cover-editorial__summary {
   max-width: 42rem;
   margin: 1.5rem 0 0;
-  color: #45605e;
+  color: var(--ex-color-muted, #45605e);
   font-size: 1.125rem;
 }
 
@@ -74,16 +74,16 @@
 }
 
 .sp-cover-editorial__audience span {
-  color: #58706e;
+  color: var(--ex-color-muted, #58706e);
 }
 
 .sp-cover-editorial__thesis {
-  border-top: 3px solid #bf6244;
+  border-top: 3px solid var(--ex-color-highlight, #bf6244);
   padding-top: 1rem;
 }
 
 .sp-cover-editorial__thesis span {
-  color: #a14f37;
+  color: var(--ex-color-highlight, #a14f37);
   font-size: 0.8125rem;
   font-weight: 700;
 }

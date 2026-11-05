@@ -6,8 +6,8 @@
 .sp-project-overview {
   min-height: 34rem;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #f7f8f5;
-  color: #202b36;
+  background: var(--ex-color-page, #f7f8f5);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
   overflow-wrap: anywhere;
@@ -19,7 +19,7 @@
 
 .sp-project-overview__eyebrow {
   margin: 0 0 0.75rem;
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -34,7 +34,7 @@
 .sp-project-overview__summary {
   max-width: 54rem;
   margin: 1rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-project-overview__meta {
@@ -43,8 +43,8 @@
   gap: 0.75rem 2rem;
   margin: 1.5rem 0;
   padding: 0.85rem 0;
-  border-top: 1px solid #d5dde5;
-  border-bottom: 1px solid #d5dde5;
+  border-top: 1px solid var(--ex-color-line, #d5dde5);
+  border-bottom: 1px solid var(--ex-color-line, #d5dde5);
   font-size: 0.8125rem;
 }
 
@@ -53,7 +53,7 @@
 }
 
 .sp-project-overview__meta dt {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-project-overview__meta dd {
@@ -68,16 +68,16 @@
 
 .sp-project-overview__changes article {
   min-width: 0;
-  border-top: 3px solid #176b87;
+  border-top: 3px solid var(--ex-color-accent, #176b87);
   padding-top: 0.85rem;
 }
 
 .sp-project-overview__changes article:nth-child(2) {
-  border-top-color: #286747;
+  border-top-color: var(--ex-color-accent, #286747);
 }
 
 .sp-project-overview__changes article:nth-child(3) {
-  border-top-color: #bf6244;
+  border-top-color: var(--ex-color-highlight, #bf6244);
 }
 
 .sp-project-overview h3 {
@@ -87,7 +87,7 @@
 
 .sp-project-overview__changes p {
   margin: 0.65rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.9375rem;
 }
 
@@ -104,14 +104,14 @@
   grid-template-columns: minmax(8rem, 0.3fr) minmax(0, 1fr);
   gap: 0.25rem 1rem;
   min-width: 0;
-  border-bottom: 1px solid #d5dde5;
+  border-bottom: 1px solid var(--ex-color-line, #d5dde5);
   padding-bottom: 0.75rem;
   font-size: 0.875rem;
 }
 
 .sp-project-overview__workstreams small {
   grid-column: 2;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.75rem;
 }
 
@@ -120,7 +120,7 @@
   justify-content: space-between;
   gap: 1rem;
   margin-top: 1.5rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.75rem;
 }
 

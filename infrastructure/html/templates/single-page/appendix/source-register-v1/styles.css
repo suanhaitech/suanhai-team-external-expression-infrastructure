@@ -6,8 +6,8 @@
 .sp-appendix-sources {
   min-height: 34rem;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #ffffff;
-  color: #202b36;
+  background: var(--ex-color-page, #ffffff);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
 }
@@ -19,7 +19,7 @@
 
 .sp-appendix-sources__eyebrow {
   margin: 0 0 0.75rem;
-  color: #176b87;
+  color: var(--ex-color-accent, #176b87);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -33,7 +33,7 @@
 
 .sp-appendix-sources__heading > p:last-child {
   margin: 1rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
 }
 
 .sp-appendix-sources__list {
@@ -47,12 +47,12 @@
   display: grid;
   grid-template-columns: 3rem minmax(12rem, 0.8fr) minmax(0, 1.2fr);
   gap: 1rem;
-  border-top: 1px solid #d5dde5;
+  border-top: 1px solid var(--ex-color-line, #d5dde5);
   padding: 1.25rem 0;
 }
 
 .sp-appendix-sources__number {
-  color: #a14f37;
+  color: var(--ex-color-highlight, #a14f37);
   font-weight: 700;
 }
 
@@ -63,7 +63,7 @@
 
 .sp-appendix-sources__list li > div > p {
   margin: 0.35rem 0 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
@@ -81,7 +81,7 @@
 }
 
 .sp-appendix-sources dt {
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.8125rem;
 }
 
@@ -93,9 +93,9 @@
 
 .sp-appendix-sources__boundary {
   margin-top: 1.25rem;
-  border-left: 3px solid #bf6244;
+  border-left: 3px solid var(--ex-color-highlight, #bf6244);
   padding: 0.25rem 0 0.25rem 1rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.8125rem;
 }
 

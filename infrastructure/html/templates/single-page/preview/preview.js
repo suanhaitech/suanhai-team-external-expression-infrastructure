@@ -1,4 +1,8 @@
 const examples = [
+  { role: "content", variant: "project-status-v1", title: "正文 / 项目状态面板", description: "阶段、周期计划与带口径进度" },
+  { role: "content", variant: "workstream-research-v1", title: "正文 / 研究主题与进展", description: "主题、本期结果与问题回答" },
+  { role: "content", variant: "conclusion-evidence-v1", title: "正文 / 结论与证据", description: "逐条判断、证据入口及限制" },
+  { role: "content", variant: "workstream-plan-v1", title: "正文 / 下周期计划", description: "任务、交付与核对方式" },
   { role: "cover", variant: "technical-editorial-v1", title: "插图封面 / Technical Editorial", description: "主题、问题、本地插图与署名" },
   { role: "content", variant: "stages-v1", title: "正文 / Stages", description: "2–4个阶段的演进" },
   { role: "content", variant: "observation-v1", title: "正文 / Observation", description: "观察、口径与问题" },
@@ -24,9 +28,13 @@ function addStylesheet(path) {
 }
 
 async function loadExamples() {
-  // 预览固定使用暖白主题；生产页仍由消费端选择主题。
+  // 主题只替换令牌；页面结构保持一致。URL参数仅接受显式白名单。
+  const requestedTheme = new URLSearchParams(location.search).get("theme");
+  const theme = ["editorial-warm", "editorial-green"].includes(requestedTheme) ? requestedTheme : "editorial-warm";
   addStylesheet("../../../components/core-v1/foundations/tokens.css");
-  addStylesheet("../../../components/core-v1/themes/editorial-warm.css");
+  addStylesheet(`../../../components/core-v1/themes/${theme}.css`);
+  addStylesheet("../../../components/core-v1/semantic/semantic.css");
+  addStylesheet("../../../styles/project-report-v1/styles.css");
   addStylesheet("../../../styles/presentation-v1/styles.css");
   const list = document.querySelector("#preview-list");
   list.replaceChildren();

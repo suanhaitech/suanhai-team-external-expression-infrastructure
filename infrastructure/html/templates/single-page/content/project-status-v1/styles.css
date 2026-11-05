@@ -1,0 +1,5 @@
+/* 项目状态面板：布局与组件由声明的shared_styles共同提供；局部类只补充本页约束。 */
+.sp-project-status { isolation: isolate; }
+@media (max-width: 760px) { .sp-project-status { min-height: 0; } }
+@container (max-width: 760px) { .sp-project-status { min-height: 0; } }
+@media print { .sp-project-status { overflow: visible; } }
