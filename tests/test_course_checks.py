@@ -220,6 +220,34 @@ class CourseCheckTest(unittest.TestCase):
             content = target.read_text(encoding="utf-8")
             self.assertEqual(content.count('src="desktop-p001.png"'), 2)
 
+    def test_navigation_overlap_respects_scroll_clipping_but_detects_real_obstruction(self):
+        if not browser_support.find_browser():
+            self.skipTest("未安装本机 Chromium；裁切区回归 not-run")
+        with tempfile.TemporaryDirectory(prefix="navigation-clip-") as folder:
+            root = Path(folder)
+            (root / "index.html").write_text('''<!doctype html><style>
+              [data-deck-page]{width:500px;height:240px;overflow:auto}
+              #spacer{height:310px} p{margin:0;height:40px}
+              #blocked{position:fixed;left:20px;top:320px}
+              [data-deck-controls]{position:fixed;left:0;top:300px;width:600px;height:80px}
+              </style><section data-deck-page id="reading"><div id="spacer"></div>
+              <p id="clipped">滚动裁切区外的文字</p><p id="blocked">真正被挡住的悬浮文字</p>
+              </section><nav data-deck-controls>导航</nav>''', encoding="utf-8")
+            with browser_support.LocalArtifactServer(root) as origin, browser_support.ChromiumSession(sandbox=not sys.platform.startswith("linux")) as session:
+                session.viewport(1366, 768, "screen")
+                session.navigate(origin + "/index.html")
+                session.evaluate((TOOLS / "viewport-check/page_checks.js").read_text(encoding="utf-8"))
+                self.assertEqual(session.evaluate("SuanhaiPageChecks.inspect().navigationOverlap"), ["p#blocked"])
+                # 同一文字进入真正可见区后必须报错，不能靠统一忽略滚动页压掉缺陷。
+                session.evaluate("document.querySelector('#reading').style.height='450px'")
+                self.assertEqual(set(session.evaluate("SuanhaiPageChecks.inspect().navigationOverlap")), {"p#clipped", "p#blocked"})
+                session.evaluate("document.querySelector('[data-deck-controls]').style.opacity='0'")
+                self.assertEqual(session.evaluate("SuanhaiPageChecks.inspect().navigationOverlap"), [])
+                session.evaluate("document.querySelector('[data-deck-controls]').style.opacity='1'; document.querySelector('#reading').style.cssText+=';height:240px;transform:translate(0,0)'")
+                self.assertEqual(session.evaluate("SuanhaiPageChecks.inspect().navigationOverlap"), [])
+                session.evaluate("document.querySelector('#reading').style.height='450px'")
+                self.assertTrue(session.evaluate("SuanhaiPageChecks.inspect().navigationOverlap"))
+
     def test_cdp_all_pages_detects_overlap_and_checks_viewer(self):
         from browser_support import find_browser
         if not find_browser():

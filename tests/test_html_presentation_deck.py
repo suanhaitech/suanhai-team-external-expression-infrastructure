@@ -119,6 +119,9 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
                 "html.single-page.content.project-overview-v1",
                 "html.single-page.content.workstream-update-v1",
                 "html.single-page.content.dependencies-v1",
+                "html.single-page.cover.technical-editorial-v1",
+                "html.single-page.content.definition-mapping-v1",
+                "html.single-page.content.figure-analysis-v1",
             ],
         )
         index_path = PurePosixPath("index.html")
@@ -249,9 +252,9 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         # 演示容器在短屏内限制页面高度；验证超出部分可在当前页内部访问。
         self.viewport(390, 600)
         self.select_page(1)
-        self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); page.scrollTop=page.scrollHeight; })()")
+        self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]'); page.scrollTop=page.scrollHeight; })()")
         self.settle()
-        self.assertGreater(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').scrollTop"), 0)
+        self.assertGreater(self.evaluate("document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]').scrollTop"), 0)
         self.click("[data-page-next]")
         self.assertEqual(self.evaluate("document.querySelector('[data-page-select]').value"), "2")
         self.assertGreaterEqual(self.evaluate("document.querySelector('[data-deck-stage]').getBoundingClientRect().top"), 0)
@@ -328,6 +331,45 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         self.assertTrue(all(page["breakAfter"] == "page" for page in metrics[:-1]))
         self.assertEqual(self.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).display"), "none")
 
+    def test_composed_canvas_fills_frame_and_folios_share_a_baseline(self):
+        # 模板使用深浅两种背景及不同内容高度；不是只核对某一页的 CSS 字符串。
+        for width, height in ((1366, 768), (1920, 1080), (390, 844)):
+            self.viewport(width, height)
+            metrics = []
+            count = self.evaluate("document.querySelectorAll('[data-deck-page]').length")
+            for index in range(count):
+                self.select_page(index)
+                item = self.evaluate("""(() => {
+                  const page=document.querySelector('[data-deck-page]:not([hidden])');
+                  const single=page.querySelector('[data-single-page-role]');
+                  const folio=page.querySelector('.deck-page-folio');
+                  const p=page.getBoundingClientRect(), s=single.getBoundingClientRect(), f=folio.getBoundingClientRect();
+                  const n=folio.querySelector('.deck-page-number').getBoundingClientRect();
+                  const style=getComputedStyle(page);
+                  return {id:page.id, width:p.width, height:p.height, top:s.top-p.top, left:s.left-p.left,
+                    right:p.right-s.right, bodyBottom:s.bottom, folioTop:f.top, numberBottom:n.bottom-p.top,
+                    paper:style.backgroundColor, content:getComputedStyle(single).backgroundColor,
+                    border:style.borderTopWidth, padding:style.paddingTop, shadow:style.boxShadow,
+                    count:page.querySelectorAll('.deck-page-number').length};
+                })()""")
+                metrics.append(item)
+                for gap in ("top", "left", "right"):
+                    self.assertAlmostEqual(item[gap], 0, delta=1, msg=str(item))
+                self.assertLessEqual(item["bodyBottom"], item["folioTop"] + 1, item)
+                self.assertEqual((item["paper"], item["border"], item["padding"], item["shadow"], item["count"]),
+                                 (item["content"], "0px", "0px", "none", 1), item)
+            for field in ("width", "height", "numberBottom"):
+                self.assertLessEqual(max(m[field] for m in metrics)-min(m[field] for m in metrics), 1, (field, metrics))
+
+        # 页码属于画布固定行，正文滚到末尾也不会挤走页码或盖住最后一行。
+        self.select_page(3)
+        self.evaluate("""(() => { const single=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]');
+          const tall=document.createElement('p'); tall.style.height='1600px'; tall.textContent='长正文'; single.appendChild(tall);
+          const end=document.createElement('p'); end.id='reading-end'; end.textContent='最后一行'; single.appendChild(end);
+          single.scrollTop=single.scrollHeight; })()""")
+        self.settle()
+        self.assertTrue(self.evaluate("document.querySelector('#reading-end').getBoundingClientRect().bottom <= document.querySelector('[data-deck-page]:not([hidden]) .deck-page-folio').getBoundingClientRect().top + 1"))
+
     def test_fullscreen_scales_the_whole_page_and_reserves_space_for_controls(self):
         self.viewport(1180, 805)
         self.select_page(0)
@@ -342,6 +384,12 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         self.assertAlmostEqual(full["page"]["width"] / normal["page"]["width"], expected, delta=0.02)
         self.assertAlmostEqual(full["title"]["height"] / normal["title"]["height"], expected, delta=0.05)
         self.assertGreater(full["scale"], 1.2)
+        folios = []
+        for index in range(self.evaluate("document.querySelectorAll('[data-deck-page]').length")):
+            self.select_page(index)
+            folios.append(self.evaluate("(() => {const p=document.querySelector('[data-deck-page]:not([hidden])'),r=p.getBoundingClientRect(),n=p.querySelector('.deck-page-number').getBoundingClientRect();return {height:r.height,baseline:n.bottom-r.top};})()"))
+        for field in ("height", "baseline"):
+            self.assertLessEqual(max(f[field] for f in folios)-min(f[field] for f in folios), 1, folios)
 
         self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:innerHeight-5}))")
         self.settle()
@@ -360,7 +408,68 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
         phone = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); return {width:page.getBoundingClientRect().width,transform:getComputedStyle(page).transform}; })()")
         self.assertAlmostEqual(phone["width"], 390, delta=2)
         self.assertEqual(phone["transform"], "none")
+        self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:innerHeight-5}))")
+        self.settle()
+        self.assertTrue(self.evaluate("document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect().bottom <= document.querySelector('[data-deck-controls]').getBoundingClientRect().top"))
+        self.select_page(1)
+        self.evaluate("(() => { const single=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]'); const tail=document.createElement('p');tail.id='fullscreen-tail';tail.textContent='最后一行';single.appendChild(tail);single.scrollTop=single.scrollHeight; })()")
+        self.assertTrue(self.evaluate("document.querySelector('[data-deck-page]:not([hidden]) .deck-page-number').getBoundingClientRect().bottom < document.querySelector('[data-deck-controls]').getBoundingClientRect().top"))
+        self.assertTrue(self.evaluate("document.querySelector('#fullscreen-tail').getBoundingClientRect().bottom <= document.querySelector('[data-deck-page]:not([hidden]) .deck-page-folio').getBoundingClientRect().top + 1"))
         self.click("[data-runtime-fullscreen]")
+
+    def test_short_desktop_canvas_fits_definition_and_figure_without_changing_fonts(self):
+        # 浏览器工具栏、缩放或分屏会减少可用高度，不能只测 1366×768。
+        # 使用中性长定义、三项图解，验证模板回收留白并完整显示图文，不靠裁切或缩字。
+        self.evaluate("""(() => {
+          // 消费端可定制页边距；共享短画布规则仍须正常覆盖，不能依赖删除其定制。
+          const consumer=document.createElement('style');
+          consumer.textContent='.deck-page > .ex-page {padding:.75rem 1.5rem} .ex-page__header {margin-bottom:1.5rem} .sp-content-figure-analysis figure img {max-height:15rem;width:auto;margin-inline:auto}';
+          document.head.appendChild(consumer);
+          const figure=document.querySelector('.sp-content-figure-analysis');
+          figure.querySelector('.ex-page__title').textContent='案例讨论：跨入口的连续协作';
+          figure.querySelector('.ex-page__lead').textContent='需求和修改决定在多个入口之间持续衔接。';
+          figure.querySelector('figcaption').textContent='示意图，用于解释讨论过程。';
+          figure.querySelector('.sp-content-figure-analysis__analysis').innerHTML=
+            '<article><h3>场景</h3><p>成员在公共讨论中提出问题，随后进入代码评审。</p></article>'+
+            '<article><h3>行动</h3><p>承接需求并保持相关上下文，在同一份修改中响应评审意见。</p></article>'+
+            '<article><h3>边界</h3><p>提交候选修改不等于已经完成验收和发布。</p></article>';
+          const definition=document.querySelector('.sp-content-definition-mapping');
+          definition.querySelector('.ex-page__title').textContent='如何理解连续协作？';
+          definition.querySelector('.sp-content-definition-mapping__definition p').textContent=
+            '连续协作是在不同工作入口之间保持需求、上下文与修改决定的衔接，使后续参与者能够理解此前的判断与约束。';
+          definition.querySelector('.sp-content-definition-mapping__rows').innerHTML=
+            '<div><dt>信息衔接</dt><dd>在不同入口保留相关决定</dd></div>'+
+            '<div><dt>任务推进</dt><dd>按已确认的目标持续工作</dd></div>'+
+            '<div><dt>责任边界</dt><dd>将执行结果交回负责人评审</dd></div>';
+        })()""")
+        count = self.evaluate("document.querySelectorAll('[data-deck-page]').length")
+        fonts = {}
+        for width, height in ((1366, 768), (1280, 650), (1000, 700)):
+            self.viewport(width, height)
+            for index in (count-2, count-1):
+                self.select_page(index)
+                metrics = self.evaluate("""(() => {
+                  const single=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]');
+                  const body=single.querySelector('.ex-page__body');
+                  return {id:single.className,height:single.clientHeight,scroll:single.scrollHeight,
+                    bodyFont:getComputedStyle(body).fontSize,titleFont:getComputedStyle(single.querySelector('h2')).fontSize,
+                    overflow:getComputedStyle(single).overflowY};
+                })()""")
+                self.assertLessEqual(metrics['scroll'], metrics['height']+2, (width,height,metrics))
+                self.assertEqual(metrics['overflow'], 'auto', metrics)
+                self.assertEqual(metrics['bodyFont'], fonts.setdefault(index, metrics['bodyFont']), metrics)
+        # 模拟进入全屏后的短画布保持：全屏扩大外层，内部查询仍使用设计尺寸。
+        self.evaluate("""(() => { let active=false;
+          Object.defineProperty(document,'fullscreenElement',{configurable:true,get:()=>active?document.documentElement:null});
+          document.documentElement.requestFullscreen=()=>{active=true;document.dispatchEvent(new Event('fullscreenchange'));return Promise.resolve()};
+          document.exitFullscreen=()=>{active=false;document.dispatchEvent(new Event('fullscreenchange'));return Promise.resolve()};
+        })()""")
+        self.click('[data-runtime-fullscreen]')
+        self.viewport(1920, 1080)
+        for index in (count-2, count-1):
+            self.select_page(index)
+            self.assertTrue(self.evaluate("(() => {const e=document.querySelector('[data-deck-page]:not([hidden]) > [data-single-page-role]');return e.scrollHeight<=e.clientHeight+2;})()"))
+        self.click('[data-runtime-fullscreen]')
 
     def test_print_from_fullscreen_releases_screen_coordinates(self):
         self.evaluate("document.documentElement.classList.add('deck-fullscreen')")
