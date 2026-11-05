@@ -60,6 +60,25 @@ class HtmlPresentationDeckPrintCssContractTest(unittest.TestCase):
                 self.assertIn("overflow-y: auto", css)
                 self.assertIn("padding-bottom: 1rem", css)
 
+    def test_fullscreen_keeps_the_window_composition_and_scales_the_page_as_a_unit(self):
+        for relative in (
+            "infrastructure/html/templates/containers/presentation-deck-v1/deck.css",
+            "infrastructure/html/templates/presets/presentation-deck-v1/deck.css",
+        ):
+            with self.subTest(asset=relative):
+                css = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn("transform: scale(var(--deck-content-scale, 1))", css)
+                self.assertIn("height: var(--deck-design-height, 100svh)", css)
+                self.assertIn("html.deck-fullscreen.deck-controls-visible .deck-controls", css)
+        for relative in (
+            "infrastructure/html/styles/presentation-v1/styles.css",
+            "infrastructure/html/templates/single-page/cover/technical-editorial-v1/styles.css",
+            "infrastructure/html/templates/single-page/transition/statement-v1/styles.css",
+        ):
+            with self.subTest(asset=relative):
+                css = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertNotRegex(css, r"\b\d+(?:\.\d+)?vw\b")
+
 
 class HtmlPresentationDeckBrowserTest(unittest.TestCase):
     @classmethod
@@ -307,6 +326,53 @@ class HtmlPresentationDeckBrowserTest(unittest.TestCase):
             self.assertNotEqual(page["overflow"], "hidden", page)
             self.assertLessEqual(page["scrollHeight"], page["height"] + 2, page)
         self.assertTrue(all(page["breakAfter"] == "page" for page in metrics[:-1]))
+        self.assertEqual(self.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).display"), "none")
+
+    def test_fullscreen_scales_the_whole_page_and_reserves_space_for_controls(self):
+        self.viewport(1180, 805)
+        self.select_page(0)
+        normal = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); const title=page.querySelector('h1,h2,h3'); return {page:page.getBoundingClientRect().toJSON(), title:title.getBoundingClientRect().toJSON()}; })()")
+        self.evaluate("(() => { let active=false; Object.defineProperty(document,'fullscreenElement',{configurable:true,get:()=>active?document.documentElement:null}); document.documentElement.requestFullscreen=()=>{active=true;document.dispatchEvent(new Event('fullscreenchange'));return Promise.resolve()}; document.exitFullscreen=()=>{active=false;document.dispatchEvent(new Event('fullscreenchange'));return Promise.resolve()}; })()")
+        self.click("[data-runtime-fullscreen]")
+        self.viewport(1920, 1080)
+        self.assertTrue(self.evaluate("document.documentElement.classList.contains('deck-fullscreen')"))
+        full = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); const title=page.querySelector('h1,h2,h3'); return {page:page.getBoundingClientRect().toJSON(), title:title.getBoundingClientRect().toJSON(), scale:Number(getComputedStyle(page).getPropertyValue('--deck-content-scale'))}; })()")
+        expected = min(1920 / normal["page"]["width"], 1080 / normal["page"]["height"])
+        self.assertAlmostEqual(full["scale"], expected, delta=0.02, msg=f"normal={normal}; full={full}")
+        self.assertAlmostEqual(full["page"]["width"] / normal["page"]["width"], expected, delta=0.02)
+        self.assertAlmostEqual(full["title"]["height"] / normal["title"]["height"], expected, delta=0.05)
+        self.assertGreater(full["scale"], 1.2)
+
+        self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:innerHeight-5}))")
+        self.settle()
+        controls = self.evaluate("(() => { const bar=document.querySelector('[data-deck-controls]').getBoundingClientRect(); const page=document.querySelector('[data-deck-page]:not([hidden])').getBoundingClientRect(); return {visible:document.documentElement.classList.contains('deck-controls-visible'),barTop:bar.top,pageBottom:page.bottom}; })()")
+        self.assertTrue(controls["visible"])
+        visible_scale = self.evaluate("Number(getComputedStyle(document.querySelector('[data-deck-page]:not([hidden])')).getPropertyValue('--deck-content-scale'))")
+        self.assertLess(visible_scale, full["scale"])
+        self.assertLess(controls["pageBottom"], controls["barTop"] + 2)
+
+        self.evaluate("window.dispatchEvent(new PointerEvent('pointermove',{clientY:100}))")
+        self.click("[data-runtime-fullscreen]")
+        self.assertFalse(self.evaluate("document.documentElement.classList.contains('deck-fullscreen')"))
+
+        self.viewport(390, 844)
+        self.click("[data-runtime-fullscreen]")
+        phone = self.evaluate("(() => { const page=document.querySelector('[data-deck-page]:not([hidden])'); return {width:page.getBoundingClientRect().width,transform:getComputedStyle(page).transform}; })()")
+        self.assertAlmostEqual(phone["width"], 390, delta=2)
+        self.assertEqual(phone["transform"], "none")
+        self.click("[data-runtime-fullscreen]")
+
+    def test_print_from_fullscreen_releases_screen_coordinates(self):
+        self.evaluate("document.documentElement.classList.add('deck-fullscreen')")
+        self.evaluate("document.querySelector('[data-deck-page]').style.setProperty('--deck-content-scale','1.6')")
+        self.cdp.call("Emulation.setEmulatedMedia", {"media": "print"})
+        self.settle()
+        metrics = self.evaluate("[...document.querySelectorAll('[data-deck-page]')].map(page => ({display:getComputedStyle(page).display,position:getComputedStyle(page).position,transform:getComputedStyle(page).transform,overflow:getComputedStyle(page).overflow}))")
+        for page in metrics:
+            self.assertNotEqual(page["display"], "none", page)
+            self.assertNotEqual(page["position"], "absolute", page)
+            self.assertEqual(page["transform"], "none", page)
+            self.assertEqual(page["overflow"], "visible", page)
         self.assertEqual(self.evaluate("getComputedStyle(document.querySelector('[data-deck-controls]')).display"), "none")
 
     def test_without_javascript_all_pages_remain_readable(self):

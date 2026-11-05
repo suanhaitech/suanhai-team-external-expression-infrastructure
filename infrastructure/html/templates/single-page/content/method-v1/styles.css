@@ -5,7 +5,7 @@
 
 .sp-content-method {
   min-height: 34rem;
-  padding: clamp(1.5rem, 5vw, 4.5rem);
+  padding: clamp(1.5rem, 5cqw, 4.5rem);
   background: var(--ex-color-page, #eef1f7);
   color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;

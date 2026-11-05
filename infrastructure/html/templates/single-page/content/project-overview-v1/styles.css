@@ -5,7 +5,7 @@
 
 .sp-project-overview {
   min-height: 34rem;
-  padding: clamp(1.5rem, 5vw, 4.5rem);
+  padding: clamp(1.5rem, 5cqw, 4.5rem);
   background: #f7f8f5;
   color: #202b36;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -27,7 +27,7 @@
 .sp-project-overview h2 {
   max-width: 24ch;
   margin: 0;
-  font-size: clamp(2.125rem, 3.5vw, 3rem);
+  font-size: clamp(2.125rem, 3.5cqw, 3rem);
   line-height: 1.15;
 }
 

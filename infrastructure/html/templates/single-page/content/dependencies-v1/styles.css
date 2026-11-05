@@ -10,7 +10,7 @@
   line-height: 1.55;
   min-width: 0;
   overflow-wrap: anywhere;
-  padding: clamp(1.5rem, 4vw, 3.5rem);
+  padding: clamp(1.5rem, 4cqw, 3.5rem);
 }
 
 .sp-dependencies__heading {
@@ -26,7 +26,7 @@
 }
 
 .sp-dependencies h2 {
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-size: clamp(1.9rem, 3cqw, 2.7rem);
   line-height: 1.18;
   margin: 0;
 }

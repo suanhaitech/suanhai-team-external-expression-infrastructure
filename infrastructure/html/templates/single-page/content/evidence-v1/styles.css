@@ -5,7 +5,7 @@
 
 .sp-content-evidence {
   min-height: 34rem;
-  padding: clamp(1.5rem, 5vw, 4.5rem);
+  padding: clamp(1.5rem, 5cqw, 4.5rem);
   background: #f7f8f5;
   color: #202b36;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;

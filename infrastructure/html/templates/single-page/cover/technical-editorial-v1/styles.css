@@ -2,7 +2,7 @@
 .sp-cover-technical__topline p { margin: 0; font-size: .875rem; letter-spacing: .08em; }
 .sp-cover-technical__topline > span { flex: 0 0 1.5rem; height: .25rem; background: var(--ex-color-highlight, #b45f31); }
 /* 按语义片段排版，允许长中文与长英文自然换行，不绑定某个专有名词长度。 */
-.sp-cover-technical .sp-cover-technical__title { max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: .25em .4em; margin: 2rem 0 0; color: var(--ex-color-accent, #173f78); font-size: clamp(2.25rem, 4.5vw, 4.5rem); font-weight: 600; line-height: 1.25; text-wrap: balance; }
+.sp-cover-technical .sp-cover-technical__title { max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: .25em .4em; margin: 2rem 0 0; color: var(--ex-color-accent, #173f78); font-size: clamp(2.25rem, 4.5cqw, 4.5rem); font-weight: 600; line-height: 1.25; text-wrap: balance; }
 .sp-cover-technical__title > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .sp-cover-technical__lead { font-size: .6em; }
 .sp-cover-technical__hero { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; gap: 2.5rem; margin-top: 2rem; }

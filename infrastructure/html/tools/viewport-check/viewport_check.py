@@ -237,6 +237,9 @@ class PlaywrightSession:
     def key(self, key):
         self.page.keyboard.press(key)
 
+    def move_pointer(self, x, y):
+        self.page.mouse.move(x, y)
+
     def click(self, selector):
         self.page.locator(selector).click()
 
@@ -281,10 +284,15 @@ def interaction_check(session) -> list[dict[str, object]]:
     if session.evaluate("!!document.querySelector('[data-runtime-fullscreen]')"):
         supported = session.evaluate("!!document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === 'function'")
         if supported:
+            # 演示稿会把控制栏收进屏幕下沿；先移动指针唤出可见按钮再做真实点击。
+            session.move_pointer(session.evaluate("innerWidth / 2"), session.evaluate("innerHeight - 5"))
+            session.evaluate("new Promise(r => setTimeout(r, 250))")
             session.click("[data-runtime-fullscreen]")
             session.evaluate("new Promise(r => setTimeout(r, 200))")
             entered = session.evaluate("!!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'true'")
             if session.evaluate("!!document.fullscreenElement"):
+                session.move_pointer(session.evaluate("innerWidth / 2"), session.evaluate("innerHeight - 5"))
+                session.evaluate("new Promise(r => setTimeout(r, 250))")
                 session.click("[data-runtime-fullscreen]")
                 session.evaluate("new Promise(r => setTimeout(r, 200))")
             exited = session.evaluate("!document.fullscreenElement && document.querySelector('[data-runtime-fullscreen]').getAttribute('aria-pressed') === 'false'")

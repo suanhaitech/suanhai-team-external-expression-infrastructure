@@ -18,6 +18,8 @@
   var notesContent = document.querySelector("[data-deck-notes-content]");
   var ratioSelect = document.querySelector("[data-deck-ratio-select]");
   var currentPage = 0, notesOpen = false;
+  var normalPageSize = {width: 0, height: 0, paddingTop: "", paddingRight: "", paddingBottom: "", paddingLeft: ""};
+  var controlsHideTimer = 0;
   if (notesPanel) {
     notesPanel.tabIndex = 0;
     notesPanel.setAttribute("aria-label", "当前页讲者备注");
@@ -30,6 +32,42 @@
     var found = slot && Array.from(page.querySelectorAll("[data-slot]")).find(function (node) { return node.getAttribute("data-slot") === slot; });
     return (found && found.textContent.trim()) || page.getAttribute("data-page-title") || "第 " + (index + 1) + " 页";
   }
+  // 在全屏改变视口之前保存设计坐标；仅改变外层倍率，避免文字、图片和页码各自重排。
+  function rememberNormalPageSize() {
+    if (document.fullscreenElement === root || window.innerWidth <= 760) return;
+    var page = pages[currentPage];
+    if (!page) return;
+    var rect = page.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      var style = getComputedStyle(page);
+      normalPageSize = {
+        width: rect.width, height: rect.height,
+        paddingTop: style.paddingTop, paddingRight: style.paddingRight,
+        paddingBottom: style.paddingBottom, paddingLeft: style.paddingLeft
+      };
+    }
+  }
+  function updateFullscreenScale() {
+    if (document.fullscreenElement !== root || window.innerWidth <= 760 || !normalPageSize.width || !normalPageSize.height) return;
+    var visible = root.classList.contains("deck-controls-visible");
+    var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
+    var reserved = visible || notesHeight ? Math.ceil(controls.getBoundingClientRect().height) + 32 + notesHeight : 0;
+    var availableHeight = Math.max(1, window.innerHeight - reserved);
+    var scale = Math.min(window.innerWidth / normalPageSize.width, availableHeight / normalPageSize.height);
+    var left = Math.max(0, (window.innerWidth - normalPageSize.width * scale) / 2);
+    var top = Math.max(0, (availableHeight - normalPageSize.height * scale) / 2);
+    pages.forEach(function (page) {
+      page.style.setProperty("--deck-design-width", normalPageSize.width + "px");
+      page.style.setProperty("--deck-design-height", normalPageSize.height + "px");
+      page.style.setProperty("--deck-content-scale", String(scale));
+      page.style.setProperty("--deck-content-left", left + "px");
+      page.style.setProperty("--deck-content-top", top + "px");
+      page.style.setProperty("--deck-source-padding-top", normalPageSize.paddingTop);
+      page.style.setProperty("--deck-source-padding-right", normalPageSize.paddingRight);
+      page.style.setProperty("--deck-source-padding-bottom", normalPageSize.paddingBottom);
+      page.style.setProperty("--deck-source-padding-left", normalPageSize.paddingLeft);
+    });
+  }
   function measureControls() {
     // 控件高度会随屏幕宽度与工具状态变化；画布用它计算控制栏上方的可用空间。
     var rect = controls.getBoundingClientRect();
@@ -37,6 +75,8 @@
     var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
     root.style.setProperty("--deck-controls-height", height + "px");
     root.style.setProperty("--deck-notes-height", notesHeight + "px");
+    if (document.fullscreenElement === root) updateFullscreenScale();
+    else rememberNormalPageSize();
   }
   function setNotesOpen(open) {
     if (!notesPanel || !notesContent || !notesButton) return;
@@ -53,6 +93,8 @@
       page.setAttribute("aria-hidden", String(page.hidden));
       page.setAttribute("aria-label", "第 " + (pageIndex + 1) + " 页：" + pageTitle(page, pageIndex));
     });
+    if (document.fullscreenElement === root) updateFullscreenScale();
+    else rememberNormalPageSize();
     previousButton.disabled = currentPage === 0; nextButton.disabled = currentPage === pages.length - 1;
     pageSelect.value = String(currentPage);
     if (position) position.value = String(currentPage + 1).padStart(2, "0") + " / " + String(pages.length).padStart(2, "0");
@@ -102,6 +144,48 @@
   }
   arrangeTools();
   document.addEventListener("suanhai:runtime-ready", arrangeTools);
+  function controlsAreHeldOpen() {
+    return controls.matches(":hover") || controls.contains(document.activeElement);
+  }
+  function hideControlsSoon(delay) {
+    window.clearTimeout(controlsHideTimer);
+    controlsHideTimer = window.setTimeout(function () {
+      if (document.fullscreenElement === root && !controlsAreHeldOpen()) {
+        root.classList.remove("deck-controls-visible");
+        updateFullscreenScale();
+      }
+    }, delay);
+  }
+  function revealControls() {
+    if (document.fullscreenElement !== root) return;
+    window.clearTimeout(controlsHideTimer);
+    root.classList.add("deck-controls-visible");
+    updateFullscreenScale();
+    hideControlsSoon(1800);
+  }
+  document.addEventListener("fullscreenchange", function () {
+    var active = document.fullscreenElement === root;
+    root.classList.toggle("deck-fullscreen", active);
+    window.clearTimeout(controlsHideTimer);
+    root.classList.remove("deck-controls-visible");
+    if (active && controls.contains(document.activeElement)) document.activeElement.blur();
+    measureControls();
+  });
+  root.addEventListener("click", function (event) {
+    if (event.target.closest && event.target.closest("[data-runtime-fullscreen]") && document.fullscreenElement !== root) rememberNormalPageSize();
+  }, true);
+  controls.addEventListener("pointerenter", function () { window.clearTimeout(controlsHideTimer); });
+  controls.addEventListener("pointerleave", function () { hideControlsSoon(700); });
+  controls.addEventListener("focusin", function () { root.classList.add("deck-controls-visible"); updateFullscreenScale(); });
+  controls.addEventListener("focusout", function () { hideControlsSoon(1800); });
+  window.addEventListener("pointermove", function (event) {
+    if (document.fullscreenElement !== root) return;
+    if (event.clientY >= window.innerHeight - 110) revealControls();
+    else hideControlsSoon(1800);
+  });
+  window.addEventListener("pointerdown", function (event) {
+    if (event.pointerType === "touch" && event.clientY >= window.innerHeight - 140) revealControls();
+  });
   document.addEventListener("keydown", function (event) {
     if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || document.querySelector("dialog[open]")) return;
     if (event.key === "Escape" && notesOpen) { setNotesOpen(false); if (notesButton) notesButton.focus(); return; }
