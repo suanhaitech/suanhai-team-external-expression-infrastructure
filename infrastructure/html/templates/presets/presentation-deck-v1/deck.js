@@ -48,10 +48,13 @@
     }
   }
   function updateFullscreenScale() {
-    if (document.fullscreenElement !== root || window.innerWidth <= 760 || !normalPageSize.width || !normalPageSize.height) return;
+    if (document.fullscreenElement !== root) return;
     var visible = root.classList.contains("deck-controls-visible");
     var notesHeight = notesPanel && !notesPanel.hidden ? Math.ceil(notesPanel.getBoundingClientRect().height) + 10 : 0;
     var reserved = visible || notesHeight ? Math.ceil(controls.getBoundingClientRect().height) + 32 + notesHeight : 0;
+    // 手机不缩放文字，而是缩短可滚动的阅读区；底栏出现也不能盖住最后一行。
+    root.style.setProperty("--deck-fullscreen-reserved", reserved + "px");
+    if (window.innerWidth <= 760 || !normalPageSize.width || !normalPageSize.height) return;
     var availableHeight = Math.max(1, window.innerHeight - reserved);
     var scale = Math.min(window.innerWidth / normalPageSize.width, availableHeight / normalPageSize.height);
     var left = Math.max(0, (window.innerWidth - normalPageSize.width * scale) / 2);
@@ -110,6 +113,27 @@
   pages.forEach(function (page, index) {
     var number = page.querySelector(".deck-page-number");
     if (number) number.textContent = String(index + 1).padStart(2, "0");
+    var singlePage = Array.from(page.children).find(function (child) { return child.hasAttribute("data-single-page-role"); });
+    if (singlePage) {
+      // 容器拥有画布与页码，单页拥有内容和背景。页码独占一行，避免用绝对
+      // 定位覆盖长正文；打印及无脚本时仍保留完整内容，不强行一页一纸。
+      page.classList.add("deck-page--composed");
+      var folio = document.createElement("div");
+      folio.className = "deck-page-folio";
+      if (!number) {
+        number = document.createElement("span");
+        number.className = "deck-page-number";
+        number.textContent = String(index + 1).padStart(2, "0");
+      }
+      var oldFooter = number.parentElement;
+      folio.appendChild(number);
+      page.appendChild(folio);
+      if (oldFooter && !oldFooter.textContent.trim() && !oldFooter.children.length) oldFooter.classList.add("deck-empty-footer");
+      // 深色过渡页和浅色内容页沿用各自主题，页码带不能露出另一张白纸。
+      var singleStyle = getComputedStyle(singlePage);
+      page.style.setProperty("--deck-canvas-background", singleStyle.backgroundColor);
+      page.style.setProperty("--deck-folio-color", singleStyle.color);
+    }
     var option = document.createElement("option");
     option.value = String(index);
     option.textContent = String(index + 1).padStart(2, "0") + " · " + pageTitle(page, index);

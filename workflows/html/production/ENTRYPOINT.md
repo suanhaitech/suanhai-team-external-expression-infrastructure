@@ -20,6 +20,8 @@ Agent 应把这段请求解释为“启动工作流”，而不是用户已经�
 
 新任务默认采用 `html.container.presentation-deck-v1` + `page-plan.json` + `html.single-page.*` 分页组合，服务现场逐页讲解；用户明确要求连续阅读、传阅或查阅时考虑 `html.project-report-v1`；现场讲解或逐页呈现可以继续使用兼容预设 `html.presentation-deck-v1`，也可以选择 `html.container.presentation-deck-v1`，再按顺序传入 `--page-id html.single-page...` 组合封面、目录、章节过渡、内容页、结尾和附录。演示稿必须使用页面底部的页码选择、上一页和下一页控件，不能用顶部导航切换页。容器自身负责翻页和逐页打印；物料化默认装配 `html.runtime-kit-v1` 与 `html.image-viewer-v1`，将显示、比例、备注、全屏和 PDF 入口收拢为底部控制栏。
 
+组合单页的画布尺寸与固定页码由共享容器负责，单页负责背景和内部留白；不能再次叠加白色页框，或让页码随模板正文高度浮动。升级时在新版本物料化并清理重复的消费端页框/folio/全屏覆盖，保留并评审内容密度定制。按[安全区测试](../../../docs/html-presentation-safe-area-test.md)验证整稿页码基线、全屏构图和手机底栏唤出后的末尾可读性；手机内部滚动仍须如实报告。
+
 Agent 主动推荐资产，只提影响用途、范围或授权的关键问题，复用本轮已有认可。分页/长页与空白模板/已填写报告分别对齐；填写规则见[模板填写与复用协议](../../../infrastructure/html/templates/FILLING.md)。计划记录候选与选用资产、定制理由和验收信号。
 
 整稿制作优先使用 `--page-plan <相对路径>`，与 `--page-id` 互斥。局部修订使用完整清单及 `--baseline-version v001 --replace-page <稳定 ID>`，先预览差异再应用；非目标页继承并检查，基线不能改写。局部认可不等于全稿验收；未制作内容明确占位，暂停复用任务循环的 `pause` / `resume`。

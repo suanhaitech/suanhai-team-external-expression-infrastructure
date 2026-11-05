@@ -995,6 +995,51 @@ html.deck--ready[data-layout-mode="desktop"] .deck-stage {
 
 /* 全屏是屏幕显示状态；打印必须沿用逐页展开规则，不能继承绝对定位与缩放。 */
 @media screen {
+/* 组合单页只有一张画布。尺寸由容器决定，留白由单页决定，避免两层纸框。
+   内容与页码分成两行：正文可滚动，页码始终在同一基线且不遮挡正文。
+   仅作用于组合页，保留旧预设的原生 deck 页面和无脚本的连续阅读降级。 */
+.deck--ready .deck-page.deck-page--composed {
+  /* 单页根据设计画布的高度调整留白；全屏缩放不改变这个查询坐标。 */
+  container: deck-page / size;
+  background: var(--deck-canvas-background, var(--ex-color-page, #fff));
+  border: 0;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 2.75rem;
+  justify-content: normal;
+  height: min(var(--deck-page-min), calc(100svh - var(--deck-controls-height, 80px) - var(--deck-notes-height, 0px) - 5rem));
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+.deck--ready .deck-page.deck-page--composed[hidden] { display: none; }
+.deck--ready .deck-page--composed > [data-single-page-role] {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  width: 100%;
+}
+.deck-page--composed .deck-empty-footer { display: none; }
+.deck-page-folio {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  padding-inline: clamp(1.25rem, 4.5cqw, 4rem);
+}
+.deck-page-folio .deck-page-number {
+  color: var(--deck-folio-color, var(--deck-green));
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5rem;
+}
+@container deck (max-width: 760px) {
+  .deck--ready .deck-page.deck-page--composed {
+    height: min(max(640px, var(--deck-page-min)), calc(100svh - var(--deck-controls-height, 150px) - var(--deck-notes-height, 0px) - 5rem));
+  }
+}
 /* 全屏时按普通窗口中的页面盒子等比放大，保留整页构图而非只放大部分内容。 */
 html.deck-fullscreen,
 html.deck-fullscreen body.deck-page-root {
@@ -1062,13 +1107,16 @@ html.deck-fullscreen .deck-controls:not([hidden]):focus-within {
 
 @media (max-width: 760px) {
   html.deck-fullscreen.deck--ready .deck-page:not([hidden]) {
-    height: 100svh;
+    height: calc(100svh - var(--deck-fullscreen-reserved, 0px));
     left: 0;
     overflow: auto;
     padding: 1.55rem 1.25rem 1rem;
     top: 0;
     transform: none;
     width: 100vw;
+  }
+  html.deck-fullscreen.deck--ready .deck-page.deck-page--composed:not([hidden]) {
+    padding: 0;
   }
 }
 

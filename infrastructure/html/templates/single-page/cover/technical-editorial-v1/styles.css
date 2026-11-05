@@ -14,3 +14,9 @@
 @media print { .sp-cover-technical__hero { break-inside: avoid; } }
 
 /* 提升到模板自身的双类选择器，覆盖容器默认h1的12ch限制；单页标题独立决定宽度。 */
+@media screen {
+  @container deck-page (min-width: 761px) and (max-height: 560px) {
+    .deck-page--composed > .sp-cover-technical .sp-cover-technical__title { margin-top: 1rem; }
+    .deck-page--composed > .sp-cover-technical .sp-cover-technical__hero { margin-top: 1.5rem; }
+  }
+}

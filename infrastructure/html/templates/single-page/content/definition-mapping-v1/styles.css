@@ -8,3 +8,9 @@
 @media (max-width: 600px) { .sp-content-definition-mapping__rows > div { grid-template-columns: minmax(0, 1fr); gap: .5rem; } }
 @container (max-width: 600px) { .sp-content-definition-mapping__rows > div { grid-template-columns: minmax(0, 1fr); gap: .5rem; } }
 @media print { .sp-content-definition-mapping__rows > div { break-inside: avoid; } }
+@media screen {
+  @container deck-page (min-width: 761px) and (max-height: 560px) {
+    .deck-page--composed > .sp-content-definition-mapping .sp-content-definition-mapping__definition { margin-bottom: .75rem; }
+    .deck-page--composed > .sp-content-definition-mapping .sp-content-definition-mapping__rows > div { padding-block: .4rem; }
+  }
+}

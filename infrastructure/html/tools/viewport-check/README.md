@@ -22,6 +22,8 @@ py -3 infrastructure/html/tools/viewport-check/viewport_check.py `
 
 `--interactions` 验证首尾禁用、前后翻页、备注默认隐藏及内容、原图阅读器打开/Escape关闭/焦点返回/方向键隔离与缩放，以及四种显示模式状态、真实鼠标全屏进入/退出。控件缺失或浏览器没有开放能力时明确记为 `not-run`；全屏 API 开放但操作失败记为 `fail`。不自动操作系统打印对话框或进行完整无障碍验收。
 
+导航遮挡按元素与视口、滚动/裁切祖先的可见矩形交集判断；已滚出裁切区的文字不会因其原始矩形落在底栏下而误报。透明或移出视口的收起底栏不参与遮挡。相对视口的 fixed 文字仍检查真实遮挡，有 transform 等固定定位包含块时按其裁切区计算。这是矩形几何检查，不涵盖任意 clip-path、遮罩或所有绘制层叠情况，仍需人工核验。组合单页的内部滚动也会记入 `pageVerticalOverflow`，不能通过换滚动层获得全通过。
+
 ```powershell
 python infrastructure/html/tools/viewport-check/viewport_check.py --html '<产物目录>/index.html' --all-pages --interactions --backend cdp --viewport desktop=1366x768 --viewport phone=390x844 --screenshot-dir '<产物目录>/checks/screenshots' --contact-sheet '<产物目录>/checks/contact-sheet.html' --output '<产物目录>/checks/viewport-check.json' --fail-on-overflow
 ```

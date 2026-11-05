@@ -26,8 +26,9 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/html
 
 Linux/macOS 用 python3 替代 py -3。路径替换为消费端真实作品目录。无需为了检查安装 Playwright，工具也支持本机 Chrome/Edge/Chromium 的 CDP；后端均不可用时记录 not-run。
 
-5. 检查原始 JSON 中每个视口、每一页的 pageVerticalOverflow、textOverflow、horizontalOverflow、navigationOverlap、brokenImages、duplicateIds；记录失败页 ID 和指标，不只看退出码。手机上保留滚动访问不等于投屏验收通过；无法同时满足时分视口报告限制，并提出独立阅读布局等方案。
+5. 检查原始 JSON 中每个视口、每一页的 pageVerticalOverflow、textOverflow、horizontalOverflow、navigationOverlap、brokenImages、duplicateIds；记录失败页 ID 和指标，不只看退出码。补测 `--viewport laptop-short=1280x650`、`--viewport split-window=1000x700`；普通窗口分别切页后，从短窗口进入全屏再次检查，不能只在大窗口进入全屏后验收。手机上保留滚动访问不等于投屏验收通过；无法同时满足时分视口报告限制，并提出独立阅读布局等方案。
 6. 实际验证前后翻页、首尾禁用、页码选择、备注默认隐藏与展开后的正文可读性、显示模式、全屏和原图阅读器。查看截图确认标题层级、字号、留白和图文比例；自动几何检查不能代替人工视觉评审。
+   组合单页还须核对：背景铺满画布且没有外层白纸/封面装饰；相同视口与比例下所有页画布等高、页码相对画布的基线一致；全屏的正文、插图和页码同比缩放；底栏隐藏/唤出及备注展开后，手机滚到正文末尾和页码均不被遮挡。移除消费端重复实现的页框、folio 和全屏覆盖，不通过裁剪正文或缩字获得通过。
 7. PDF 按用户已确认的纸张、方向和页边距导出；缺少参数或未执行时记录 not-run。打印对话框与完整无障碍验收单独记录。
 
 ## 回传结果
