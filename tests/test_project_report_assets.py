@@ -192,6 +192,17 @@ class ProjectReportBrowserTests(unittest.TestCase):
                 self.assertEqual(metrics["background"], "rgb(237, 244, 241)")
         self.session.navigate(self.base + "html/templates/single-page/preview/index.html?theme=editorial-green")
         self.evaluate("new Promise((resolve,reject)=>{let n=0;function check(){if(document.querySelectorAll('.preview-item').length===21)resolve(true);else if(++n>100)reject(Error('preview incomplete'));else setTimeout(check,50)}check()})")
+        # 预览异步插入样式表；页面节点齐全不等于CSS已加载，不能提前把透明背景当回归。
+        # 等资源成功而非等待目标颜色，样式文件失效或配色错误仍应明确失败。
+        self.evaluate("""Promise.all([...document.querySelectorAll('link[rel="stylesheet"]')].map(link => {
+          if (link.sheet) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            const timer=setTimeout(() => reject(Error('stylesheet timeout: '+link.href)), 5000);
+            link.addEventListener('load', () => {clearTimeout(timer);resolve();}, {once:true});
+            link.addEventListener('error', () => {clearTimeout(timer);reject(Error('stylesheet failed: '+link.href));}, {once:true});
+          });
+        })).then(() => document.fonts.ready)""")
+        self.settle()
         colors = self.evaluate("[...document.querySelectorAll('.preview-item__page > section')].map(e=>getComputedStyle(e).backgroundColor)")
         self.assertEqual(set(colors), {"rgb(237, 244, 241)"})
 
