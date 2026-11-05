@@ -60,3 +60,11 @@ Agent 调用顺序固定为：读取 `package.yml` → 读取 `index.yml` → �
 单页组合可在页面声明的具名槽中选用组件，组件仍由核心包统一提供。`content.mapping` 必须保留目标/事实的性质；`evidence.observation` 保留口径和来源状态；`evidence.figure-analysis` 保留图注和图像替代文本。详尽来源可放默认隐藏备注，必要事实限定不能因此隐藏。
 
 组件填写遵循[模板填写与复用协议](../../templates/FILLING.md)。带状态片段默认使用合法的待核验/拟议状态；填写时同步 `data-state` 与可见 `data-slot="state"` 标签，不能把候选列表写入属性。
+
+## 周期汇报展示
+
+核心包1.2.0新增`status.progress`、`evidence.claim-source`、`action.plan-table`。分别沿用metric、claim/source、next-step语义，提供进度、就近证据与计划矩阵，不创建新的业务状态系统。
+
+组件默认是待确认/拟议。未知进度隐藏原生progress，明确数字后同步其value属性、可见百分比、来源和状态。计划复制行时逐项记录责任和期限；证据地址核对前只保留文字。新单页嵌入同样结构，内部data-field仅供就地编辑，不是page-plan的可填槽。
+
+`--theme editorial-green`选择浅绿主题；暖黄仍使用editorial-warm。同一HTML结构换主题，不复制两套模板。具体规则与匿名示例见[周期汇报资产说明](../../../../docs/project-report-reusable-assets.md)。

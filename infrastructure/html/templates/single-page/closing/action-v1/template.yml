@@ -1,6 +1,6 @@
 id: html.single-page.closing.action-v1
 kind: single-page-template
-version: 1.0.0
+version: 1.0.1
 role: closing
 variant: action
 label: 结论与下一步

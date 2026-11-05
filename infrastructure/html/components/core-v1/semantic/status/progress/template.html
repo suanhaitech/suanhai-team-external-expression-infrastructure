@@ -1,0 +1,8 @@
+<article class="ex-progress" data-component="status.progress" data-state="unverified">
+  <header class="ex-progress__heading"><strong data-slot="label">[计划对象]</strong><span class="ex-progress__value" data-slot="value">待确认</span></header>
+  <!-- 未知值不等于0。确认0至100的数值后才解除hidden，并同步value属性和可见百分比。 -->
+  <progress class="ex-progress__bar" max="100" aria-label="周期计划完成情况" hidden></progress>
+  <p class="ex-progress__scope"><span data-slot="period">[计划周期]</span> · <span data-slot="definition">[完成口径，说明是否为负责人自评]</span></p>
+  <p class="ex-progress__source" data-slot="source_ids">[来源ID、评估人及信息日期；缺失时待确认]</p>
+  <span class="ex-progress__state" data-slot="state">待核验</span>
+</article>

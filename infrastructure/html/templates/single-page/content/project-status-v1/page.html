@@ -1,0 +1,18 @@
+<section class="ex-page ex-report-page sp-project-status" data-single-page-role="content" aria-labelledby="report-page-title">
+<header class="ex-report-page__header"><p class="ex-report-page__eyebrow" data-slot="eyebrow">[章节 · 工作主线]</p><h2 id="report-page-title" data-slot="title">[本页要说明的核心信息]</h2></header>
+<div class="ex-report-page__body"><div class="ex-report-status__columns">
+  <section><h3>当前项目阶段</h3><ul class="ex-report-status__stages" data-slot="stages"><li><strong>[项目级工作特征]</strong><p>[当前探索、改进或工程化设计的具体对象]</p></li><li><strong>[另一项工作特征]</strong><p>[说明与目标的关系，不机械对应负责人]</p></li></ul></section>
+  <section><h3>周期计划详情</h3><ul class="ex-report-status__plans" data-slot="plans"><li><strong>[工作主线]</strong><p>[本周期明确的交付与核对要求]</p></li><li><strong>[工作主线]</strong><p>[计划不是完成结果]</p></li></ul></section>
+  <section><h3>周期计划完成情况</h3><div data-slot="progress"><article class="ex-progress" data-component="status.progress" data-state="unverified">
+  <header class="ex-progress__heading"><strong data-field="label">[计划对象]</strong><span class="ex-progress__value" data-field="value">待确认</span></header>
+  <!-- 未知值不等于0。确认0至100的数值后才解除hidden，并同步value属性和可见百分比。 -->
+  <progress class="ex-progress__bar" max="100" aria-label="周期计划完成情况" hidden></progress>
+  <p class="ex-progress__scope"><span data-field="period">[计划周期]</span> · <span data-field="definition">[完成口径，说明是否为负责人自评]</span></p>
+  <p class="ex-progress__source" data-field="source_ids">[来源ID、评估人及信息日期；缺失时待确认]</p>
+  <span class="ex-progress__state" data-field="state">待核验</span>
+</article>
+</div></section>
+</div><p class="ex-report-status__judgment" data-slot="judgment">[整体状态判断及依据；风险或缺口影响判断时必须可见]</p></div>
+<aside class="ex-report-page__supporting" aria-label="补充内容"><!-- SUANHAI_COMPONENTS:supporting --></aside>
+<footer class="ex-report-page__footer"><small data-slot="source">[来源ID、版本、信息截止时间与核验人]</small><span><!-- SUANHAI_PAGE_NUMBER --></span></footer>
+</section>

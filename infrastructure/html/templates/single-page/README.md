@@ -1,6 +1,6 @@
 # 单页模板契约
 
-单页模板是可嵌入 HTML 容器的逻辑页面。当前十七种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
+单页模板是可嵌入 HTML 容器的逻辑页面。当前二十一种模板均已登记为 Manifest 能力，可由 `html.materialize` 按顺序装入兼容容器。
 
 ```text
 single-page/
@@ -71,3 +71,7 @@ compatible_container_families:
 - 正文：`stages-v1`、`observation-v1`、`definition-mapping-v1`、`comparison-v1`、`figure-analysis-v1`、`keyword-grid-v1`；
 - 既有增强：目录起始页码、过渡范围说明、方法页2–4步骤；
 - 共同规则：一页一个问题、标题自然换行、手机可读字号、必要限定可见，详细说明可以放默认隐藏备注。
+
+## 周期汇报的展开页
+
+新增`content/project-status-v1`、`content/workstream-research-v1`、`content/conclusion-evidence-v1`、`content/workstream-plan-v1`，共21种已登记单页。可独立使用，主线页可按“主题与进展 → 结论与证据 → 下周期计划”组合，不固定数量。原有project-overview和workstream-update保留紧凑对照用途。详见[填写与场景选择](../../../../docs/project-report-reusable-assets.md)。

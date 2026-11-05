@@ -1,0 +1,28 @@
+{
+  "id": "action.plan-table",
+  "version": "1.0.0",
+  "role": "任务交付核对矩阵",
+  "required_slots": [
+    "period",
+    "action",
+    "deliverable",
+    "completion_condition",
+    "owner",
+    "due_date",
+    "dependency",
+    "state"
+  ],
+  "optional_slots": [
+    "source_ids"
+  ],
+  "states": [
+    "proposed",
+    "confirmed",
+    "in_progress",
+    "completed",
+    "blocked"
+  ],
+  "responsive": "窄屏自然重排，长文本不裁切。",
+  "accessibility": "状态有可见文字；使用原生progress或带列标题和caption的语义table；来源链接键盘可达。",
+  "provenance": "沿用action.next-step的行动、负责人、完成条件、时间及依赖语义。多项任务复制整行；责任或期限不同则逐行补明，不用一个统一页脚掩盖差异。不得把建议视为负责人承诺。"
+}

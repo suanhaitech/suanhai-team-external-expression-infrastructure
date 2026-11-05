@@ -1,0 +1,26 @@
+{
+  "id": "status.progress",
+  "version": "1.0.0",
+  "role": "周期计划进度",
+  "required_slots": [
+    "label",
+    "value",
+    "period",
+    "definition",
+    "source_ids",
+    "state"
+  ],
+  "optional_slots": [
+    "assessor",
+    "as_of"
+  ],
+  "states": [
+    "confirmed",
+    "candidate",
+    "unverified",
+    "not_applicable"
+  ],
+  "responsive": "窄屏自然重排，长文本不裁切。",
+  "accessibility": "状态有可见文字；使用原生progress或带列标题和caption的语义table；来源链接键盘可达。",
+  "provenance": "复用status.metric的指标语义；仅适用于有明确口径的0至100百分比。未知时保留待确认文字并隐藏progress；已知时同时更新value属性、可见值、来源和状态。禁止由任务数自动推导或把自评当技术成熟度。"
+}

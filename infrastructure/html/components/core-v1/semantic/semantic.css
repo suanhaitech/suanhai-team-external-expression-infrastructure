@@ -150,3 +150,41 @@
 @media print {
   .ex-keyword-grid__item, .ex-mapping dl > div, .ex-figure-analysis figure { break-inside: avoid; }
 }
+
+
+/* 周期汇报组件沿用已有语义；不依赖项目、固定页数或JavaScript。 */
+.ex-progress { min-width: 0; padding-block: .75rem; border-top: 1px solid var(--ex-color-line); }
+.ex-progress__heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.ex-progress__value { color: var(--ex-color-accent); font-size: 1.5rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.ex-progress__bar { display: block; width: 100%; height: .65rem; margin-top: .5rem; accent-color: var(--ex-color-accent); }
+.ex-progress__bar[hidden] { display: none; }
+.ex-progress__scope, .ex-progress__source, .ex-progress__state { margin: .35rem 0 0; color: var(--ex-color-muted); font-size: .875rem; }
+.ex-claim-source { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.5rem; min-width: 0; padding-block: 1rem; border-top: 1px solid var(--ex-color-line); }
+.ex-claim-source > * { min-width: 0; }
+.ex-claim-source h3 { margin: .25rem 0 .5rem; font-size: 1.375rem; line-height: 1.35; }
+.ex-claim-source p { margin: .4rem 0 0; overflow-wrap: anywhere; }
+.ex-claim-source__evidence { border-left: 1px solid var(--ex-color-line); padding-left: 1.25rem; }
+.ex-claim-source__state, .ex-claim-source__label { color: var(--ex-color-muted); font-size: .875rem; }
+.ex-claim-source a { color: var(--ex-color-accent); text-underline-offset: .2em; }
+.ex-claim-source a:focus-visible { outline: 3px solid var(--ex-color-accent); outline-offset: 3px; }
+.ex-plan-table { min-width: 0; }
+.ex-plan-table table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; }
+.ex-plan-table caption { padding-bottom: .75rem; text-align: left; color: var(--ex-color-muted); font-size: .875rem; }
+.ex-plan-table :is(th,td) { padding: .8rem; border-bottom: 1px solid var(--ex-color-line); vertical-align: top; overflow-wrap: anywhere; }
+.ex-plan-table thead { background: var(--ex-color-surface); color: var(--ex-color-accent); }
+.ex-plan-table thead th { font-size: .875rem; }
+.ex-plan-table__responsibility, .ex-plan-table__dependency { margin: .75rem 0 0; color: var(--ex-color-muted); font-size: .875rem; }
+@media (max-width: 760px) {
+  .ex-claim-source { grid-template-columns: minmax(0,1fr); gap: .75rem; }
+  .ex-plan-table table { table-layout: auto; }
+  .ex-plan-table :is(th,td) { padding: .65rem .35rem; }
+}
+@container (max-width: 760px) {
+  .ex-claim-source { grid-template-columns: minmax(0,1fr); gap: .75rem; }
+  .ex-plan-table table { table-layout: auto; }
+  .ex-plan-table :is(th,td) { padding: .65rem .35rem; }
+}
+@media print {
+  .ex-progress, .ex-claim-source, .ex-plan-table tr { break-inside: avoid; }
+  .ex-plan-table thead { display: table-header-group; }
+}

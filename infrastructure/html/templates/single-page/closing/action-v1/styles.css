@@ -9,8 +9,8 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(1.5rem, 5cqw, 4.5rem);
-  background: #f8f0df;
-  color: #202b36;
+  background: var(--ex-color-page, #f8f0df);
+  color: var(--ex-color-ink, #202b36);
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.55;
 }
@@ -22,7 +22,7 @@
 
 .sp-closing-action__eyebrow {
   margin: 0 0 0.75rem;
-  color: #875916;
+  color: var(--ex-color-highlight, #875916);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -44,12 +44,12 @@
 }
 
 .sp-closing-action__list li {
-  border-top: 2px solid #bf6244;
+  border-top: 2px solid var(--ex-color-highlight, #bf6244);
   padding-top: 1rem;
 }
 
 .sp-closing-action__list li > span {
-  color: #a14f37;
+  color: var(--ex-color-highlight, #a14f37);
   font-size: 0.8125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -62,15 +62,15 @@
 
 .sp-closing-action__list p {
   margin: 0;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.9375rem;
 }
 
 .sp-closing-action__footer {
   margin-top: 2.5rem;
-  border-top: 1px solid #ddccb0;
+  border-top: 1px solid var(--ex-color-line, #ddccb0);
   padding-top: 1rem;
-  color: #586776;
+  color: var(--ex-color-muted, #586776);
   font-size: 0.875rem;
 }
 

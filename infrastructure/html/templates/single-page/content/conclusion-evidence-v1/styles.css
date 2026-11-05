@@ -1,0 +1,5 @@
+/* 当前结论与证据：布局与组件由声明的shared_styles共同提供；局部类只补充本页约束。 */
+.sp-conclusion-evidence { isolation: isolate; }
+@media (max-width: 760px) { .sp-conclusion-evidence { min-height: 0; } }
+@container (max-width: 760px) { .sp-conclusion-evidence { min-height: 0; } }
+@media print { .sp-conclusion-evidence { overflow: visible; } }

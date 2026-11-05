@@ -1,6 +1,6 @@
 id: html.single-page.content.workstream-update-v1
 kind: single-page-template
-version: 1.0.0
+version: 1.0.1
 role: content
 variant: workstream-update
 label: 工作主线结果与证据
