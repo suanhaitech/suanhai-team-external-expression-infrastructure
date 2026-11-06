@@ -416,6 +416,11 @@ capabilities:
         self.assertTrue(payload["ok"])
         self.assertIn("固定使用 Suanhai", payload["planned_harness"])
 
+    def test_identity_guidance_is_added_only_to_current_harness(self):
+        self.assertNotIn("你是谁", RENDER_HARNESS_V1(SUBMODULE_PATH))
+        self.assertIn("你是谁", RENDER_HARNESS_V2(SUBMODULE_PATH))
+        self.assertIn("不创建任务", RENDER_HARNESS_V2(SUBMODULE_PATH))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -65,6 +65,8 @@ JSON 输出的顶层版本为 `submodule-preflight.v1`（由 `schema_version: 1`
 
 升级必须是消费端的一个可审查任务，按消费端总 Harness 从集成分支创建短期分支；如果消费端没有 `develop`，从默认分支创建短期分支，但不直接修改默认分支：
 
+当目标版本 Manifest 注册 `consumer.infrastructure-adoption-harness` 时，更新工作流还会预览并同步消费端 `AGENTS.md` 中由安装器管理的共享 Harness 区块。该差异和 gitlink 差异一并审阅，但需明确确认后才应用；安装器只修改带标记区块，冲突时停止。它不会自动改写标记外的消费端专属规则，也不会把更新后的 submodule 内容复制成父仓文件。目标版本缺少安装器时，不能借用其他 SHA 的脚本，应明确报告 Harness 未同步或暂停更新。
+
 1. 记录父仓库 commit、旧 gitlink、submodule `HEAD` 和工作树状态；若触发本次更新的顶层调用已经运行预检，复用该快照，否则运行一次预检；
 2. 在基础设施仓库选择已验收的不可变 commit，记录其来源和兼容性说明；不要使用 `git submodule update --remote`；
 3. 由操作者显式在隔离工作树中 checkout 候选 commit，然后运行目标 Manifest 校验、消费端冒烟测试和必要的真实任务试用；新 gitlink 尚未进入父仓 HEAD 前按提交前核对清单检查，不把因新旧 gitlink 不同导致的完整预检失败当作通过；

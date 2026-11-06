@@ -27,6 +27,8 @@ SUBMODULE_UPDATE_WORKFLOW = (ROOT / "workflows/submodule-update/WORKFLOW.md").re
 ONBOARDING = (ROOT / "workflows/group-asset-repository-onboarding/ENTRYPOINT.md").read_text(encoding="utf-8")
 TASK_LOOP = (ROOT / "workflows/task-loop/ENTRYPOINT.md").read_text(encoding="utf-8")
 HTML_PRODUCTION = (ROOT / "workflows/html/production/ENTRYPOINT.md").read_text(encoding="utf-8")
+SUBMODULE_UPDATE_WORKFLOW = (ROOT / "workflows/submodule-update/WORKFLOW.md").read_text(encoding="utf-8")
+SUBMODULE_UPDATE_ENTRYPOINT = (ROOT / "workflows/submodule-update/ENTRYPOINT.md").read_text(encoding="utf-8")
 
 
 class InfrastructureAdoptionDocsTest(unittest.TestCase):
@@ -99,6 +101,27 @@ class InfrastructureAdoptionDocsTest(unittest.TestCase):
         self.assertIn("后续不再需要首次接入提示词", ENTRYPOINT)
         self.assertIn("客户端会自动读取根 `AGENTS.md`", ENTRYPOINT)
         self.assertIn("每次新会话从本仓根目录开始", INSTALLER)
+
+    def test_identity_question_routes_to_repository_role_without_creating_a_task(self):
+        for text in (TEMPLATE_HARNESS, INSTALLER, BOOTSTRAP, HARNESS_PROTOCOL):
+            self.assertIn("你是谁", text)
+            self.assertIn("工作角色", text)
+            self.assertIn("不创建任务", text)
+        self.assertIn("## 8. 验证身份与仓库定位回答", (ROOT / "docs/consumer-repository-smoke-test.md").read_text(encoding="utf-8"))
+
+    def test_submodule_update_reviews_and_syncs_managed_consumer_harness(self):
+        capability = re.search(
+            r"(?ms)^  - id: consumer\.submodule-update\n(.*?)(?=^  - id: |\Z)",
+            MANIFEST,
+        )
+        self.assertIsNotNone(capability)
+        self.assertIn("- consumer.infrastructure-adoption-harness", capability.group(1))
+        for text in (SUBMODULE_UPDATE_ENTRYPOINT, SUBMODULE_UPDATE_WORKFLOW):
+            self.assertIn("planned_diff", text)
+            self.assertIn("--expect-plan-sha256", text)
+            self.assertIn("冲突", text)
+            self.assertIn("标记", text)
+        self.assertIn("Harness 同步状态", capability.group(1))
 
     def test_first_prompt_installs_persistent_consumer_harness(self):
         self.assertIn("一次性接入提示词", PROMPT)
