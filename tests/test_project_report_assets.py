@@ -33,8 +33,17 @@ MATERIALIZE = load("progress_materialize", "infrastructure/html/tools/materializ
 BROWSER = load("progress_browser", "infrastructure/html/tools/browser_support.py")
 
 
-def build(theme="editorial-green", repeated=False):
+def build(theme="editorial-green", repeated=False, figure=False):
     plan = json.loads((EXAMPLE / "page-plan.json").read_text(encoding="utf-8"))
+    if figure:
+        plan["pages"] = [{
+            "id": "figure", "template_id": "html.single-page.content.figure-analysis-v1",
+            "title": "输入与检查环节已在图中对应", "objective": "验证主图阅读",
+            "core_message": "设计关系可定位，未证明实现", "source_ids": ["synthetic-progress"],
+            "slots": {"title": "输入与检查环节已在图中对应", "summary": "合成图像证据，不代表真实项目",
+                      "boundary": "示意图只说明设计关系，不能证明已经实现或质量达标。"},
+            "components": [],
+        }]
     if repeated:
         page = copy.deepcopy(plan["pages"][1])
         page["id"] = "topic-second"
@@ -118,6 +127,27 @@ class ProjectReportContractTests(unittest.TestCase):
                     continue
                 self.assertTrue((doc.parent / link.split("?", 1)[0].split("#", 1)[0]).exists(), (doc, link))
 
+    def test_example_claim_mapping_and_local_material_locators_are_resolvable(self):
+        plan = json.loads((EXAMPLE / "page-plan.json").read_text(encoding="utf-8"))
+        mapping = json.loads((EXAMPLE / "source-map.json").read_text(encoding="utf-8"))
+        page_ids = {p["id"] for p in plan["pages"]}
+        source_ids = {s["id"] for s in plan["sources"]}
+        self.assertTrue(mapping["example"])
+        for source in mapping["sources"]:
+            self.assertIn(source["id"], source_ids)
+            self.assertTrue((EXAMPLE / source["path"]).is_file())
+        for page in mapping["pages"]:
+            self.assertIn(page["page_id"], page_ids)
+            for claim in page["claims"]:
+                self.assertTrue(set(claim["source_ids"]).issubset(source_ids))
+                self.assertTrue(claim["locator"])
+        markup = (EXAMPLE / "index.html").read_text(encoding="utf-8")
+        for path, fragment in re.findall(r'href="([^"#]+)#([^"#]+)"', markup):
+            self.assertIn(f'id="{fragment}"', (EXAMPLE / path).read_text(encoding="utf-8"))
+        notes = next(page["notes"] for page in plan["pages"] if page["id"] == "evidence")
+        for label in ("串场", "关键数字", "追问", "答复"):
+            self.assertIn(label, notes)
+
 
 class ProjectReportBrowserTests(unittest.TestCase):
     @classmethod
@@ -132,6 +162,11 @@ class ProjectReportBrowserTests(unittest.TestCase):
         files, _ = build()
         for relative, content in files.items():
             path = cls.workspace / "deck" / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        figure_files, _ = build(figure=True)
+        for relative, content in figure_files.items():
+            path = cls.workspace / "figure-deck" / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
         cls.base = cls.resources.enter_context(BROWSER.LocalArtifactServer(cls.workspace)) + "/"
@@ -207,13 +242,59 @@ class ProjectReportBrowserTests(unittest.TestCase):
         self.assertEqual(set(colors), {"rgb(237, 244, 241)"})
 
     def test_local_evidence_target_and_print_natural_flow(self):
-        self.evaluate("document.querySelector('.ex-claim-source a').click()")
-        self.settle()
-        self.assertTrue(self.evaluate("location.hash==='#trial' && !!document.getElementById('trial')"))
+        # 一个判断的两项互补证据应各自到达真实定位，而非两个独立判断卡。
+        self.assertEqual(self.evaluate("document.querySelectorAll('.sp-conclusion-evidence .ex-claim-source').length"), 1)
+        for target in ("trial", "design"):
+            self.evaluate(f"document.querySelector('.ex-claim-source a[href=\"source.html#{target}\"]').click()")
+            self.settle()
+            self.assertTrue(self.evaluate(f"location.hash==='#{target}' && !!document.getElementById('{target}')"))
+            self.session.navigate(self.base + "html/examples/project-progress/index.html")
         self.session.navigate(self.base + "html/examples/project-progress/index.html")
         self.session.viewport(1123, 794, "print")
         values = self.evaluate("[...document.querySelectorAll('.ex-report-page')].map(e=>({height:e.clientHeight,scroll:e.scrollHeight,overflow:getComputedStyle(e).overflowY}))")
         self.assertTrue(all(x["scroll"] <= x["height"] + 1 and x["overflow"] != "hidden" for x in values), values)
+
+    def test_main_figure_uses_available_space_without_clipping_or_distortion(self):
+        self.session.navigate(self.base + "figure-deck/index.html")
+        self.evaluate("""(() => {
+          document.querySelector('figcaption').textContent='synthetic-progress · 原创合成图';
+          document.querySelector('.sp-content-figure-analysis__analysis').innerHTML=
+            '<article><h3>图中事实</h3><p>输入、检查与返回可逐项定位。</p></article>'+
+            '<article><h3>解释</h3><p>职责边界可作为接口评审输入。</p></article>'+
+            '<article><h3>边界</h3><p>图中关系不证明已实现。</p></article>';
+        })()""")
+        for layout in ("side", "below"):
+            self.evaluate(f"document.querySelector('[data-analysis-layout]').dataset.analysisLayout='{layout}'")
+            for image in ("wide", "tall"):
+                source = self.base + f"html/examples/project-progress/assets/evidence-{image}.svg"
+                self.evaluate("(async()=>{const img=document.querySelector('.sp-content-figure-analysis img');img.src=" + json.dumps(source) + ";img.removeAttribute('width');img.removeAttribute('height');await img.decode();})()")
+                for width, height in ((1366, 768), (1280, 650), (1000, 700), (1920, 1080), (390, 844)):
+                    self.session.viewport(width, height, "screen")
+                    self.settle()
+                    metrics = self.evaluate("""(() => {
+                      const p=document.querySelector('.sp-content-figure-analysis'),img=p.querySelector('img');
+                      const box=img.getBoundingClientRect(),body=p.querySelector('.ex-page__body').getBoundingClientRect();
+                      return {page:[p.clientWidth,p.scrollWidth,p.clientHeight,p.scrollHeight],image:[box.width,box.height],
+                        ratio:img.naturalWidth/img.naturalHeight,bodyHeight:body.height,fit:getComputedStyle(img).objectFit};
+                    })()""")
+                    self.assertLessEqual(metrics['page'][1], metrics['page'][0] + 1, (layout,image,width,metrics))
+                    self.assertAlmostEqual(metrics['image'][0]/metrics['image'][1], metrics['ratio'], delta=.02, msg=str(metrics))
+                    self.assertEqual(metrics['fit'], 'contain')
+                    if width >= 1000:
+                        self.assertLessEqual(metrics['page'][3], metrics['page'][2] + 2, (layout,image,width,metrics))
+                        # 竖图也要利用正文高度，不能退回固定15rem小图；这是合成夹具的回归门槛。
+                        if layout == 'side' and image == 'tall':
+                            self.assertGreater(metrics['image'][1], metrics['bodyHeight'] * .7, metrics)
+                    else:
+                        self.assertGreaterEqual(metrics['image'][0], 250, metrics)
+        self.session.viewport(1123, 794, "print")
+        self.settle()
+        self.assertTrue(self.evaluate("(() => {const p=document.querySelector('.sp-content-figure-analysis');return p.scrollHeight<=p.clientHeight+2&&getComputedStyle(p).overflowY!=='hidden';})()"))
+        # 极长解释必须仍然报告真实溢出，不能因 flex/grid 适配而截断或挤没证据。
+        self.session.viewport(1280, 650, "screen")
+        self.evaluate("document.querySelector('[data-analysis-layout]').dataset.analysisLayout='side';document.querySelector('.sp-content-figure-analysis__analysis p').textContent='超量说明需要拆页。'.repeat(150)")
+        self.settle()
+        self.assertTrue(self.evaluate("(() => {const p=document.querySelector('.sp-content-figure-analysis');return p.scrollHeight>p.clientHeight+20&&getComputedStyle(p).overflowY==='auto';})()"))
 
 
 if __name__ == "__main__":

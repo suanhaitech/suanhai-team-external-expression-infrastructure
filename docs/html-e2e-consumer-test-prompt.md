@@ -159,7 +159,7 @@ align 后再次 show，使用最新 version 执行 start：
 
 编辑前按 materialization.json 的 files 清单核对基线 SHA-256。然后将标题换成“HTML 基础设施端到端测试”，填入五个已选语义组件的合成文本，替换所有可能被误认为事实的占位内容。
 
-创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；核对 report.yml 并更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、响应式布局 ID、运行时包 ID 和语义组件 ID。本轮为覆盖运行时能力而显式选择 `html.runtime-kit-v1`，不代表所有业务页面默认包含它。
+创建 reports/$taskId/v001/sources.yml，登记 id synthetic-html-e2e，引用 `$sourcePath`，注明仅内部合成测试、无发布授权；核对 report.yml 并更新该目录 README，记录 mode、基础设施 SHA、模板 ID、组件包 ID、响应式布局 ID、运行时包 ID 和语义组件 ID。新物料化默认配齐 `html.runtime-kit-v1` 与原图阅读器；本轮显式参数用于记录同一选择，旧页面不会因升级 submodule 自动获得它们。
 
 编辑后不得再次对同一目录 apply。若需修改，通过 task-loop feedback 创建新修订和 v002，不覆盖 v001。materialization.json 是初始物料化基线；编辑 index.html 后其哈希变化是预期的，未编辑共享 CSS、组件包和元数据应保持基线哈希。
 
@@ -182,6 +182,16 @@ align 后再次 show，使用最新 version 执行 start：
 `html.viewport-check` 的静态结果必须通过；浏览器部分如果依赖未安装则记录 `not-run`，并明确写“浏览器检查未执行”，不能写成视觉通过。浏览器可用时，在脚本运行后的 DOM 核对工具栏和动态按钮，实际切换自动/窄屏/平板/桌面模式、进入/退出全屏、点击“保存 PDF”并检查打印媒体隐藏工具栏，逐项记录预期行为、实际结果及限制；公式渲染也需实际观察。仅发现按钮或生成 PDF 文件不能替代这些交互检查。PDF 工具必须返回 `completed` 并生成 PDF，或在没有本机浏览器时明确返回 `not-run`，不得伪造结果。随后本地浏览器打开页面，检查桌面、手机和 A4 打印预览；截图只能存放仓库外临时目录。
 
 每个视口必须记录目标宽高和页面实际 `window.innerWidth` / `window.innerHeight`。Chrome 的 `--window-size` 可能受最小窗口宽度限制，参数写 390 不代表实际视口达到 390px；运行时的“窄屏”模式也只调整 CSS，不模拟设备视口。手机检查应使用设备模拟、可设定 viewport 的浏览器工具或真机达到目标 390px，并检查文本、导航、表格和水平溢出。若实际宽度仍为 504px 等更宽值，只记录该宽度的结果，将 390px 手机检查标为 `not-run`，不能据此判定手机适配通过或失败。
+
+## 演示稿与项目汇报的增量验收（选用时）
+
+本提示词的基础用例是长页，不能据此宣称演示稿已验收。选用分页组合或项目进展场景时，另读固定版本的 `docs/project-report-reusable-assets.md` 与 `docs/html-presentation-safe-area-test.md`，沿同一任务协议在隔离新版本验证：
+
+- 证据页一页一个主判断，同一主张可有多项互补证据；逐项核对内容、来源版本、定位、支持关系和适用边界，设计、实现、实测及建议分开。
+- 横图/竖图及侧排/下排的默认主证据可读，原图入口能打开正确文件；查看关键标注，不以无溢出或可放大代替可读性。
+- `pages[].notes` 包含串场句、关键数字、可能追问和答复来源；必要条件留正文，隐藏备注不承载未授权内容。
+- 全屏期间底部控制栏持续隐藏且不可聚焦，真实鼠标/触摸到下沿不唤出、Tab不进入底栏、画布比例稳定，键盘翻页可用，Esc退出后恢复；图片模态框内先关闭图片。未执行的输入/焦点检查分别记 `not-run`，不添加全局指针事件拦截。
+- 完整检查使用 `--all-pages --interactions --full-page --fail-on-overflow --artifact-kind template|report`，逐项保存结果；来源语义和披露范围仍由负责人核验。
 
 ## 6. review 和 validate
 

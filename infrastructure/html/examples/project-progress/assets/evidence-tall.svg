@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-labelledby="title desc">
+  <title id="title">合成检查路径竖图</title>
+  <desc id="desc">从输入到检查再到返回的三个步骤，底部标明图的边界；仅作竖图完整显示验证。</desc>
+  <rect width="800" height="1000" fill="#edf4f1"/>
+  <g fill="#fff" stroke="#23634f" stroke-width="4">
+    <rect x="160" y="130" width="480" height="180" rx="16"/>
+    <rect x="160" y="410" width="480" height="180" rx="16"/>
+    <rect x="160" y="690" width="480" height="180" rx="16"/>
+  </g>
+  <g stroke="#23634f" stroke-width="6"><path d="M400 310v80m-18-20 18 20 18-20M400 590v80m-18-20 18 20 18-20" fill="none"/></g>
+  <g font-family="sans-serif" fill="#20352b" text-anchor="middle">
+    <text x="400" y="70" font-size="38">合成示意 · 检查路径</text>
+    <g font-size="42"><text x="400" y="235">输入约束</text><text x="400" y="515">检查动作</text><text x="400" y="795">返回记录</text></g>
+    <text x="400" y="950" font-size="30">完整显示末端，不作验收证据</text>
+  </g>
+</svg>

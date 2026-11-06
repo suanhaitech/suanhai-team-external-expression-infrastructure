@@ -13,7 +13,7 @@
     },
     {
       "id": "expression.scenario.project-progress-communication-v1",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "label": "面向合作方的项目进展沟通",
       "profile": "scenarios/project-progress-communication-v1/README.md",
       "metadata": "scenarios/project-progress-communication-v1/scene.yml",
