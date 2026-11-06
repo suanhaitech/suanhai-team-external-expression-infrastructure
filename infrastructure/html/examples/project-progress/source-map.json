@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "sources": [{"id": "synthetic-progress", "path": "source.md", "kind": "synthetic-example", "allowed_use": "内部匿名结构验证", "review_status": "example-only"}],
+  "pages": [{
+    "page_id": "evidence",
+    "claims": [{
+      "kind": "presenter-synthesis",
+      "statement": "接口设计已有局部验证依据，可作为评审输入",
+      "source_ids": ["synthetic-progress"],
+      "locator": "source.md 的设计内容/本期结果；人读视图 source.html#design 与 source.html#trial",
+      "verification": "synthetic-example-only-not-professionally-verified"
+    }]
+  }],
+  "limits": ["人工映射示例，没有专用 Schema 或语义验证器；不证明真实事实、实现完成或发布授权"]
+}

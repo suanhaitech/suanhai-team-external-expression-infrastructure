@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">合成接口检查图</title>
+  <desc id="desc">输入经过检查后产生返回记录，三个框各标明职责；仅作可读性与宽图版式验证。</desc>
+  <rect width="1280" height="720" fill="#edf4f1"/>
+  <g fill="#fff" stroke="#23634f" stroke-width="4">
+    <rect x="60" y="230" width="300" height="230" rx="16"/>
+    <rect x="490" y="230" width="300" height="230" rx="16"/>
+    <rect x="920" y="230" width="300" height="230" rx="16"/>
+  </g>
+  <g stroke="#23634f" stroke-width="6"><path d="M360 345H475m-20-16 20 16-20 16M790 345H905m-20-16 20 16-20 16" fill="none"/></g>
+  <g font-family="sans-serif" fill="#20352b" text-anchor="middle">
+    <text x="640" y="95" font-size="42">合成示意 · 职责与输入输出</text>
+    <g font-size="38"><text x="210" y="325">输入</text><text x="640" y="325">检查</text><text x="1070" y="325">返回</text></g>
+    <g font-size="30"><text x="210" y="385">字段与约束</text><text x="640" y="385">定位错误</text><text x="1070" y="385">保留记录</text></g>
+    <text x="640" y="640" font-size="30">仅表达设计关系，不证明实现或质量达标</text>
+  </g>
+</svg>

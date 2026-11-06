@@ -68,3 +68,9 @@ Agent 调用顺序固定为：读取 `package.yml` → 读取 `index.yml` → �
 组件默认是待确认/拟议。未知进度隐藏原生progress，明确数字后同步其value属性、可见百分比、来源和状态。计划复制行时逐项记录责任和期限；证据地址核对前只保留文字。新单页嵌入同样结构，内部data-field仅供就地编辑，不是page-plan的可填槽。
 
 `--theme editorial-green`选择浅绿主题；暖黄仍使用editorial-warm。同一HTML结构换主题，不复制两套模板。具体规则与匿名示例见[周期汇报资产说明](../../../../docs/project-report-reusable-assets.md)。
+
+### 一个判断与多项证据
+
+`evidence.claim-source` 一个 article 表示一个判断。物料化后在其证据区用原生列表或段落列互补证据，每项分别写内容、来源 ID、版本、定位及支持关系；保留原有首条 `source/locator`，新增条目不重复声明同名 `data-slot`，不改变契约枚举或把 HTML 塞进页面计划。不同主张拆成独立证据页，不靠复制判断卡凑固定数量。可在同页 supporting 槽配 `evidence.observation` 展示有口径的观察，但须避免与主体重复。
+
+图像为主要证明任务时优先用图像分析页/`evidence.figure-analysis`，保留图注、alt、来源与适用边界，原图交互复用 image-viewer。观察值不能直接变成因果结论，设计不能冒充实现，终止状态不能代替独立质量验收。source/claim 状态与发布授权各司其职。完整的[页面语义与组件映射](../../../../docs/project-report-reusable-assets.md)由场景说明维护，不新增重复组件。

@@ -36,6 +36,8 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/rep
 
 候选验证默认复用目标完整 SHA 已有的基础设施完整回归成功记录，不能只看 PR/普通说明的快速检查或 Manifest；缺少完整记录时可选已有完整记录的版本，或在基础设施仓手动运行目标版本的完整 CI。消费端不重新运行基础设施全量测试。本地 checkout/fetch 不触发远端 CI；只恢复另一父仓分支已固定的版本时，执行版本一致性预检即可。未完成 CI 的试验提交应说明状态，由负责人明确选择试用并检查受影响能力。详见 [CI 验证边界](../../docs/ci-validation.md)。
 
+HTML 资产在物料化时复制到消费端，更新 gitlink 不会改写旧作品。需要新版页面、主图布局或全屏行为时，从新固定版本读取 HTML 工作流、场景画像和填写协议，在新的 `vNNN` 中生成并检查；保留历史作品、来源哈希与检查证据，不手改旧 materialization 来源制造升级记录。项目汇报按目标版本的 `docs/project-report-reusable-assets.md` 核对内容与交互增量。
+
 ## 阶段 3：受控更新
 
 获得确认后，按消费端总 Harness 从集成分支创建短期分支；若消费端没有 `develop`，从默认分支创建短期分支，不直接修改默认分支。然后在 submodule 内获取目标对象并执行 `git checkout --detach <完整SHA>`。此时父仓 `HEAD` 仍记录旧 gitlink，预检工具会正确报告新旧不一致，因此不要在父仓提交前将完整 preflight 当作通过标准。

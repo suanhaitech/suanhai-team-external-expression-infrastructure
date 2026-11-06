@@ -12,7 +12,7 @@
 - 各独立工作流位于 `workflows/`；任务画像位于 `scenarios/`；HTML 制作工作流位于 `workflows/html/production/`，HTML 容器、单页模板、组合预设、组件、样式、运行时和专用工具位于 `infrastructure/html/`；资产仓建仓与初始化流程位于 `workflows/group-asset-repository-create-and-initialize/`、`workflows/group-asset-repository-onboarding/`，其模板和铺设工具位于 `infrastructure/group-asset-repository/`；
 - `kind: workflow` 表示面向完整目标的复合能力；工作流入口负责约束 Agent，并通过 `uses` 声明依赖的能力；
 - 实际能力以当前 `capabilities` 为准；任务循环、状态工具、HTML 网页制作工作流、长页项目汇报模板、多页演示稿模板、语义组件包、响应式布局包、`html.runtime-kit-v1`、`html.materialize`、`html.viewport-check` 和 `html.pdf-export` 属于 `implemented / experimental`；演示稿模板提供底部页码/前后页导航、键盘翻页、比例选择、讲者备注和逐页打印；运行时包的公式渲染、显示模式、全屏和浏览器保存 PDF 入口已实现，新物料化默认配齐工具栏/公式与原图阅读器，演示稿统一底部控制栏；原图支持适应窗口、原始尺寸、缩放和拖动。真实浏览器检查与确定性 PDF 导出依赖本机运行时，系统打印对话框与完整无障碍仍需人工核验；
-- 开发版新增课程实践提炼的7种单页、5组件、公共页框、可选主题、原图阅读器、页面计划及局部修订、整稿CDP检查与素材登记；完整入口与边界见 `docs/course-reusable-assets.md`。新模板与既有仓接入均提供资产字节保护规则，不能自动归一化历史来源。
+- 已提供课程实践提炼的7种单页、5组件、公共页框、可选主题、原图阅读器、页面计划及局部修订、整稿CDP检查与素材登记；完整入口与边界见 `docs/course-reusable-assets.md`。新模板与既有仓接入均提供资产字节保护规则，不能自动归一化历史来源。
 - 新 HTML 任务默认分页组合；用户明确要求连续阅读、传阅或查阅时保留长页。模板/完整报告分别检查，页面计划登记候选与选用资产、定制理由和验收信号，填写遵循 `infrastructure/html/templates/FILLING.md`。
 - 不得因为目录存在，就把计划能力描述为已经可用。
 

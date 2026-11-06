@@ -1,6 +1,6 @@
 id: expression.scenario.project-progress-communication-v1
 kind: expression-scenario
-version: 1.2.0
+version: 1.2.1
 label: 面向合作方的项目进展沟通
 workflow: expression.html-production
 output_root: reports

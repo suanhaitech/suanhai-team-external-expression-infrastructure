@@ -43,6 +43,23 @@ class HtmlProductionDocumentationTest(unittest.TestCase):
         self.assertIn("expression.html-production", entrypoint)
         self.assertIn("expression.task-record", workflow)
 
+    def test_project_evidence_rules_reach_all_active_html_agent_entrypoints(self):
+        # 入口、详细流程和转发提示词都必须把同一内容契约传到消费端，
+        # 避免只在设计文档补规范而实际执行仍按旧逻辑填页面。
+        for name in ("ENTRYPOINT.md", "WORKFLOW.md", "START_HTML_PRODUCTION.md"):
+            text = (WORKFLOW / name).read_text(encoding="utf-8")
+            for marker in ("project-report-reusable-assets.md", "一个主判断", "互补证据",
+                           "conclusion-evidence-v1", "figure-analysis-v1", "关键数字", "追问",
+                           "持续隐藏且不可聚焦", "Esc", "不唤出"):
+                self.assertIn(marker, text, (name, marker))
+        prompt = (ROOT / "docs/html-e2e-consumer-test-prompt.md").read_text(encoding="utf-8")
+        self.assertIn("全屏期间底部控制栏持续隐藏且不可聚焦", prompt)
+        self.assertIn("not-run", prompt)
+        catalog = json.loads((ROOT / "scenarios/catalog.json").read_text(encoding="utf-8"))
+        scenario = next(item for item in catalog["scenarios"] if item["output_root"] == "reports")
+        metadata = (ROOT / scenario["metadata"]).read_text(encoding="utf-8")
+        self.assertIn(f'version: {scenario["version"]}', metadata)
+
     def test_manifest_registers_workflow_and_component_package(self):
         manifest = (ROOT / "manifest.yml").read_text(encoding="utf-8")
         self.assertIn("id: expression.html-production", manifest)
