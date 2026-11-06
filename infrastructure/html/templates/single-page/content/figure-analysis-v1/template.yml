@@ -1,0 +1,28 @@
+id: html.single-page.content.figure-analysis-v1
+kind: single-page-template
+version: 1.0.2
+role: content
+variant: figure-analysis
+label: 图像与分析
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+recommended_theme: editorial-warm
+shared_styles:
+  - styles/presentation-v1/styles.css
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - summary
+  - figure
+  - analysis
+  - boundary
+compatible_container_families:
+  - paged-deck
+component_slots:
+  - supporting

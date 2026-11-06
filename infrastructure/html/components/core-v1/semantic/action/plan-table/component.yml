@@ -1,0 +1,26 @@
+id: action.plan-table
+version: 1.0.0
+category: action
+role: 任务交付核对矩阵
+required_slots:
+  - period
+  - action
+  - deliverable
+  - completion_condition
+  - owner
+  - due_date
+  - dependency
+  - state
+optional_slots:
+  - source_ids
+states:
+  - proposed
+  - confirmed
+  - in_progress
+  - completed
+  - blocked
+template: template.html
+styles: ../../semantic.css
+responsive: 窄屏自然重排，保留正文和核对信息
+accessibility: 状态用文字表达，保留语义结构及键盘焦点
+provenance: 沿用action.next-step的行动、负责人、完成条件、时间及依赖语义。多项任务复制整行；责任或期限不同则逐行补明，不用一个统一页脚掩盖差异。不得把建议视为负责人承诺。

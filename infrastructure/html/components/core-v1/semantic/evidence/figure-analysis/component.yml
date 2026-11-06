@@ -1,0 +1,23 @@
+id: evidence.figure-analysis
+version: 1.0.0
+category: evidence
+role: 本地图像、图注与解释共用的图文分析结构
+required_slots:
+  - figure
+  - alt
+  - caption
+  - analysis
+  - source
+optional_slots:
+  - layout
+  - boundary
+  - source_ids
+states:
+  - draft
+  - confirmed
+template: template.html
+styles: ../../semantic.css
+responsive: 窄屏单列自然增高，长文本正常换行
+accessibility: 标题与状态可见；图片有替代文本；不只靠颜色区分
+provenance: 图片与结论均需来源；原图保持比例，不裁掉图例，不自动将原图重绘为未经确认的架构。
+image_viewer: 替换为本地图像后可包裹a[href][data-source-image]，两路径相同并提供data-source-caption；未加载运行时仍按链接打开。

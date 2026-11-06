@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="750" viewBox="0 0 1800 750">
+<rect width="1800" height="750" fill="#f4f7f1"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#233d30">
+<text x="100" y="120" font-size="22" letter-spacing="5">ANATOMY OF A WEB PAGE</text>
+<text x="100" y="225" font-size="56">各司其职，自由组合。</text>
+<g fill="#fff" stroke="#d7e2d5" stroke-width="2"><rect x="100" y="320" width="440" height="250" rx="20"/><rect x="680" y="320" width="440" height="250" rx="20"/><rect x="1260" y="320" width="440" height="250" rx="20"/></g>
+<g font-size="42"><text x="145" y="405">内容</text><text x="725" y="405">页面模板</text><text x="1305" y="405">交互组件</text></g>
+<g font-size="24" fill="#718075"><text x="145" y="465">表达什么</text><text x="725" y="465">如何组织与呈现</text><text x="1305" y="465">如何操作与阅读</text><text x="145" y="515">由用户提供并核对</text><text x="725" y="515">由模板承载样式</text><text x="1305" y="515">由组件库提供能力</text></g>
+<g font-size="46" fill="#91a48d"><text x="590" y="463">+</text><text x="1170" y="463">+</text></g>
+<text x="100" y="660" font-size="22" fill="#718075">SUANHAI · 通用组件示意，不含项目资料</text></g></svg>

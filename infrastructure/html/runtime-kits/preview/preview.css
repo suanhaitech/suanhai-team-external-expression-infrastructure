@@ -1,0 +1,144 @@
+body.deck-page-root {
+  background: #edf0ec;
+}
+
+.deck-header {
+  font-size: .65rem;
+  letter-spacing: .08em;
+}
+
+.deck-brand {
+  font-weight: 500;
+}
+
+.lab-page {
+  background: #fbfcf8;
+  justify-content: flex-start;
+  padding: clamp(1.5rem, 5cqw, 4rem);
+}
+
+.lab-eyebrow {
+  font-size: clamp(.6rem, 1.2cqw, .78rem);
+  letter-spacing: .17em;
+  color: #577164;
+  margin: 0 0 3cqw;
+}
+
+.lab-page h1, .lab-page h2 {
+  font-family: "Microsoft YaHei", sans-serif;
+  font-weight: 500;
+  letter-spacing: -.055em;
+  line-height: 1.2;
+  color: #233d30;
+  margin: 0;
+}
+
+.lab-page h1 {
+  font-size: clamp(2.5rem, 8cqw, 6.5rem);
+}
+
+.lab-page h2 {
+  font-size: clamp(1.8rem, 5cqw, 4rem);
+}
+
+.lab-lead {
+  font-size: clamp(1rem, 2cqw, 1.5rem);
+  color: #718075;
+  line-height: 1.9;
+  margin: 3cqw 0;
+}
+
+.lab-bottom {
+  margin-top: auto;
+  padding-top: 3cqw;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+  font-size: .7rem;
+  color: #718075;
+}
+
+.lab-body {
+  line-height: 1.8;
+  color: #718075;
+  font-size: clamp(.85rem, 1.6cqw, 1.1rem);
+}
+
+.lab-diagram {
+  display: block;
+  margin: 1rem 0;
+  color: #176854;
+  text-decoration: none;
+  font-size: .8rem;
+}
+
+.lab-diagram img {
+  width: 100%;
+  display: block;
+  border-radius: .8rem;
+  border: 1px solid #e1e7df;
+}
+
+.lab-diagram span {
+  display: inline-block;
+  padding-top: .7rem;
+}
+
+.lab-feature {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  margin: 2cqw 0 0;
+  border-top: 1px solid #e1e7df;
+  padding-top: 1.5cqw;
+}
+
+.lab-feature > span {
+  color: #7e9988;
+  font-size: .75rem;
+}
+
+.lab-feature h3 {
+  font-size: clamp(1rem, 2cqw, 1.4rem);
+  font-weight: 500;
+  margin: 0;
+  color: #233d30;
+}
+
+.lab-feature p {
+  font-size: .9rem;
+  color: #718075;
+  line-height: 1.8;
+  margin: .4rem 0 0;
+}
+
+@media print {
+  .lab-page {
+    min-height: 170mm !important;
+    padding: 8mm 12mm !important;
+  }
+  .lab-page h1 {
+    font-size: 44pt;
+  }
+  .lab-page h2 {
+    font-size: 30pt;
+  }
+  .lab-eyebrow {
+    margin-bottom: 5mm;
+  }
+  .lab-lead {
+    margin: 7mm 0;
+  }
+  .lab-diagram {
+    margin: 3mm 0;
+  }
+  .lab-diagram img {
+    width: auto;
+    max-width: 100%;
+    max-height: 85mm;
+  }
+  .lab-bottom {
+    padding-top: 5mm;
+  }
+}

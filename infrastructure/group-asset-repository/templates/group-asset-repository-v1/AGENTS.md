@@ -67,12 +67,12 @@ py -3 vendor/suanhai-team-external-expression-infrastructure/infrastructure/repo
 - `context/group/` 描述小组自身；`context/projects/` 可以为空，也可以登记多个项目。不要假设一个小组只有一个项目。
 - 用户提出真实工作需求后，先在 `tasks/` 登记并对齐任务，再按任务类别选择承载目录。
 - 报告类任务的版本产物放入 `reports/<task-id>/v001/`；系列、课程、书籍仍分别放入自己的归档位置。
-- `topics/` 只放来源明确、状态可追溯且适合复用的内部内容资产。
+- `topics/` 保存来源明确、状态可追溯、适合本小组重复使用且由本小组负责核实和更新的内容资产。可在本组复用不等于适合共享给其他组；只有脱离具体项目事实、适用边界清楚并能服务多个小组的抽象模式，才考虑提炼到基础设施仓。
 - 评审与发布授权记录放入 `reviews/`；生成文件或通过工程检查不等于真人确认或发布授权。
 
 ## 共享能力
 
-基础设施 submodule 默认只读。仅将 `manifest.yml` 中显式列出的能力视为可调用；目录存在或 README 写有计划，不代表能力已经实现。每次任务记录实际使用的能力 ID 与 submodule commit。
+基础设施 submodule 默认只读。它提供跨小组可复用的方法与执行能力，不是本小组事实或结论的权威副本。仅将 `manifest.yml` 中显式列出的能力视为可调用；目录存在或 README 写有计划，不代表能力已经实现。每次任务记录实际使用的能力 ID 与 submodule commit。
 
 ## 事实与授权
 

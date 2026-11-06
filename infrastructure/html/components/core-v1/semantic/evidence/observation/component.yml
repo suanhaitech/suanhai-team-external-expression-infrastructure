@@ -1,0 +1,23 @@
+id: evidence.observation
+version: 1.0.0
+category: evidence
+role: 展示观察值、样本与口径并标明来源状态
+required_slots:
+  - label
+  - value
+  - scope
+  - source
+  - source_status
+optional_slots:
+  - uncertainty
+  - questions
+  - source_ids
+states:
+  - draft
+  - unverified
+  - confirmed
+template: template.html
+styles: ../../semantic.css
+responsive: 窄屏单列自然增高，长文本正常换行
+accessibility: 标题与状态可见；图片有替代文本；不只靠颜色区分
+provenance: 观察值不是因果结论；样本、时间、单位、来源状态不应只放到隐藏备注中。

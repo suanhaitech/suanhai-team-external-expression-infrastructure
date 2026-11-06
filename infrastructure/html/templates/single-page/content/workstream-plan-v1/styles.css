@@ -1,0 +1,5 @@
+/* 下周期计划：布局与组件由声明的shared_styles共同提供；局部类只补充本页约束。 */
+.sp-workstream-plan { isolation: isolate; }
+@media (max-width: 760px) { .sp-workstream-plan { min-height: 0; } }
+@container (max-width: 760px) { .sp-workstream-plan { min-height: 0; } }
+@media print { .sp-workstream-plan { overflow: visible; } }

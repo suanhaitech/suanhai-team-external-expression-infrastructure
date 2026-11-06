@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN" data-deck-ratio="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="离线、响应式、可逐页打印的 HTML 演示稿" />
+    <title data-slot="page-title">交互组件体验</title>
+    <link rel="stylesheet" href="../runtime-kit-v1/runtime.css"><link rel="stylesheet" href="../runtime-kit-v1/math/katex.min.css"><link rel="stylesheet" href="../image-viewer-v1/runtime.css"><link rel="stylesheet" href="preview.css">
+
+
+    <link rel="stylesheet" href="../../templates/containers/presentation-deck-v1/styles.css" />
+    <link rel="stylesheet" href="../../templates/containers/presentation-deck-v1/deck.css" />
+  </head>
+  <body class="deck-page-root">
+    <div class="deck-shell">
+      <header class="deck-header">
+        <p class="deck-brand" data-slot="brand">SUANHAI / INTERACTION LAB</p>
+        <p class="deck-context" data-slot="header-context">交互组件体验 · 离线可用</p>
+      </header>
+
+      <div class="deck-tools" data-deck-tools hidden>
+        <label class="deck-ratio-control" for="deck-ratio">
+          <span>画布</span>
+          <select id="deck-ratio" data-deck-ratio-select aria-label="页面比例">
+            <option value="auto">自动适配</option>
+            <option value="wide">16:9 横屏</option>
+            <option value="classic">4:3 标准</option>
+            <option value="portrait">9:16 竖屏</option>
+          </select>
+        </label>
+        <div data-runtime-toolbar role="region" aria-label="页面工具"></div>
+      </div>
+
+      <main class="deck-stage" data-deck-stage role="region" aria-label="演示文稿">
+
+<section class="deck-page lab-page" data-deck-page data-page-title="阅读，从容一点" data-speaker-note="这是讲者备注。切换页面时内容跟随更新；Esc 可以收起备注。备注只供当前浏览器查看，投屏仍会显示，打印时隐藏。">
+  <p class="lab-eyebrow">BUILT FOR YOUR PRESENTATION</p>
+  <h1>阅读，<br>从容一点。</h1>
+  <p class="lab-lead">内容留在舞台中央。<br>翻页、显示与输出，触手可及。</p>
+  <div class="lab-bottom"><span>用底部控制栏体验全部交互</span><span>01 — 03</span></div>
+</section>
+<section class="deck-page lab-page" data-deck-page data-page-title="细节，值得看清" data-speaker-note="点击图示打开原图。适应窗口看全貌，原始尺寸或加号看细节。放大后可滚动或用鼠标拖动；方向键不会让背后演示稿翻页。">
+  <p class="lab-eyebrow">A CLOSER LOOK</p>
+  <h2>细节，值得看清。</h2>
+  <p class="lab-body">点击图示，体验适应窗口、原始尺寸与缩放。</p>
+  <a class="lab-diagram" href="diagram.svg" data-source-image="diagram.svg" data-source-caption="内容、页面模板与交互组件的组合">
+    <img src="diagram.svg" alt="内容、页面模板与交互组件组合为网页产物的示意图"><span>查看完整原图 ↗</span>
+  </a>
+  <div class="lab-bottom"><span>关闭后，回到刚才的位置</span><span>02 — 03</span></div>
+</section>
+<section class="deck-page lab-page" data-deck-page data-page-title="每一步，都有回应" data-speaker-note="公式通过本地 KaTeX 渲染。保存 PDF 打开浏览器打印对话框；请选择另存为 PDF。演示稿打印全部页面，隐藏控制栏与备注。">
+  <p class="lab-eyebrow">SMALL DETAILS, CLEAR FEEDBACK</p>
+  <h2>每一步，<br>都有回应。</h2>
+  <div class="lab-feature"><span>01</span><div><h3>显示与比例</h3><p>切换阅读宽度与画布比例，正文自然增长。</p></div></div>
+  <div class="lab-feature"><span>02</span><div><h3>全屏与输出</h3><p>进入专注视图，或通过打印对话框保存全部页面。</p></div></div>
+  <div class="lab-feature"><span>03</span><div><h3>离线公式</h3><p><span data-math="a^2 + b^2 = c^2">a² + b² = c²</span></p></div></div>
+  <div class="lab-bottom"><span>← → 翻页 · Home / End 首尾页</span><span>03 — 03</span></div>
+</section>
+
+      </main>
+
+      <aside class="deck-notes-panel" id="deck-notes-panel" data-deck-notes-panel hidden>
+        <h2>当前页讲者备注</h2>
+        <p data-deck-notes-content></p>
+      </aside>
+
+      <nav class="deck-controls" data-deck-controls aria-label="演示文稿控制" hidden>
+        <button class="deck-control-button" type="button" data-page-prev aria-label="上一页" disabled>
+          <span aria-hidden="true">←</span><span>上一页</span>
+        </button>
+        <div class="deck-page-picker">
+          <label class="deck-visually-hidden" for="deck-page-select">跳转到指定页</label>
+          <select id="deck-page-select" data-page-select></select>
+          <output data-page-position aria-live="polite" aria-atomic="true">01 / 01</output>
+        </div>
+        <button class="deck-control-button deck-control-button--notes" type="button" data-notes-toggle aria-expanded="false" aria-controls="deck-notes-panel">
+          <span>备注</span>
+        </button>
+        <button class="deck-control-button" type="button" data-page-next aria-label="下一页">
+          <span>下一页</span><span aria-hidden="true">→</span>
+        </button>
+        <div class="deck-progress" data-page-progress role="progressbar" aria-label="演示进度" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1">
+          <span data-page-progress-value></span>
+        </div>
+      </nav>
+    </div>
+
+    <script src="../runtime-kit-v1/math/katex.min.js"></script><script src="../runtime-kit-v1/runtime.js"></script><script src="../image-viewer-v1/runtime.js"></script>
+    <script src="../../templates/containers/presentation-deck-v1/deck.js"></script>
+  </body>
+</html>

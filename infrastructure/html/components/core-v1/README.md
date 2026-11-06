@@ -24,6 +24,11 @@
 | `evidence.claim` | 带核验状态的判断 |
 | `evidence.source` | 来源和允许使用范围 |
 | `action.next-step` | 下一步、责任人和完成标准 |
+| `content.definition` | 界定概念对象、定义句和适用边界 |
+| `content.mapping` | 将问题与响应机制或设计目标对应，不将目标冒充已实现收益 |
+| `content.keyword-grid` | 以2–4项关键词判断组织问题提出或总结回顾 |
+| `evidence.observation` | 展示观察值、样本与口径并标明来源状态 |
+| `evidence.figure-analysis` | 本地图像、图注与解释共用的图文分析结构 |
 
 布局原语包括 `ex-container`、`ex-stack`、`ex-grid`、`ex-section` 和 `ex-prose`。样式使用 `ex-` 前缀，避免与消费端既有 CSS 类名冲突。
 
@@ -47,3 +52,25 @@ Agent 调用顺序固定为：读取 `package.yml` → 读取 `index.yml` → �
 - 页面只引用本地 CSS；数学公式运行时由独立的 `html.runtime-kit-v1` 包提供，组件包本身不内置公式引擎、图表运行时或自动浏览器截图。
 
 具体契约见 `semantic/contracts/*.json`。包版本和资源入口见 `package.yml`，组件目录见 `index.yml`。
+
+## 可选主题与组合页面
+
+`themes/editorial-warm.css` 为暖纸白、墨蓝与橙色强调的可选主题；放在总样式之后加载，或在物料化时选择 `--theme editorial-warm`。它不强制应用于课程，原有主题仍可使用。
+
+单页组合可在页面声明的具名槽中选用组件，组件仍由核心包统一提供。`content.mapping` 必须保留目标/事实的性质；`evidence.observation` 保留口径和来源状态；`evidence.figure-analysis` 保留图注和图像替代文本。详尽来源可放默认隐藏备注，必要事实限定不能因此隐藏。
+
+组件填写遵循[模板填写与复用协议](../../templates/FILLING.md)。带状态片段默认使用合法的待核验/拟议状态；填写时同步 `data-state` 与可见 `data-slot="state"` 标签，不能把候选列表写入属性。
+
+## 周期汇报展示
+
+核心包1.2.0新增`status.progress`、`evidence.claim-source`、`action.plan-table`。分别沿用metric、claim/source、next-step语义，提供进度、就近证据与计划矩阵，不创建新的业务状态系统。
+
+组件默认是待确认/拟议。未知进度隐藏原生progress，明确数字后同步其value属性、可见百分比、来源和状态。计划复制行时逐项记录责任和期限；证据地址核对前只保留文字。新单页嵌入同样结构，内部data-field仅供就地编辑，不是page-plan的可填槽。
+
+`--theme editorial-green`选择浅绿主题；暖黄仍使用editorial-warm。同一HTML结构换主题，不复制两套模板。具体规则与匿名示例见[周期汇报资产说明](../../../../docs/project-report-reusable-assets.md)。
+
+### 一个判断与多项证据
+
+`evidence.claim-source` 一个 article 表示一个判断。物料化后在其证据区用原生列表或段落列互补证据，每项分别写内容、来源 ID、版本、定位及支持关系；保留原有首条 `source/locator`，新增条目不重复声明同名 `data-slot`，不改变契约枚举或把 HTML 塞进页面计划。不同主张拆成独立证据页，不靠复制判断卡凑固定数量。可在同页 supporting 槽配 `evidence.observation` 展示有口径的观察，但须避免与主体重复。
+
+图像为主要证明任务时优先用图像分析页/`evidence.figure-analysis`，保留图注、alt、来源与适用边界，原图交互复用 image-viewer。观察值不能直接变成因果结论，设计不能冒充实现，终止状态不能代替独立质量验收。source/claim 状态与发布授权各司其职。完整的[页面语义与组件映射](../../../../docs/project-report-reusable-assets.md)由场景说明维护，不新增重复组件。

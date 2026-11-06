@@ -30,6 +30,10 @@ Tool / Template / Skill / Check / Context
 
 基础设施仓库自己的根 `AGENTS.md` 也是一个总 Harness，但它只约束基础设施仓库自身的维护、验证和发布，不约束所有消费端的全部工作。
 
+两类仓库的规则也有不同职责：消费端根 Harness 规定本地事实放在哪里、由谁维护、哪些边界和授权适用；基础设施 workflow 入口规定一项跨组能力怎样执行、何时停止以及会产生什么副作用。消费端 Harness 不必复制每项能力的详细步骤，workflow 也不能把通用协议变成本地事实或覆盖本地责任规则。
+
+消费端 `topics/` 保存本组可复用、由本组负责核实和更新的内容；基础设施仓只沉淀适用多个小组、边界清楚的抽象模式、协议和能力。具体事实过期时由谁修正，是判断归属的首要线索；“可复用”本身不足以成为跨仓共享的理由。
+
 ### Capability
 
 Capability 是可以被 Agent 发现、选择和调用的能力单元。`manifest.yml` 是共享能力的唯一发现入口。一个 Capability 可以是工具、模板、技能、检查器或工作流。
@@ -110,9 +114,9 @@ schemas/                  根仓库协议 Schema（当前仅保留 Manifest Sche
 | `expression.task-loop` | Workflow Capability | `workflows/task-loop/ENTRYPOINT.md` | `expression.task-record` |
 | `expression.task-record` | Tool Capability | `infrastructure/task-loop/tools/task-record/task_loop.py` | Python 标准库 |
 | `expression.html-production` | Workflow Capability | `workflows/html/production/ENTRYPOINT.md` | `expression.task-loop`, `expression.task-record`, HTML 页面模板、语义组件包和按需运行时包 |
-| `html.materialize` | Tool Capability | `infrastructure/html/tools/materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的页面模板/布局/运行时/组件包、已对齐任务 |
+| `html.materialize` | Tool Capability | `infrastructure/html/tools/materialize/materialize_html.py` | 固定 submodule、Manifest 中登记的完整预设或容器与有序单页 ID、可选布局/运行时/组件包、已对齐任务 |
 | `consumer.submodule-preflight` | Tool Capability | `infrastructure/repository-management/tools/submodule-preflight/submodule_preflight.py` | Git CLI |
-| `html.project-report-v1` | Template Capability | `infrastructure/html/page-templates/project-report-v1/index.html` | 消费端已对齐任务和来源 |
+| `html.project-report-v1` | Template Capability | `infrastructure/html/templates/presets/project-report-v1/index.html` | 消费端已对齐任务和来源 |
 | `html.semantic-components-v1` | Template Capability | `infrastructure/html/components/core-v1/README.md` | 离线样式令牌、布局与六种语义组件 |
 | `html.responsive-layout-v1` | Template Capability | `infrastructure/html/styles/responsive-v1/README.md` | 离线响应式、长宽比、方向和打印布局规则 |
 | `html.runtime-kit-v1` | Template Capability | `infrastructure/html/runtime-kits/runtime-kit-v1/README.md` | 离线 KaTeX 公式、显示模式、全屏和浏览器保存 PDF 入口 |

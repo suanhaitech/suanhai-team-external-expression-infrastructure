@@ -1,0 +1,119 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #edf1f2;
+  color: #202b36;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.55;
+}
+
+body {
+  max-width: 86rem;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+}
+
+.preview-header {
+  max-width: 54rem;
+  margin: 0 auto 2rem;
+}
+
+.preview-eyebrow {
+  margin: 0 0 0.5rem;
+  color: #176b87;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.preview-header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1.15;
+}
+
+.preview-header > p:last-child,
+.preview-footer,
+.preview-status {
+  color: #586776;
+}
+
+.preview-list {
+  display: grid;
+  gap: 2rem;
+}
+
+.preview-item {
+  min-width: 0;
+}
+
+.preview-item__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.5rem;
+  color: #586776;
+  font-size: 0.8125rem;
+}
+
+.preview-item__caption strong {
+  color: #202b36;
+  font-size: 1rem;
+}
+
+.preview-item__page {
+  container-type: inline-size;
+  min-width: 0;
+  overflow: visible;
+  box-shadow: 0 1px 3px rgb(32 43 54 / 12%);
+}
+
+.preview-footer {
+  margin-top: 2rem;
+  border-top: 1px solid #cbd5d9;
+  padding-top: 1rem;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding-top: 1rem;
+  }
+
+  .preview-header h1 {
+    font-size: 1.875rem;
+  }
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff;
+  }
+
+  body {
+    max-width: none;
+    padding: 0;
+  }
+
+  .preview-header,
+  .preview-footer,
+  .preview-item__caption {
+    display: none;
+  }
+
+  .preview-list {
+    display: block;
+  }
+
+  .preview-item {
+    break-after: page;
+  }
+
+  .preview-item:last-child {
+    break-after: auto;
+  }
+}

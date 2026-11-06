@@ -1,0 +1,29 @@
+id: html.single-page.content.conclusion-evidence-v1
+kind: single-page-template
+version: 1.0.0
+role: content
+variant: conclusion-evidence
+label: 当前结论与证据
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+recommended_theme: editorial-green
+shared_styles:
+  - components/core-v1/foundations/tokens.css
+  - components/core-v1/semantic/semantic.css
+  - styles/project-report-v1/styles.css
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - claims
+  - boundary
+  - source
+compatible_container_families:
+  - paged-deck
+component_slots:
+  - supporting

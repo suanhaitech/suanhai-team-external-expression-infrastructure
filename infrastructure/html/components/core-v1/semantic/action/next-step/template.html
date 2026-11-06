@@ -1,5 +1,5 @@
-<article class="ex-action" data-component="action.next-step" data-state="[proposed|confirmed|in_progress|completed|blocked]">
-  <span class="ex-action__label">[行动状态]</span>
-  <p>[下一步行动]</p>
-  <p class="ex-action__owner">责任人：[负责人] · 完成标准：[完成条件]</p>
+<article class="ex-action" data-component="action.next-step" data-state="proposed">
+  <span class="ex-action__label" data-slot="state">拟议</span>
+  <p data-slot="action">[下一步行动]</p>
+  <p class="ex-action__owner">责任人：<span data-slot="owner">[负责人]</span> · 完成标准：<span data-slot="completion_condition">[完成条件]</span></p>
 </article>

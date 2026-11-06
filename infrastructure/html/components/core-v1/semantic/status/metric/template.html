@@ -1,5 +1,6 @@
-<article class="ex-metric" data-component="status.metric" data-state="[confirmed|candidate|unverified|not_applicable]">
-  <span class="ex-metric__label">[指标名称]</span>
-  <span class="ex-metric__value">[数值]<span class="ex-metric__unit">[单位]</span></span>
-  <p class="ex-metric__source">[时间口径、定义和来源 ID]</p>
+<article class="ex-metric" data-component="status.metric" data-state="unverified">
+  <span class="ex-metric__label" data-slot="label">[指标名称]</span>
+  <span class="ex-metric__value"><span data-slot="value">[数值]</span><span class="ex-metric__unit" data-slot="unit">[单位]</span></span>
+  <p class="ex-metric__source" data-slot="source_ids">[时间口径、定义和来源 ID]</p>
+  <span data-slot="state">待核验</span>
 </article>

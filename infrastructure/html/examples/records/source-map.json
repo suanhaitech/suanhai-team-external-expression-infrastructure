@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "sources": [
+    {
+      "id": "synthetic-record-source",
+      "path": "source.md",
+      "kind": "synthetic-example",
+      "allowed_use": "仅用于说明记录格式的中性教学样例",
+      "review_status": "example-only"
+    }
+  ],
+  "pages": [
+    {
+      "page_id": "page-question",
+      "claims": [
+        {
+          "kind": "teaching-construction",
+          "statement": "三步练习在第二步后暂停。",
+          "source_ids": ["synthetic-record-source"],
+          "locator": "教学构造",
+          "verification": "synthetic-not-an-observed-event"
+        }
+      ]
+    },
+    {
+      "page_id": "page-explanation",
+      "claims": [
+        {
+          "kind": "source-definition",
+          "statement": "本示例把检查点定义为供后续恢复的状态记录。",
+          "source_ids": ["synthetic-record-source"],
+          "locator": "示例定义",
+          "verification": "example-only"
+        },
+        {
+          "kind": "presenter-synthesis",
+          "statement": "恢复信息与结果验收承担不同职责。",
+          "source_ids": ["synthetic-record-source"],
+          "locator": "示例观察",
+          "verification": "requires-content-review"
+        }
+      ]
+    },
+    {
+      "page_id": "page-transfer",
+      "claims": [
+        {
+          "kind": "teaching-construction",
+          "statement": "请学习者列出恢复前要核对的信息。",
+          "source_ids": ["synthetic-record-source"],
+          "locator": "教学构造",
+          "verification": "planned-participation-not-learning-evidence"
+        }
+      ]
+    }
+  ],
+  "limits": ["引用闭合不证明内容正确，具体授权与专业判断仍需负责人核对"]
+}

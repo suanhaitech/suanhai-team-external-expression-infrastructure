@@ -28,8 +28,8 @@ capabilities:
       - JSON格式的任务状态或明确错误
   - id: html.project-report-v1
     kind: template
-    path: infrastructure/html/page-templates/project-report-v1
-    entrypoint: infrastructure/html/page-templates/project-report-v1/index.html
+    path: infrastructure/html/templates/presets/project-report-v1
+    entrypoint: infrastructure/html/templates/presets/project-report-v1/index.html
     purpose: 离线项目概览、阶段进展和对外汇报页面的静态 HTML/CSS 模板；不包含项目事实、不会调用网络服务
     inputs:
       - 已对齐的消费端任务简报和允许使用的来源
@@ -37,11 +37,77 @@ capabilities:
     outputs:
       - 消费端作品目录中的可离线打开的 HTML 页面
       - 页面同目录的本地 CSS 文件
+  - id: html.presentation-deck-v1
+    kind: template
+    path: infrastructure/html/templates/presets/presentation-deck-v1
+    entrypoint: infrastructure/html/templates/presets/presentation-deck-v1/index.html
+    purpose: 离线、多页、可响应式适配的 HTML 演示稿模板；提供底部页码/前后页导航、键盘翻页、讲者备注、手动页面比例和逐页打印，不包含项目事实或外部资源
+    inputs:
+      - 已对齐的消费端任务简报和允许使用的来源
+      - 需要替换或增删的逐页内容与图表
+    outputs:
+      - 消费端作品目录中的自包含多页 HTML 演示稿
+      - 本地样式、翻页脚本和逐页来源标注结构
+  - id: html.container.presentation-deck-v1
+    kind: template
+    path: infrastructure/html/templates/containers/presentation-deck-v1
+    entrypoint: infrastructure/html/templates/containers/presentation-deck-v1/index.html
+    purpose: 逐页 HTML 演示稿容器；通过 html.materialize 按顺序组合单页模板，提供底部页码、翻页、比例和逐页打印
+  - id: html.single-page.cover.editorial-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/cover/editorial-v1
+    entrypoint: infrastructure/html/templates/single-page/cover/editorial-v1/page.html
+    purpose: 可组合的出版物式封面单页模板
+  - id: html.single-page.agenda.route-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/agenda/route-v1
+    entrypoint: infrastructure/html/templates/single-page/agenda/route-v1/page.html
+    purpose: 可组合的阅读路线目录单页模板
+  - id: html.single-page.transition.statement-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/transition/statement-v1
+    entrypoint: infrastructure/html/templates/single-page/transition/statement-v1/page.html
+    purpose: 可组合的章节过渡单页模板
+  - id: html.single-page.content.evidence-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/evidence-v1
+    entrypoint: infrastructure/html/templates/single-page/content/evidence-v1/page.html
+    purpose: 可组合的证据与边界正文单页模板
+  - id: html.single-page.content.method-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/method-v1
+    entrypoint: infrastructure/html/templates/single-page/content/method-v1/page.html
+    purpose: 可组合的方法与路径正文单页模板
+  - id: html.single-page.content.project-overview-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/project-overview-v1
+    entrypoint: infrastructure/html/templates/single-page/content/project-overview-v1/page.html
+    purpose: 可组合的项目总览正文页，承载主汇报人、汇报周期、总体变化和里程碑影响
+  - id: html.single-page.content.workstream-update-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/workstream-update-v1
+    entrypoint: infrastructure/html/templates/single-page/content/workstream-update-v1/page.html
+    purpose: 可重复组合的工作主线更新正文页，区分目标、结果、证据条件、限制和下周期可核对结果
+  - id: html.single-page.content.dependencies-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/dependencies-v1
+    entrypoint: infrastructure/html/templates/single-page/content/dependencies-v1/page.html
+    purpose: 可组合的跨线依赖与协作正文页，解释输入输出、里程碑影响、解除条件和双方配合事项
+  - id: html.single-page.closing.action-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/closing/action-v1
+    entrypoint: infrastructure/html/templates/single-page/closing/action-v1/page.html
+    purpose: 可组合的结论与行动单页模板
+  - id: html.single-page.appendix.source-register-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/appendix/source-register-v1
+    entrypoint: infrastructure/html/templates/single-page/appendix/source-register-v1/page.html
+    purpose: 可组合的来源登记附录单页模板
   - id: html.semantic-components-v1
     kind: template
     path: infrastructure/html/components/core-v1
     entrypoint: infrastructure/html/components/core-v1/README.md
-    purpose: 可被不同消费端复制的离线 HTML 设计令牌、基础排版与布局原语、主题和六类语义组件 CSS/HTML 契约；响应式规则由独立样式包提供，不含公式引擎和自动预览
+    purpose: 可被不同消费端复制的离线 HTML 设计令牌、基础排版与布局原语、主题和已登记语义组件 CSS/HTML 契约；响应式规则由独立样式包提供，不含公式引擎和自动预览
     inputs:
       - 消费端已对齐的页面内容与来源状态
       - 选择使用的语义组件
@@ -63,7 +129,7 @@ capabilities:
     kind: template
     path: infrastructure/html/runtime-kits/runtime-kit-v1
     entrypoint: infrastructure/html/runtime-kits/runtime-kit-v1/runtime.js
-    purpose: 可物料化到 HTML 页面中的离线运行时包，提供本地 KaTeX 公式渲染、自动或手动显示模式、全屏入口和浏览器保存 PDF 入口；不替代确定性 PDF 导出工具
+    purpose: 默认物料化到 HTML 页面的离线交互运行时，提供本地 KaTeX 公式渲染、自动或手动显示模式、全屏入口和浏览器保存 PDF 入口；不替代确定性 PDF 导出工具
     inputs:
       - 页面中的 data-math 公式标记和可选的无障碍替代文本
       - 页面模板声明的运行时 CSS、工具栏和脚本插槽
@@ -75,10 +141,11 @@ capabilities:
     kind: tool
     path: infrastructure/html/tools/materialize
     entrypoint: infrastructure/html/tools/materialize/materialize_html.py
-    purpose: 从已固定的基础设施 submodule 中按 Manifest 能力 ID 安全复制 HTML 页面模板、响应式布局、运行时包和组件包，并把已选择的语义组件片段装配到显式插槽；默认只预览，显式应用需匹配计划摘要和任务记录版本
+    purpose: 从固定 submodule 按完整页面计划或有序单页 ID 装配容器、主题、具名组件和默认交互运行时；支持同任务只读基线的局部修订；默认预览，应用绑定摘要和任务版本
     inputs:
       - 消费端根目录、已进入 working 状态的任务编号及固定 submodule gitlink
-      - Manifest 中已登记的页面模板 ID、可选布局/运行时包 ID、组件包 ID 和组件包 index.yml 中的语义组件 ID
+      - Manifest 中已登记的完整预设 ID，或容器 ID 与有序单页 ID；可选布局 ID、增量运行时包 ID、组件包 ID 和语义组件 ID
+      - 可选的 scenarios/catalog.json 场景画像 ID
       - dry-run 返回的计划摘要与任务记录版本
     outputs:
       - 消费端任务版本目录中的自包含 HTML、CSS、运行时和组件包文件
@@ -98,7 +165,7 @@ capabilities:
     kind: tool
     path: infrastructure/html/tools/viewport-check
     entrypoint: infrastructure/html/tools/viewport-check/viewport_check.py
-    purpose: 检查自包含 HTML 的本地资源、viewport 元标签和多视口响应式行为；可选使用 Playwright 生成桌面、移动、宽屏和 A4 截图，浏览器不可用时明确返回 not-run
+    purpose: 区分模板与报告，检查实际引用资源集及其摘要；检查自包含 HTML 本地资源和整稿逐页布局，可用 Playwright 或本机 CDP 检查翻页、备注和原图交互并生成截图联系表；缺浏览器明确返回 not-run
     inputs:
       - 消费端任务版本目录中的 index.html 和本地资源
       - 默认或自定义视口尺寸
@@ -109,7 +176,7 @@ capabilities:
     kind: workflow
     path: workflows/html/production
     entrypoint: workflows/html/production/ENTRYPOINT.md
-    purpose: 跨消费端目录约定的 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、响应式检查、PDF 导出、反馈和人工收口；浏览器能力按本机可用性报告
+    purpose: 默认分页组合、明确连续阅读时选长页的跨消费端 HTML 网页制作流程，组织需求澄清、来源记录、页面模板和组件选择、版本化产出、响应式检查、PDF 导出、反馈和人工收口；浏览器能力按本机可用性报告
     inputs:
       - 用户提出的 HTML 目标、受众、用途、范围和完成标准
       - 消费端项目上下文及用户提供的候选文档、链接和素材
@@ -121,12 +188,39 @@ capabilities:
       - expression.task-loop
       - expression.task-record
       - html.project-report-v1
+      - html.presentation-deck-v1
+      - html.container.presentation-deck-v1
+      - html.single-page.cover.editorial-v1
+      - html.single-page.agenda.route-v1
+      - html.single-page.transition.statement-v1
+      - html.single-page.content.evidence-v1
+      - html.single-page.content.method-v1
+      - html.single-page.content.project-overview-v1
+      - html.single-page.content.project-status-v1
+      - html.single-page.content.workstream-research-v1
+      - html.single-page.content.conclusion-evidence-v1
+      - html.single-page.content.workstream-plan-v1
+      - html.single-page.content.workstream-update-v1
+      - html.single-page.content.dependencies-v1
+      - html.single-page.closing.action-v1
+      - html.single-page.appendix.source-register-v1
       - html.semantic-components-v1
       - html.responsive-layout-v1
       - html.runtime-kit-v1
       - html.materialize
       - html.viewport-check
       - html.pdf-export
+      - html.single-page.cover.technical-editorial-v1
+      - html.single-page.content.stages-v1
+      - html.single-page.content.observation-v1
+      - html.single-page.content.definition-mapping-v1
+      - html.single-page.content.comparison-v1
+      - html.single-page.content.figure-analysis-v1
+      - html.single-page.content.keyword-grid-v1
+      - html.presentation-foundation-v1
+      - html.image-viewer-v1
+      - html.source-assets
+      - consumer.asset-bytes
   - id: consumer.submodule-preflight
     kind: tool
     path: infrastructure/repository-management/tools/submodule-preflight
@@ -177,6 +271,7 @@ capabilities:
     uses:
       - consumer.group-asset-onboarding
       - consumer.submodule-preflight
+      - consumer.asset-bytes
   - id: consumer.submodule-update
     kind: workflow
     path: workflows/submodule-update
@@ -220,3 +315,79 @@ capabilities:
     uses:
       - consumer.infrastructure-adoption-harness
       - consumer.submodule-preflight
+      - consumer.asset-bytes
+  - id: html.single-page.cover.technical-editorial-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/cover/technical-editorial-v1
+    entrypoint: infrastructure/html/templates/single-page/cover/technical-editorial-v1/page.html
+    purpose: 插图与元信息分层的技术封面单页
+  - id: html.single-page.content.stages-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/stages-v1
+    entrypoint: infrastructure/html/templates/single-page/content/stages-v1/page.html
+    purpose: 阶段演进与横向步骤
+  - id: html.single-page.content.observation-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/observation-v1
+    entrypoint: infrastructure/html/templates/single-page/content/observation-v1/page.html
+    purpose: 关键观察与问题分析
+  - id: html.single-page.content.definition-mapping-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/definition-mapping-v1
+    entrypoint: infrastructure/html/templates/single-page/content/definition-mapping-v1/page.html
+    purpose: 定义与问题改善映射
+  - id: html.single-page.content.comparison-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/comparison-v1
+    entrypoint: infrastructure/html/templates/single-page/content/comparison-v1/page.html
+    purpose: 两栏对照与机制解释
+  - id: html.single-page.content.figure-analysis-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/figure-analysis-v1
+    entrypoint: infrastructure/html/templates/single-page/content/figure-analysis-v1/page.html
+    purpose: 原图与简短分析
+  - id: html.single-page.content.keyword-grid-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/keyword-grid-v1
+    entrypoint: infrastructure/html/templates/single-page/content/keyword-grid-v1/page.html
+    purpose: 关键词与解释矩阵
+  - id: html.presentation-foundation-v1
+    kind: template
+    path: infrastructure/html/styles/presentation-v1
+    entrypoint: infrastructure/html/styles/presentation-v1/styles.css
+    purpose: 公共演示页框、标题字阶和窄屏布局
+  - id: html.image-viewer-v1
+    kind: template
+    path: infrastructure/html/runtime-kits/image-viewer-v1
+    entrypoint: infrastructure/html/runtime-kits/image-viewer-v1/runtime.js
+    purpose: 默认离线原图阅读器，支持适应窗口、原始尺寸、缩放、拖动、键盘隔离与焦点恢复
+  - id: html.source-assets
+    kind: tool
+    path: infrastructure/html/tools/source-assets
+    entrypoint: infrastructure/html/tools/source-assets/source_assets.py
+    purpose: 本地来源素材登记和完整性校验，URL仅作记录
+  - id: consumer.asset-bytes
+    kind: tool
+    path: infrastructure/repository-management/tools/asset-bytes
+    entrypoint: infrastructure/repository-management/tools/asset-bytes/protect_asset_bytes.py
+    purpose: 预览并增补资产字节保护规则，不修改历史文件或Git历史
+  - id: html.single-page.content.project-status-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/project-status-v1
+    entrypoint: infrastructure/html/templates/single-page/content/project-status-v1/page.html
+    purpose: 阶段、计划和进度的三栏总览；不替代上期变化和风险说明。
+  - id: html.single-page.content.workstream-research-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/workstream-research-v1
+    entrypoint: infrastructure/html/templates/single-page/content/workstream-research-v1/page.html
+    purpose: 研究对象与本期进展分别呈现，再说明回答了哪些问题。
+  - id: html.single-page.content.conclusion-evidence-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/conclusion-evidence-v1
+    entrypoint: infrastructure/html/templates/single-page/content/conclusion-evidence-v1/page.html
+    purpose: 逐条判断、证据入口及限制；适合工作主线的第二层讲述。
+  - id: html.single-page.content.workstream-plan-v1
+    kind: template
+    path: infrastructure/html/templates/single-page/content/workstream-plan-v1
+    entrypoint: infrastructure/html/templates/single-page/content/workstream-plan-v1/page.html
+    purpose: 任务、交付和核对方式对应；周期与任务数量由消费端决定。

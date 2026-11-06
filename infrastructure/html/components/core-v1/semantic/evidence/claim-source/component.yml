@@ -1,0 +1,23 @@
+id: evidence.claim-source
+version: 1.0.0
+category: evidence
+role: 判断与就近证据
+required_slots:
+  - claim
+  - source
+  - locator
+  - limitation
+  - state
+optional_slots:
+  - source_ids
+  - reviewer
+states:
+  - confirmed
+  - candidate
+  - unverified
+  - rejected
+template: template.html
+styles: ../../semantic.css
+responsive: 窄屏自然重排，保留正文和核对信息
+accessibility: 状态用文字表达，保留语义结构及键盘焦点
+provenance: 组合evidence.claim与evidence.source的语义。来源地址未核实前保留文字，不产生假链接；一个判断可追加多个证据。设计、实现和实测分开表达，影响结论的限制保持可见。

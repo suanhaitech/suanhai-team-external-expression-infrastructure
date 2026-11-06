@@ -14,7 +14,7 @@
 
 - 仓库已经存在，负责人希望保留现有目录、CI、分支和根 AGENTS.md；
 - 仓库尚无基础设施 submodule，或已正确固定兼容版本但根 Harness 尚未安装；
-- 使用者已通过本提示词授权 Agent 添加 .gitmodules 配置、submodule gitlink 和最小 Harness 接入段；
+- 使用者已通过本提示词授权 Agent 添加 .gitmodules 配置、submodule gitlink、最小 Harness 接入段及必要的 `.gitattributes` 字节保护段；
 - 基础设施仓库可通过公开 HTTPS URL 获取，目标 commit 可复现。
 
 若已有固定版本未声明 `consumer.infrastructure-adoption-harness` 或缺少其入口，本流程不自动升级该 gitlink，也不从远端复制工具；先单独通过 `consumer.submodule-update` 更新到兼容版本，再恢复本流程。该限制适用于已有旧 gitlink；新接入的版本直接固定到此次从稳定 `main` 解析的 commit。
@@ -36,6 +36,7 @@
 - 父仓 .gitmodules 中的 HTTPS URL 和相对路径；
 - 指向明确完整 commit 的 160000 submodule gitlink；
 - 父仓根 AGENTS.md 中一段通过已声明工具预览、校验后安装的共享基础设施 Harness；
+- 必要的根 `.gitattributes` 资产字节保护段，以及实际路径的有效属性核对；
 - Manifest、gitlink、工作区及适用预检的核对结果；
 - 未解决的路径冲突、规则冲突和后续升级事项。
 
@@ -56,7 +57,7 @@ git rev-parse --show-toplevel
 
 ### 2. 对齐接入参数
 
-本提示词本身授权 Agent 在当前仓库按本工作流修改 `.gitmodules`、submodule gitlink 和根 `AGENTS.md`；不需要再为同一范围逐项等待确认。采用清楚的既有路径；否则使用默认路径。启动提示词从稳定 `main` 解析完整 SHA，以它读取不可变的工作流入口；若此前未接入 submodule，该 SHA 同时作为新 gitlink 的固定版本。若已有正确 gitlink，则保留原固定 SHA，不以 `main` 候选替换它，并从该固定版本读取能力 Manifest 和安装工具。向负责人报告工作流来源 SHA、实际固定 SHA、URL、路径、修改文件和验证计划后继续。若路径、来源、分支策略或授权范围存在实质歧义，仍须停下询问；已有固定版本缺少安装工具时另行授权升级。不能把“main 当前最新”写成已有仓库的版本锁；父仓 gitlink 才是长期使用版本的唯一事实来源。
+本提示词本身授权 Agent 在当前仓库按本工作流修改 `.gitmodules`、submodule gitlink、根 `AGENTS.md` 和必要的根 `.gitattributes` 保护段；不需要再为同一范围逐项等待确认。采用清楚的既有路径；否则使用默认路径。启动提示词从稳定 `main` 解析完整 SHA，以它读取不可变的工作流入口；若此前未接入 submodule，该 SHA 同时作为新 gitlink 的固定版本。若已有正确 gitlink，则保留原固定 SHA，不以 `main` 候选替换它，并从该固定版本读取能力 Manifest 和安装工具。向负责人报告工作流来源 SHA、实际固定 SHA、URL、路径、修改文件和验证计划后继续。若路径、来源、分支策略或授权范围存在实质歧义，仍须停下询问；已有固定版本缺少安装工具时另行授权升级。不能把“main 当前最新”写成已有仓库的版本锁；父仓 gitlink 才是长期使用版本的唯一事实来源。
 
 接入授权不包括 commit、push、PR、合并、部署或发布。每种外部副作用需要分别授权。
 
@@ -95,6 +96,12 @@ Linux/macOS: python3 "<实际路径>/infrastructure/repository-management/tools/
 没有根 AGENTS.md 时可以创建最小文件并说明其职责。有文件时只增补带标记的 Harness，不得覆盖、重排或删除原规则。v2 标记段内容一致时保持不变；精确匹配的旧 v1 段可由工具安全迁移；用户改写段落、标记重复/残缺或版本混用时停止交负责人，不自动合并。若当前 Agent 客户端不会自动读取 AGENTS.md，如实报告；只有在客户端现有指令入口可安全引用时才添加最小指针，不复制多份完整 Harness。
 
 ### 5. 验证和留痕
+
+首次登记来源、任务与作品摘要前，读取 [`consumer.asset-bytes`](../../infrastructure/repository-management/tools/asset-bytes/README.md)。先运行固定入口 `protect_asset_bytes.py --root .` 默认只读预览（无 `--dry-run` 参数），展示保护目录、`planned_text` 和 `plan_sha256`，再按本提示词的本地授权用同参 `--apply --expect-plan-sha256 <预览摘要>` 显式应用。保留原 `.gitattributes` 规则，只追加一致标记段；不改变 `render_harness` 或其旧标记。
+
+默认目录为 tasks/reports/courses/series/books；自定义目录时以重复的 `--output-root` 给出包含任务记录与实际来源/作品目录的完整安全顶层集合。不能通过该参数接管 context/vendor，不宣称所有来源已受保护。应用后用 `git check-attr text -- <实际文件>` 确认 `unset`；既有段冲突、嵌套规则覆盖或能力缺失都报告并停止相应写入，不覆盖或下载临时工具。新模板已有同类规则，既有仓不要求采用模板结构。
+
+不执行 `git add --renormalize`，不重写历史来源/作品或批量更新旧摘要；历史摘要异常先找原始字节和原因，不把安装规则说成已恢复旧文件。
 
 接入后读取固定版本 Manifest，校验仓库标识、能力入口和 uses 依赖。运行可用的 Manifest 校验器；环境无 Ruby 时报告未执行。
 

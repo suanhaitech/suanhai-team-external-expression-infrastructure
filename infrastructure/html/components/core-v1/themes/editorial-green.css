@@ -1,0 +1,24 @@
+/* 浅绿主题只覆盖颜色令牌；状态语义色仍由基础令牌提供。 */
+:root {
+  color-scheme: light;
+  --ex-color-page: #edf4f1;
+  --ex-color-ink: #20352e;
+  --ex-color-muted: #52665d;
+  --ex-color-accent: #21694f;
+  --ex-color-accent-soft: #deebe3;
+  --ex-color-highlight: #21694f;
+  --ex-color-line: #c6d8cc;
+  --ex-color-surface: #deebe3;
+  --deck-paper: var(--ex-color-page);
+  --deck-canvas-background: var(--ex-color-page);
+  --deck-ink: var(--ex-color-ink);
+  --deck-muted: var(--ex-color-muted);
+  --deck-line: var(--ex-color-line);
+  --deck-green: var(--ex-color-accent);
+  --deck-green-soft: var(--ex-color-accent-soft);
+  --deck-ground: #dfe9e3;
+  --deck-folio-color: var(--ex-color-accent);
+}
+@media print {
+  :root { --ex-color-ink: #152b21; --ex-color-muted: #394f43; }
+}

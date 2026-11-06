@@ -75,6 +75,8 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 
 反馈原话、检查命令及结果、未解决事项应进入事件 `--note`，下一步进入 `--next-action`。这份记录应足以让新 Agent 接着做，不要求保存聊天全文或内部推理。
 
+对封面、某一页、某个案例或一个视觉方向的认可只适用于该范围；记录目标页面稳定 ID、基线版本和允许修改的部分，不据此记录整份作品 `complete`。页面计划、修订清单、来源映射和交接记录是辅助文件，任务状态只以工具维护的 `task.json` 为准，不能手工修改 `task.json` 或把辅助文件当作第二个状态真源。
+
 ```powershell
 python vendor/suanhai-team-external-expression-infrastructure/infrastructure/task-loop/tools/task-record/task_loop.py --root . event ID --expect-version N --type review --note "结构草稿完成，等待用户意见；HTML尚未生成" --artifact "reports/ID/v001/outline.md" --next-action "请用户评审结构"
 python vendor/suanhai-team-external-expression-infrastructure/infrastructure/task-loop/tools/task-record/task_loop.py --root . event ID --expect-version N --type feedback --scope minor --note "实际用户反馈；记录相应调整" --next-action "生成v002并检查"
@@ -85,6 +87,8 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 ## 暂停、完成与恢复
 
 暂停前记录：当前版本、已做工作、检查结果、未解决问题和下一步。新会话拿到编号后先 `show`，核对当前仓库/submodule 和产出是否仍存在，再复述任务目标与当前进度。状态为 paused 时按用户续作要求 `resume`；completed 时按新需求 `reopen`。
+
+分阶段作品还应区分已制作内容、明确的占位页、已讨论未制作章节，以及只确认样式尚未确认内容的页面。暂停不要求补齐所有页面，也不代表已完成验收；复用 `pause` / `resume`，不为每种表达场景另设状态机。HTML 任务可参考 [中性交接样例](../../infrastructure/html/examples/records/handoff.md)。
 
 如果来源缺失、旧摘要不符、用户决定相互冲突，先说明差异，不根据旧聊天猜测或补造。`show` 对结构合法记录返回摘要及只读 `_diagnostics`，`list` 逐项显示损坏记录的错误，不因一条坏记录隐藏其他任务；这些诊断不写回 JSON。读取和诊断不改变状态；来源/产出缺失或已确认历史产物被改写时，写入会拒绝。待评审产物被外部改动时仍可登记反馈，但不能沿用旧摘要完成本轮。JSON 本身损坏时可只读查看原文件，不据此重新创建同一任务。
 
@@ -99,3 +103,7 @@ python vendor/suanhai-team-external-expression-infrastructure/infrastructure/tas
 JSON 使用版本冲突检查、写锁和原子替换，生成阅读视图失败时应报告 JSON 与视图各自的状态。不要删除不明锁文件或自动回滚用户文件；保留错误并说明人工恢复方式。多个文件、多个仓库的写入不构成分布式事务。
 
 通用工具回归与跨会话验证见 [任务循环验证流程](../../docs/task-loop-validation.md)。测试数据只放隔离临时仓库，并明确 `mode: test`，不进入真实任务列表或项目事实。
+
+## 授权升级后的任务续作
+
+任务仍固定创建/最近修订时的基础设施 SHA。负责人授权换版、父仓 gitlink 已提交且 submodule 干净后，从新固定版本工具执行 `event <ID> --type feedback --infrastructure-commit <完整新SHA> --user-quote <真实授权原话> --note <原因> --expect-version <show版本>`。仅 review/ready 可换版，并新建修订；历史产物和来源不改写，事件记录旧、新 SHA。改变用途/范围时另传 `--scope scope` 回到澄清。不得直接改 task.json 绕过固定版本。

@@ -1,0 +1,39 @@
+<section class="sp-dependencies" data-single-page-role="content" data-single-page-variant="dependencies" aria-labelledby="sp-dependencies-title">
+  <header class="sp-dependencies__heading">
+    <p class="sp-dependencies__eyebrow" data-slot="eyebrow">[项目阶段 / 跨线协作]</p>
+    <h2 id="sp-dependencies-title" data-slot="title">[哪些衔接条件影响下一个项目目标]</h2>
+    <p data-slot="summary">[说明各条主线共同推进的目标，以及本期最需要解决的衔接问题。]</p>
+  </header>
+  <!-- 主线进展只能证明局部结果；本页由主汇报人解释输入输出的衔接及项目影响，不能用局部完成推断整体已经集成。 -->
+  <div class="sp-dependencies__body">
+    <div>
+      <h3>跨线依赖与项目影响</h3>
+      <ol class="sp-dependencies__list" data-slot="dependency-items">
+        <li>
+          <h4>[上游主线的产出] → [下游主线的目标]</h4>
+          <p><strong>衔接条件与现状：</strong>[所需输入、责任人、当前就绪或待确认状态]</p>
+          <p><strong>目标影响：</strong>[受影响的里程碑、风险或仍缺少的联合验证]</p>
+          <p class="sp-dependencies__condition"><strong>解除条件：</strong>[可核对的结果、负责人和预期时间]</p>
+        </li>
+        <li>
+          <h4>[另一组输入输出关系]</h4>
+          <p><strong>衔接条件与现状：</strong>[条件与已核验事实；缺失信息保留待确认]</p>
+          <p><strong>目标影响：</strong>[对范围、节奏或验证结果的影响]</p>
+          <p class="sp-dependencies__condition"><strong>解除条件：</strong>[核对方式、负责人和预期时间]</p>
+        </li>
+      </ol>
+    </div>
+    <!-- 协作请求必须能被对方执行；这里承载进展同步中的配合事项，不替代正式方案评审或资源授权。 -->
+    <aside class="sp-dependencies__collaboration">
+      <h3>需要双方确认或支持</h3>
+      <div data-slot="collaboration-items">
+        <article>
+          <h4>[需要确认或提供的具体输入]</h4>
+          <p>[对接责任人] · [期望时间] · [当前确认状态]</p>
+          <p><strong>对推进的影响：</strong>[获得该输入后可完成什么；延迟会影响什么]</p>
+        </article>
+      </div>
+    </aside>
+  </div>
+  <footer class="sp-dependencies__footer"><span data-slot="source">[来源版本 / 核对截至时间 / 待确认范围]</span><span><!-- SUANHAI_PAGE_NUMBER --></span></footer>
+</section>

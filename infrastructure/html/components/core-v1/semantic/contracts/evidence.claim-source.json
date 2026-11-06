@@ -1,0 +1,25 @@
+{
+  "id": "evidence.claim-source",
+  "version": "1.0.0",
+  "role": "判断与就近证据",
+  "required_slots": [
+    "claim",
+    "source",
+    "locator",
+    "limitation",
+    "state"
+  ],
+  "optional_slots": [
+    "source_ids",
+    "reviewer"
+  ],
+  "states": [
+    "confirmed",
+    "candidate",
+    "unverified",
+    "rejected"
+  ],
+  "responsive": "窄屏自然重排，长文本不裁切。",
+  "accessibility": "状态有可见文字；使用原生progress或带列标题和caption的语义table；来源链接键盘可达。",
+  "provenance": "组合evidence.claim与evidence.source的语义。来源地址未核实前保留文字，不产生假链接；一个判断可追加多个证据。设计、实现和实测分开表达，影响结论的限制保持可见。"
+}

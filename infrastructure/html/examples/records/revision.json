@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "baseline_version": "v001",
+  "proposed_version": "v002",
+  "page_plan": "page-plan.json",
+  "target_page_ids": ["page-explanation"],
+  "protected_page_ids": ["page-question", "page-transfer"],
+  "allowed_changes": ["精简目标页的辅助解释", "调整目标页内部文字层级"],
+  "preserve": ["学习目标", "页面顺序", "来源边界", "非目标页内容及资源"],
+  "user_confirmation": null,
+  "feedback_event_reference": null,
+  "verification": {
+    "baseline_unchanged": "not-run",
+    "non_target_pages_unchanged": "not-run",
+    "browser_review": "not-run"
+  },
+  "limits": [
+    "这是修订边界样例，不代表任何页面已被真实用户认可",
+    "实际用户反馈与认可范围应通过任务事件追溯"
+  ]
+}

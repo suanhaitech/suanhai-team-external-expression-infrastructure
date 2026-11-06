@@ -1,0 +1,11 @@
+.sp-content-keyword-grid__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2.5rem; }
+.sp-content-keyword-grid__grid article { display: grid; grid-template-columns: minmax(5rem, .7fr) minmax(0, 1.3fr); align-items: center; gap: 1.5rem; min-width: 0; border-top: 1px solid var(--ex-color-line, #d5dde5); padding: 1.5rem 0; }
+.sp-content-keyword-grid__grid h3 { margin: 0; font-size: 1.875rem; font-weight: 650; line-height: 1.35; }
+/* 修饰词承担判断，不能退化成小字；与关键词等字号、等字重，仅颜色有差别。 */
+.sp-content-keyword-grid__grid h3 span, .sp-content-keyword-grid__grid h3 strong { display: block; font: inherit; }
+.sp-content-keyword-grid__grid h3 span { color: var(--ex-color-highlight, #b45f31); }
+.sp-content-keyword-grid__grid h3 strong { color: var(--ex-color-accent, #173f78); }
+.sp-content-keyword-grid__grid p { margin: 0; color: var(--ex-color-muted, #586776); }
+@media (max-width: 800px) { .sp-content-keyword-grid__grid { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 800px) { .sp-content-keyword-grid__grid { grid-template-columns: minmax(0, 1fr); } }
+@media print { .sp-content-keyword-grid__grid article { break-inside: avoid; } }

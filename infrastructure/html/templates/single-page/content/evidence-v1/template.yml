@@ -1,0 +1,23 @@
+id: html.single-page.content.evidence-v1
+kind: single-page-template
+version: 1.0.1
+role: content
+variant: evidence
+label: 证据与边界
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - summary
+  - evidence-rows
+  - boundary
+  - source
+compatible_container_families:
+  - paged-deck

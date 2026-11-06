@@ -1,0 +1,23 @@
+id: html.single-page.content.method-v1
+kind: single-page-template
+version: 1.1.0
+role: content
+variant: method
+label: 方法与路径
+entrypoint: page.html
+stylesheet: styles.css
+title_slot: title
+page_number_slot: page-number
+offline: true
+network_dependencies: []
+container_slots:
+  - page-number
+slots:
+  - eyebrow
+  - title
+  - summary
+  - steps
+  - method-note
+  - source
+compatible_container_families:
+  - paged-deck

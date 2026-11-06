@@ -12,14 +12,29 @@
     "title": {"type": "string", "minLength": 1},
     "template": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
     "template_version": {"type": "string", "minLength": 1},
+    "pages": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "uniqueItems": false
+    },
     "infrastructure_commit": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"},
     "audience": {"type": "string", "minLength": 1},
     "purpose": {"type": "string", "minLength": 1},
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "profile"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+        "version": {"type": "string", "minLength": 1},
+        "profile": {"type": "string", "minLength": 1}
+      }
+    },
     "status": {"enum": ["draft", "review", "accepted", "restricted"]},
     "components": {
       "type": "array",
       "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
-      "minItems": 1,
+      "minItems": 0,
       "uniqueItems": true
     },
     "layouts": {

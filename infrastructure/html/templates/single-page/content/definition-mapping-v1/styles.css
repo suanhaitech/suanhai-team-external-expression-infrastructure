@@ -1,0 +1,16 @@
+.sp-content-definition-mapping__definition { border-left: 3px solid var(--ex-color-highlight, #b45f31); padding: .5rem 0 .5rem 1.25rem; margin-bottom: 2rem; }
+.sp-content-definition-mapping__definition h3 { margin: 0 0 .5rem; color: var(--ex-color-accent, #173f78); font-size: 1.375rem; }
+.sp-content-definition-mapping__definition p { margin: 0; font-size: 1.25rem; }
+.sp-content-definition-mapping__rows { margin: 0; }
+.sp-content-definition-mapping__rows > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 2rem; border-top: 1px solid var(--ex-color-line, #d5dde5); padding: 1rem 0; }
+.sp-content-definition-mapping__rows dt { font-weight: 600; }
+.sp-content-definition-mapping__rows dd { margin: 0; color: var(--ex-color-muted, #586776); }
+@media (max-width: 600px) { .sp-content-definition-mapping__rows > div { grid-template-columns: minmax(0, 1fr); gap: .5rem; } }
+@container (max-width: 600px) { .sp-content-definition-mapping__rows > div { grid-template-columns: minmax(0, 1fr); gap: .5rem; } }
+@media print { .sp-content-definition-mapping__rows > div { break-inside: avoid; } }
+@media screen {
+  @container deck-page (min-width: 761px) and (max-height: 560px) {
+    .deck-page--composed > .sp-content-definition-mapping .sp-content-definition-mapping__definition { margin-bottom: .75rem; }
+    .deck-page--composed > .sp-content-definition-mapping .sp-content-definition-mapping__rows > div { padding-block: .4rem; }
+  }
+}

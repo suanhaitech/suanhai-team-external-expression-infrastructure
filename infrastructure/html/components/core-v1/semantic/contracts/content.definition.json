@@ -1,0 +1,20 @@
+{
+  "id": "content.definition",
+  "version": "1.0.0",
+  "role": "界定概念对象、定义句和适用边界",
+  "required_slots": [
+    "term",
+    "definition"
+  ],
+  "optional_slots": [
+    "boundary",
+    "source_ids"
+  ],
+  "states": [
+    "draft",
+    "confirmed"
+  ],
+  "responsive": "窄屏单列自然增高，保持可读字号和长文本换行。",
+  "accessibility": "语义标题、图像替代文本与可见状态；颜色不能是唯一判断依据。",
+  "provenance": "定义需能追溯至来源；讲者归纳必须与来源原话区分。"
+}

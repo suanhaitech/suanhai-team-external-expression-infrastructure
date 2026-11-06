@@ -1,0 +1,124 @@
+.sp-transition-statement,
+.sp-transition-statement * {
+  box-sizing: border-box;
+}
+
+.sp-transition-statement {
+  display: grid;
+  min-height: 34rem;
+  grid-template-columns: minmax(7rem, 0.28fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 7cqw, 7rem);
+  padding: clamp(1.5rem, 6cqw, 5rem);
+  background: #176b65;
+  color: #ffffff;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.5;
+}
+
+.sp-transition-statement__number {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  margin: 0;
+  color: #d5e8dd;
+}
+
+.sp-transition-statement__number span {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.sp-transition-statement__number strong {
+  color: #f0c961;
+  font-size: 5rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-transition-statement__body {
+  max-width: 56rem;
+}
+
+.sp-transition-statement__eyebrow {
+  margin: 0 0 1rem;
+  color: #f0c961;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.sp-transition-statement h2 {
+  max-width: 18ch;
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 620;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.sp-transition-statement__question {
+  max-width: 42rem;
+  margin: 1.5rem 0 0;
+  color: #d5e8dd;
+  font-size: 1.25rem;
+}
+
+.sp-transition-statement__cue {
+  grid-column: 2;
+  align-self: end;
+  margin: 2rem 0 0;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .sp-transition-statement {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .sp-transition-statement__number {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .sp-transition-statement__number strong {
+    font-size: 3rem;
+  }
+
+  .sp-transition-statement h2 {
+    font-size: 2.25rem;
+  }
+
+  .sp-transition-statement__cue {
+    grid-column: 1;
+  }
+}
+
+@container (max-width: 640px) {
+  .sp-transition-statement { min-height: 0; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .sp-transition-statement__number { display: flex; align-items: baseline; gap: 0.75rem; }
+  .sp-transition-statement__number strong { font-size: 3rem; }
+  .sp-transition-statement h2 { font-size: 2.25rem; }
+  .sp-transition-statement__cue { grid-column: 1; }
+}
+
+@media print {
+  .sp-transition-statement {
+    min-height: 0;
+    break-inside: avoid;
+    print-color-adjust: exact;
+  }
+}
+
+/* 移除 data-transition-tone="paper" 可恢复既有深色变体；槽名保持兼容。 */
+.sp-transition-statement[data-transition-tone="paper"] { background: var(--ex-color-page, #f7f1e5); color: var(--ex-color-accent, #173f78); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__number { color: var(--ex-color-muted, #52605b); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__number strong { color: var(--ex-color-highlight, #b45f31); font-family: Georgia, serif; font-weight: 400; }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__eyebrow { color: var(--ex-color-highlight, #b45f31); }
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__question,
+.sp-transition-statement[data-transition-tone="paper"] .sp-transition-statement__cue { color: var(--ex-color-muted, #52605b); }
+.sp-transition-statement__footer { grid-column: 1 / -1; justify-self: end; font-size: .875rem; }

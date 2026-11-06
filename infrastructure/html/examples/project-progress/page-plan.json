@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "template",
+  "audience": "虚构项目的合作方",
+  "sources": [
+    {
+      "id": "synthetic-progress",
+      "path": "source.md",
+      "kind": "synthetic-example"
+    }
+  ],
+  "pages": [
+    {
+      "id": "overview",
+      "template_id": "html.single-page.content.project-status-v1",
+      "title": "先对齐阶段、计划和信息缺口",
+      "objective": "说明本页责任与来源边界",
+      "core_message": "先对齐阶段、计划和信息缺口",
+      "source_ids": [
+        "synthetic-progress"
+      ],
+      "slots": {
+        "title": "先对齐阶段、计划和信息缺口",
+        "eyebrow": "合成项目 · 示例工作线",
+        "source": "synthetic-progress；构造示例，未经业务核验",
+        "judgment": "状态判断：局部验证推进中，进度缺口待确认"
+      },
+      "notes": "虚构示例，不代表实际业务核验或发布授权。",
+      "components": []
+    },
+    {
+      "id": "topic",
+      "template_id": "html.single-page.content.workstream-research-v1",
+      "title": "接口验证：先明确输入与返回结果",
+      "objective": "说明本页责任与来源边界",
+      "core_message": "接口验证：先明确输入与返回结果",
+      "source_ids": [
+        "synthetic-progress"
+      ],
+      "slots": {
+        "title": "接口验证：先明确输入与返回结果",
+        "eyebrow": "合成项目 · 示例工作线",
+        "source": "synthetic-progress；构造示例，未经业务核验",
+        "boundary": "仅为构造示例；设计、验证和建议分别表达。",
+        "result": "已形成接口说明与两个构造样例记录"
+      },
+      "notes": "虚构示例，不代表实际业务核验或发布授权。",
+      "components": []
+    },
+    {
+      "id": "evidence",
+      "template_id": "html.single-page.content.conclusion-evidence-v1",
+      "title": "局部样例支持设计，覆盖仍不充分",
+      "objective": "说明本页责任与来源边界",
+      "core_message": "局部样例支持设计，覆盖仍不充分",
+      "source_ids": [
+        "synthetic-progress"
+      ],
+      "slots": {
+        "title": "局部样例支持设计，覆盖仍不充分",
+        "eyebrow": "合成项目 · 示例工作线",
+        "source": "synthetic-progress；构造示例，未经业务核验",
+        "boundary": "仅为构造示例；设计、验证和建议分别表达。"
+      },
+      "notes": "串场：本页看评审输入是否已有依据。关键数字：两个构造样例（合成来源，本期结果）。追问：能证明已实现吗？答复：不能；source.html#trial 与 #design 分别提供样例和设计边界，尚无实现验收证据。全部虚构，不代表业务核验或发布授权。",
+      "components": []
+    },
+    {
+      "id": "next",
+      "template_id": "html.single-page.content.workstream-plan-v1",
+      "title": "补充异常样例，再核对验证范围",
+      "objective": "说明本页责任与来源边界",
+      "core_message": "补充异常样例，再核对验证范围",
+      "source_ids": [
+        "synthetic-progress"
+      ],
+      "slots": {
+        "title": "补充异常样例，再核对验证范围",
+        "eyebrow": "合成项目 · 示例工作线",
+        "source": "synthetic-progress；构造示例，未经业务核验",
+        "boundary": "仅为构造示例；设计、验证和建议分别表达。"
+      },
+      "notes": "虚构示例，不代表实际业务核验或发布授权。",
+      "components": []
+    }
+  ]
+}

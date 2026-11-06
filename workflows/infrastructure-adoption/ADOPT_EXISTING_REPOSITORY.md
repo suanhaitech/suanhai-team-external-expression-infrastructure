@@ -18,7 +18,7 @@
 
 ## 授权范围
 
-发送本提示词并允许你修改当前工作区，即授权你在本流程内添加基础设施 submodule、更新 `.gitmodules` 和父仓 gitlink、在根 `AGENTS.md` 增补共享 Harness。先审计并报告计划，然后可直接执行，无须为相同范围再次询问。除非我另行明确授权，不得：
+发送本提示词并允许你修改当前工作区，即授权你在本流程内添加基础设施 submodule、更新 `.gitmodules` 和父仓 gitlink、在根 `AGENTS.md` 增补共享 Harness，并通过已声明的 `consumer.asset-bytes` 预览后增补根 `.gitattributes` 的资产字节保护段。先审计并报告计划，然后可直接执行，无须为相同范围再次询问。除非我另行明确授权，不得：
 
 - 删除、覆盖、重排现有规则或将本仓迁移成公共模板结构；
 - 修改项目事实、来源、任务、报告、评审、CI 以外文件或 submodule 内文件；
@@ -47,7 +47,7 @@
    git ls-remote https://github.com/suanhaitech/suanhai-team-external-expression-infrastructure.git refs/heads/main
    ```
 
-   验证返回唯一完整 40 位 SHA，将它记为“工作流来源 SHA”。向我报告该 SHA、URL、路径、当前分支、计划修改的 `.gitmodules`/gitlink/`AGENTS.md` 和检查计划；本提示词已授权这些限定本地变更，无须等待第二次确认。网络失败、结果为空/不唯一或 SHA 无效时停止，不猜测版本。使用工作流来源 SHA 读取不可变版本的 `manifest.yml`，确认它登记了 `consumer.infrastructure-adoption` 且入口路径正确，再读取同一 SHA 下的工作流入口和说明；任一文件缺失或 Manifest 未登记该能力，停止。若本仓尚无正确 gitlink，工作流来源 SHA 同时用作新 submodule 的固定 SHA；若已有正确 gitlink，则保留原 SHA，绝不把工作流来源 SHA 当成升级目标，后续 Manifest 和 Harness 工具都从现有固定版本读取。
+   验证返回唯一完整 40 位 SHA，将它记为“工作流来源 SHA”。向我报告该 SHA、URL、路径、当前分支、计划修改的 `.gitmodules`/gitlink/`AGENTS.md`/必要的 `.gitattributes` 和检查计划；本提示词已授权这些限定本地变更，无须等待第二次确认。网络失败、结果为空/不唯一或 SHA 无效时停止，不猜测版本。使用工作流来源 SHA 读取不可变版本的 `manifest.yml`，确认它登记了 `consumer.infrastructure-adoption` 且入口路径正确，再读取同一 SHA 下的工作流入口和说明；任一文件缺失或 Manifest 未登记该能力，停止。若本仓尚无正确 gitlink，工作流来源 SHA 同时用作新 submodule 的固定 SHA；若已有正确 gitlink，则保留原 SHA，绝不把工作流来源 SHA 当成升级目标，后续 Manifest 和 Harness 工具都从现有固定版本读取。
 
 4. 遵从本仓分支治理。已有规则时按规则操作；没有分支规则且当前在稳定分支时，自动创建本地短期分支：先执行 `git switch -c codex/chore-infrastructure-adoption`；若名称已占用，改用 `codex/chore-infrastructure-adoption-YYYYMMDD`，仍冲突则追加递增序号。不直接改稳定分支。**仅在尚未接入 submodule 时**，接入参数通过只读检查后运行：
 
@@ -78,11 +78,16 @@
 
 6. 读取固定 submodule 内的 `manifest.yml`、`docs/consumer-repository-bootstrap.md`、`docs/submodule-consumer-versioning.md` 和接入工作流入口。检查所有能力入口与 `uses` 引用；只按 Manifest 路由。
 
+   登记来源、任务和作品摘要前，按固定 Manifest 中的 `consumer.asset-bytes` 读取 `infrastructure/repository-management/tools/asset-bytes/README.md`，用其 `protect_asset_bytes.py --root .` 默认只读预览（该工具没有 `--dry-run` 参数）。核对 `planned_text`、保护目录和 `plan_sha256`，再以相同参数显式加 `--apply --expect-plan-sha256 <本次摘要>`，按本提示词已有本地授权继续，不覆盖原 `.gitattributes` 规则。默认保护 tasks/reports/courses/series/books；有自定义目录时用重复的 `--output-root` 提供完整目录集合，必须包含任务与实际来源/作品目录，而非只传新增目录。`context/`、`vendor/` 不在该工具可接管范围，需如实报告来源保护边界。
+
+   已存在相同保护段则保持不变；段落冲突、嵌套规则或其他配置覆盖时停止。用 `git check-attr text -- <实际文件>` 确认有效值为 `unset`。不得自动运行 `git add --renormalize`、重写历史来源/作品或批量更新旧摘要，也不改旧 Harness 标记。固定版本没有该能力时报告缺口，不从远端复制或自动升级，另行走受控更新。
+
 7. 提交前执行本地核对：
    - `git ls-files --stage -- <实际路径>` 显示 `160000` 和本轮解析的 SHA；
    - submodule HEAD 等于父仓 index 中 gitlink，submodule 自身干净；
    - `.gitmodules` 只有正确路径和 HTTPS URL；
    - 原 `AGENTS.md` 内容保留，新标记只出现一次；
+   - `.gitattributes` 原规则保留，实际来源/作品目录的 `text` 属性核对完成；未覆盖的来源目录明确记录；
    - `git diff --check` 通过，改动限于预期接入文件。
 
    新 gitlink 尚未进入父仓 HEAD 时，完整 preflight 会因 HEAD 没有 gitlink 而失败，这是提交前的预期状态。不得为了通过它而擅自提交。可运行 Manifest 校验器；环境缺 Ruby 时报告未执行。

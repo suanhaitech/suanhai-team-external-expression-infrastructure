@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN" data-deck-ratio="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="离线、响应式、可逐页打印的 HTML 演示稿" />
+    <title data-slot="page-title">[项目名称]｜阶段沟通</title>
+    <!-- SUANHAI_RUNTIME_STYLESHEETS -->
+    <!-- SUANHAI_COMPONENT_STYLESHEETS -->
+    <!-- SUANHAI_PAGE_STYLESHEETS -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="deck.css" />
+  </head>
+  <body class="deck-page-root">
+    <div class="deck-shell">
+      <header class="deck-header">
+        <p class="deck-brand" data-slot="brand">[小组或项目名称]</p>
+        <p class="deck-context" data-slot="header-context">[沟通场景] · [更新日期]</p>
+      </header>
+
+      <div class="deck-tools" data-deck-tools hidden>
+        <label class="deck-ratio-control" for="deck-ratio">
+          <span>画布</span>
+          <select id="deck-ratio" data-deck-ratio-select aria-label="页面比例">
+            <option value="auto">自动适配</option>
+            <option value="wide">16:9 横屏</option>
+            <option value="classic">4:3 标准</option>
+            <option value="portrait">9:16 竖屏</option>
+          </select>
+        </label>
+        <!-- SUANHAI_RUNTIME_TOOLBAR -->
+      </div>
+
+      <main class="deck-stage" data-deck-stage role="region" aria-label="演示文稿">
+        <!-- SUANHAI_DECK_PAGES -->
+      </main>
+
+      <aside class="deck-notes-panel" id="deck-notes-panel" data-deck-notes-panel hidden>
+        <h2>当前页讲者备注</h2>
+        <p data-deck-notes-content></p>
+      </aside>
+
+      <nav class="deck-controls" data-deck-controls aria-label="演示文稿控制" hidden>
+        <button class="deck-control-button" type="button" data-page-prev aria-label="上一页" disabled>
+          <span aria-hidden="true">←</span><span>上一页</span>
+        </button>
+        <div class="deck-page-picker">
+          <label class="deck-visually-hidden" for="deck-page-select">跳转到指定页</label>
+          <select id="deck-page-select" data-page-select></select>
+          <output data-page-position aria-live="polite" aria-atomic="true">01 / 01</output>
+        </div>
+        <button class="deck-control-button deck-control-button--notes" type="button" data-notes-toggle aria-expanded="false" aria-controls="deck-notes-panel">
+          <span>备注</span>
+        </button>
+        <button class="deck-control-button" type="button" data-page-next aria-label="下一页">
+          <span>下一页</span><span aria-hidden="true">→</span>
+        </button>
+        <div class="deck-progress" data-page-progress role="progressbar" aria-label="演示进度" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1">
+          <span data-page-progress-value></span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- SUANHAI_RUNTIME_SCRIPTS -->
+    <script src="deck.js"></script>
+  </body>
+</html>

@@ -43,7 +43,7 @@ class HtmlRuntimeKitContractTest(unittest.TestCase):
         catalog_text = CATALOG.read_text(encoding="utf-8")
         self.assertEqual(package["id"], "html.runtime-kit-v1")
         self.assertEqual(package["kind"], "runtime-kit")
-        self.assertEqual(package["version"], "1.0.0")
+        self.assertEqual(package["version"], "1.1.1")
         self.assertEqual(package["offline"], "true")
         self.assertIn("name: KaTeX", package_text)
         self.assertIn("id: html.runtime-kit-v1", catalog_text)
@@ -97,16 +97,16 @@ class HtmlRuntimeKitContractTest(unittest.TestCase):
 
     def test_print_styles_hide_toolbar_and_template_exposes_runtime_slots(self):
         css = (KIT / "runtime.css").read_text(encoding="utf-8")
-        report_css = (REPO_ROOT / "infrastructure/html/page-templates/project-report-v1/report.css").read_text(encoding="utf-8")
+        report_css = (REPO_ROOT / "infrastructure/html/templates/presets/project-report-v1/report.css").read_text(encoding="utf-8")
         self.assertRegex(css, r"@media\s+print[\s\S]*?\[data-runtime-toolbar\][\s\S]*?display:\s*none")
         self.assertIn(".runtime-toolbar__mode-buttons", css)
-        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", css)
-        self.assertIn(".runtime-toolbar__group--view .runtime-toolbar__button-label", css)
-        self.assertIn("overflow: hidden", css)
+        self.assertIn("min-height: 44px", css)
+        self.assertIn(".runtime-status", css)
+        # 小屏文字可发现性和控件边界由真实浏览器回归检查。
         self.assertNotIn(".report-grid", css)
         self.assertIn('html[data-layout-mode="narrow"] .report-grid > *', report_css)
         self.assertIn('grid-column: 1 / -1', report_css)
-        template = (REPO_ROOT / "infrastructure/html/page-templates/project-report-v1/index.html").read_text(encoding="utf-8")
+        template = (REPO_ROOT / "infrastructure/html/templates/presets/project-report-v1/index.html").read_text(encoding="utf-8")
         for marker in (
             "<!-- SUANHAI_RUNTIME_STYLESHEETS -->",
             "<!-- SUANHAI_RUNTIME_TOOLBAR -->",
