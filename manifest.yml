@@ -276,16 +276,17 @@ capabilities:
     kind: workflow
     path: workflows/submodule-update
     entrypoint: workflows/submodule-update/ENTRYPOINT.md
-    purpose: 在消费端以用户确认、短期分支和可审阅记录为边界，更新基础设施 submodule 的父仓 gitlink；不自动跟随远端、不直接修改 main
+    purpose: 在消费端以用户确认、短期分支和可审阅记录为边界更新基础设施 submodule，并在目标版本支持时受控同步根 AGENTS.md 的共享 Harness 区块；不自动跟随远端、不直接修改 main
     inputs:
       - 消费端父仓库根目录和 submodule 相对路径
       - 已验收的基础设施 commit、来源和兼容性说明
       - 用户对更新、提交和推送范围的明确确认
     outputs:
-      - 更新前后的 gitlink、预检快照和验证结果
-      - 消费端短期分支上的可审阅 gitlink 变更
+      - 更新前后的 gitlink、预检快照、Harness 同步状态和验证结果
+      - 消费端短期分支上的可审阅 gitlink 与经确认的 Harness 变更
     uses:
       - consumer.submodule-preflight
+      - consumer.infrastructure-adoption-harness
   - id: consumer.infrastructure-adoption-harness
     kind: tool
     path: infrastructure/repository-management/tools/infrastructure-adoption-harness

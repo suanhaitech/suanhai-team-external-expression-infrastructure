@@ -18,7 +18,7 @@
 
 - 更新前的父仓 commit、旧 gitlink、submodule HEAD 和预检快照；
 - 目标 commit、Manifest 能力清单和兼容性核对结果；
-- 父仓中只包含 submodule gitlink 的可审阅差异；
+- 父仓中可审阅的 submodule gitlink 差异，以及经用户确认后产生的 `AGENTS.md` 托管 Harness 差异；
 - 更新后的 preflight、Manifest 校验、消费端冒烟测试和必要真实任务试用结果；
 - 提交或 PR 建议。提交、推送和合并是否执行，以用户明确授权为准。
 
@@ -30,11 +30,12 @@
 4. 展示旧 SHA、新 SHA、能力变化、兼容性风险和将要修改的路径，等待用户确认；
 5. 按消费端总 Harness 选择集成基线：配置了 `develop` 时从最新 `develop` 创建短期分支；没有 `develop` 时从默认分支创建短期分支，不直接修改默认分支；明确 checkout 目标 commit；
 6. 更新父仓 gitlink，只暂存 submodule 路径；
-7. 在父仓提交前，核验 submodule HEAD、父仓 index 中 `160000` gitlink 和目标 SHA 一致，确认 submodule 自身干净，并运行可在当前环境执行的目标 Manifest 校验与消费端冒烟测试；
-8. 记录版本、测试和待解决问题；按用户授权提交、推送和创建 PR；
-9. 在父仓提交完成且工作区干净后，因 gitlink 已发生变化而重新运行完整 `consumer.submodule-preflight` 做更新后验证；若消费端已有 CI，等待其对新 gitlink 的递归 clone/接入检查，未配置时如实记录并保留本地验证；
-10. 只有提交已获授权且更新后 preflight 通过，才恢复触发更新的原顶层能力；若提交未获授权，保留现场并暂停原能力，等待后续授权提交和预检；
-11. 报告最终 gitlink、测试证据和未执行的外部动作。
+7. 在父仓提交前，核验 submodule HEAD、父仓 index 中 `160000` gitlink 和目标 SHA 一致，确认 submodule 自身干净；
+8. 如果候选 Manifest 注册 `consumer.infrastructure-adoption-harness`，从候选 submodule 运行安装器 dry-run，向用户展示 `planned_harness`、`planned_diff`、`agents_action` 和 `plan_sha256`；用户确认后以相同参数运行 `--apply --expect-plan-sha256 <plan_sha256>`。安装器只修改带标记区块；遇到冲突时停止，不手工覆盖；目标版本缺少该能力时不从其他 SHA 复制工具，并报告 Harness 无法同步；
+9. 运行可在当前环境执行的目标 Manifest 校验与消费端冒烟测试；记录旧/新版本、Harness 计划摘要、测试和待解决问题；按用户授权提交、推送和创建 PR；
+10. 在父仓提交完成且工作区干净后，因 gitlink 已发生变化而重新运行完整 `consumer.submodule-preflight` 做更新后验证；若消费端已有 CI，等待其对新 gitlink 的递归 clone/接入检查，未配置时如实记录并保留本地验证；
+11. 只有提交已获授权且更新后 preflight 通过，才恢复触发更新的原顶层能力；若提交未获授权，保留现场并暂停原能力，等待后续授权提交和预检；
+12. 报告最终 gitlink、Harness 同步状态、测试证据和未执行的外部动作。
 
 本地切分支或 checkout 不触发基础设施 CI。升级复用目标完整 SHA 已有的共享能力验证，消费端执行自己的 Manifest、预检和受影响能力冒烟，不重复基础设施全量回归；快速检查不能替代功能提交的完整回归。详见 [CI 与消费端验证](../../docs/ci-validation.md)。
 
